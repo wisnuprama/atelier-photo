@@ -30,12 +30,16 @@ function readPhotos(): ViewerPhoto[] {
 export function initViewer(): void {
   const photos = readPhotos();
   const lightbox = document.getElementById("lightbox");
-  const img = document.getElementById("lightboxImg") as HTMLImageElement | null;
+  const imgA = document.getElementById("lightboxImgA") as HTMLImageElement | null;
+  const imgB = document.getElementById("lightboxImgB") as HTMLImageElement | null;
   const stage = document.getElementById("imageStage");
   const panel = document.getElementById("exifPanel");
   const scrim = document.getElementById("exifScrim");
   const hint = document.getElementById("swipeHint");
-  if (!lightbox || !img || !stage || !panel || photos.length === 0) return;
+  if (!lightbox || !imgA || !imgB || !stage || !panel || photos.length === 0) return;
+
+  const layers: [HTMLImageElement, HTMLImageElement] = [imgA, imgB];
+  let front: 0 | 1 = 0;
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let index = 0;
@@ -65,25 +69,36 @@ export function initViewer(): void {
     const p = photos[index];
     if (!p) return;
 
+    const altTitle = p.title || "Photograph";
+    const backIdx = (front ^ 1) as 0 | 1;
     if (reduceMotion) {
-      img!.src = p.src;
-      img!.style.opacity = "1";
+      const cur = layers[front];
+      cur.src = p.src;
+      cur.alt = altTitle;
+      cur.style.opacity = "1";
+      layers[backIdx].style.opacity = "0";
     } else {
-      img!.style.opacity = "0";
+      const back = layers[backIdx];
+      const cur = layers[front];
       const pre = new Image();
       const show = (): void => {
-        img!.src = p.src;
-        img!.style.transition = "opacity .4s";
-        requestAnimationFrame(() => (img!.style.opacity = "1"));
+        back.src = p.src;
+        back.alt = altTitle;
+        back.style.transition = "opacity .4s";
+        cur.style.transition = "opacity .4s";
+        requestAnimationFrame(() => {
+          back.style.opacity = "1";
+          cur.style.opacity = "0";
+          front = backIdx;
+        });
       };
       pre.addEventListener("load", show, { once: true });
       pre.addEventListener("error", show, { once: true });
       pre.src = p.src;
     }
-    img!.alt = p.title || "Photograph";
 
-    const title = $("exifTitle");
-    if (title) title.textContent = p.title;
+    const titleEl = $("exifTitle");
+    if (titleEl) titleEl.textContent = p.title;
     const date = $("exifDate");
     if (date) date.textContent = p.date;
     const note = $("exifNote");
