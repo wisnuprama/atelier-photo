@@ -5,14 +5,18 @@ Personal, minimalist black-and-white photo gallery. A professional-but-personal
 
 ## Documentation
 
-- Requirements: `docs/projects/Photo Gallery Web/REQUIREMENTS.md`
-- Design prototype: `docs/projects/Photo Gallery Web/DESIGN.html`
+- Requirements: `docs/projects/20260621_bootstrap/REQUIREMENTS.md`
+- Design prototype: `docs/projects/20260621_bootstrap/DESIGN.html`
 
 **Rule — plan & design docs:**
 
-- When there is new project, create new folder under `docs/projects/`.
-- Each project plan/design documents live in each project folder, e.g.
-  `docs/projects/{project_name}/plans/`. When a new plan is approved, write it there; do not leave plan docs only in `~/.claude/plans`.
+- When there is a new project, create a new folder under `docs/projects/`.
+  Name it `YYYYMMDD_<short-kebab-name>` (creation date + a short slug), e.g.
+  `docs/projects/20260621_fullscreen-viewer-swipe-fix/`.
+- Each project's plan/design documents live in that project folder, with plans
+  under a `plans/` subfolder, e.g.
+  `docs/projects/{YYYYMMDD_name}/plans/{plan}.md`. When a new plan is approved,
+  write it there; do not leave plan docs only in `~/.claude/plans`.
 
 ## Stack
 
