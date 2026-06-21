@@ -21,7 +21,7 @@
     "fmt:check": "oxfmt --check src scripts",
     "db:migrate": "tsx --env-file-if-exists=.env src/server/db/migrate.ts",
     "db:seed": "tsx --env-file-if-exists=.env src/server/db/seed.ts",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "dependencies": {
     "@fastify/static": "^9.1.3",
