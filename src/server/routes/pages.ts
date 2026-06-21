@@ -8,7 +8,7 @@ import { esc } from "../views/util.js";
 export async function pageRoutes(app: FastifyInstance): Promise<void> {
   app.get("/", async (_request, reply) => {
     const html = layout({
-      title: "Atelier — Wisnu Photography",
+      title: "Still — Wisnu Photography",
       activeNav: "albums",
       body: albumsPage(listAlbums(), getPhotoYearRange()),
     });
@@ -19,7 +19,7 @@ export async function pageRoutes(app: FastifyInstance): Promise<void> {
     const album = getAlbumBySlug(request.params.slug);
     if (!album) {
       const html = layout({
-        title: "Not found — Atelier",
+        title: "Not found — Still",
         body: `<main class="max-w-[1200px] mx-auto px-5 sm:px-8 py-24">
           <p class="font-mono text-[10px] label text-stone uppercase">404</p>
           <h1 class="font-serif text-[32px] mt-3">Album not found</h1>
@@ -31,7 +31,7 @@ export async function pageRoutes(app: FastifyInstance): Promise<void> {
 
     const photos = listPhotos(album.id);
     const html = layout({
-      title: `${esc(album.name)} — Atelier`,
+      title: `${esc(album.name)} — Still`,
       body: showcasePage(album, photos),
     });
     return reply.type("text/html").send(html);

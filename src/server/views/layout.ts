@@ -52,7 +52,7 @@ export function layout(opts: LayoutOptions): string {
 <header id="nav" class="sticky top-0 z-40 bg-paper/90 backdrop-blur-sm border-b border-transparent transition-colors">
   <div class="max-w-[1400px] mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
     <a href="/" class="text-left">
-      <span class="font-serif text-[22px] leading-none tracking-[0.04em]">Atelier</span>
+      <span class="font-serif text-[22px] leading-none tracking-[0.04em]">Still</span>
       <span class="block font-mono text-[9px] label text-stone mt-0.5">WISNU PHOTOGRAPHY</span>
     </a>
 
