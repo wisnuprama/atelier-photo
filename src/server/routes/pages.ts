@@ -8,7 +8,7 @@ import { esc } from "../views/util.js";
 export async function pageRoutes(app: FastifyInstance): Promise<void> {
   app.get("/", async (_request, reply) => {
     const html = layout({
-      title: "Atelier — Photography",
+      title: "Atelier — Wisnu Photography",
       activeNav: "albums",
       body: albumsPage(listAlbums()),
     });

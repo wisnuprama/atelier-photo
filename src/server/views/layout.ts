@@ -9,10 +9,13 @@ export interface LayoutOptions {
   activeNav?: "albums" | null;
 }
 
-const NAV_LINKS: ReadonlyArray<{ href: string; label: string; key?: "albums" }> = [
+const NAV_LINKS: ReadonlyArray<{
+  href: string;
+  label: string;
+  key?: "albums";
+}> = [
   { href: "/", label: "Albums", key: "albums" },
-  { href: "#", label: "Exhibitions" },
-  { href: "#", label: "About" },
+  // { href: "#", label: "About" },
   { href: "#", label: "Contact" },
 ];
 
@@ -50,7 +53,7 @@ export function layout(opts: LayoutOptions): string {
   <div class="max-w-[1400px] mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
     <a href="/" class="text-left">
       <span class="font-serif text-[22px] leading-none tracking-[0.04em]">Atelier</span>
-      <span class="block font-mono text-[9px] label text-stone mt-0.5">PHOTOGRAPHY</span>
+      <span class="block font-mono text-[9px] label text-stone mt-0.5">WISNU PHOTOGRAPHY</span>
     </a>
 
     <nav class="hidden sm:flex items-center gap-9 font-sans text-[11px] label-tight uppercase">
@@ -70,6 +73,14 @@ export function layout(opts: LayoutOptions): string {
 </header>
 
 ${body}
+
+<footer class="border-t border-hairline mt-16">
+  <div class="max-w-[1400px] mx-auto px-5 sm:px-8 py-6">
+    <p class="font-mono text-[10px] label text-stone uppercase tracking-widest">
+      &copy; ${new Date().getFullYear()} Wisnu Pramadhitya Ramadhan
+    </p>
+  </div>
+</footer>
 
 <script type="module" src="/js/app.js"></script>
 </body>
