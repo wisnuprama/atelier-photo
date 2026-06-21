@@ -1,4 +1,4 @@
-# Photo Gallery Web
+# Atelier - Photo Gallery
 
 A personal, minimalist black-and-white photo gallery. A quiet, contemporary-gallery-style showcase for photographs — no SPA framework, no build complexity, just fast server-rendered pages where the photos are always the first class.
 
@@ -121,16 +121,16 @@ Requests whose timestamp is more than ±5 minutes from the server clock are reje
 Build and run with Podman:
 
 ```sh
-podman build -t photogalleryweb .
+podman build -t atelier-photo .
 podman run -d \
   -p 3000:3000 \
-  -v photogallery-data:/app/data \
+  -v atelier-photo-data:/app/data \
   -e ADMIN_KEY_ID=your-key-id \
   -e ADMIN_HMAC_SECRET=your-secret \
-  photogalleryweb
+  atelier-photo
 ```
 
-A quadlet unit file is provided in `podman/photogallery.container` for systemd-managed deployments.
+A quadlet unit file is provided in `podman/atelier-photo.container` for systemd-managed deployments. See [Self-hosting with Podman Quadlet](docs/wiki/self-hosting-podman-quadlet.md) for the full guide.
 
 ## Data layout
 

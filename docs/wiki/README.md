@@ -13,6 +13,11 @@ browse the gallery, how to add photographs, and how to run and maintain the app.
 4. [Running & maintenance](./running-and-maintenance.md) — commands, environment
    variables, where files live on disk, and resetting the database.
 
+### Deployment
+
+- [Self-hosting with Podman Quadlet](./self-hosting-podman-quadlet.md) — run the
+  gallery as a systemd service with Podman Quadlet.
+
 ### Developer notes
 
 - [Admin ingestion — multipart parsing & HMAC](./admin-ingestion-hmac.md) — why the

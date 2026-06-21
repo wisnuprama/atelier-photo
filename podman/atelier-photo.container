@@ -1,20 +1,20 @@
 # Quadlet unit — install to ~/.config/containers/systemd/ (rootless) or
 # /etc/containers/systemd/ (system), then `systemctl --user daemon-reload`
-# and `systemctl --user start photogallery`.
+# and `systemctl --user start atelier-photo`.
 [Unit]
-Description=Photo Gallery Web
+Description=Atelier Photo Gallery
 After=network-online.target
 Wants=network-online.target
 
 [Container]
-Image=localhost/photogallery:latest
+Image=localhost/atelier-photo:latest
 PublishPort=3000:3000
 
 # Persistent data (sqlite db + originals/ + derivatives/).
-Volume=photogallery-data:/app/data
+Volume=atelier-photo-data:/app/data
 
 # Admin ingestion secrets — provide via an environment file (never committed).
-EnvironmentFile=%h/.config/photogallery/photogallery.env
+EnvironmentFile=%h/.config/atelier-photo/atelier-photo.env
 Environment=NODE_ENV=production
 
 [Service]
