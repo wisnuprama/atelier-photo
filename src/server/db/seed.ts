@@ -1,4 +1,6 @@
+import { randomUUID } from "node:crypto";
 import sharp from "sharp";
+import { slugify } from "../services/photos.js";
 import { encodeThumbHash } from "../services/thumbhash.js";
 import { getDb } from "./index.js";
 import { migrate } from "./migrate.js";
@@ -121,15 +123,15 @@ async function seed(): Promise<void> {
   const db = getDb();
 
   const insertAlbum = db.prepare(
-    `INSERT INTO albums (id, name, description, cover_photo_id, position)
-     VALUES (@id, @name, @description, @coverPhotoId, @position)`,
+    `INSERT INTO albums (id, slug, name, description, cover_photo_id, position)
+     VALUES (@id, @slug, @name, @description, @coverPhotoId, @position)`,
   );
   const insertPhoto = db.prepare(
     `INSERT INTO photos
-      (id, album_id, filename, title, commentary, taken_at, width, height,
+      (id, album_id, filename, slug, title, commentary, taken_at, width, height,
        thumbhash, camera_body, lens, focal_length, aperture, shutter, iso)
      VALUES
-      (@id, @albumId, @filename, @title, @commentary, @takenAt, @width, @height,
+      (@id, @albumId, @filename, @slug, @title, @commentary, @takenAt, @width, @height,
        @thumbhash, @cameraBody, @lens, @focalLength, @aperture, @shutter, @iso)`,
   );
 
@@ -137,8 +139,13 @@ async function seed(): Promise<void> {
   db.exec("DELETE FROM photos; DELETE FROM albums;");
 
   for (const [position, album] of ALBUMS.entries()) {
+    // The album's array `id` is its readable slug; the DB id is random/opaque.
+    const albumDbId = randomUUID();
+    const albumSlug = album.id;
+
     interface SeedPhoto {
       id: string;
+      slug: string;
       filename: string;
       title: string;
       commentary: string;
@@ -153,6 +160,14 @@ async function seed(): Promise<void> {
       iso: string;
     }
     const photos: SeedPhoto[] = [];
+    const usedSlugs = new Set<string>();
+    const uniqueSlug = (base: string): string => {
+      let slug = base;
+      let n = 2;
+      while (usedSlugs.has(slug)) slug = `${base}-${n++}`;
+      usedSlugs.add(slug);
+      return slug;
+    };
 
     for (let i = 0; i < album.count; i++) {
       const ratio = RATIOS[i % RATIOS.length]!;
@@ -162,10 +177,12 @@ async function seed(): Promise<void> {
       const day = ((i * 7) % 27) + 1;
       const lo = 28 + ((i * 13) % 40);
       const hi = 150 + ((i * 23) % 80);
+      const title = album.titles[i % album.titles.length]!;
       photos.push({
-        id: `${album.id}-${i}`,
+        id: randomUUID(),
+        slug: uniqueSlug(slugify(title)),
         filename: `${album.prefix.toUpperCase()}_${1000 + i}.jpg`,
-        title: album.titles[i % album.titles.length]!,
+        title,
         commentary: NOTES[i % NOTES.length]!,
         takenAt: new Date(Date.UTC(year, month - 1, day)).toISOString(),
         width: w,
@@ -184,7 +201,8 @@ async function seed(): Promise<void> {
     const coverPhotoId = photos[0]?.id ?? null;
 
     insertAlbum.run({
-      id: album.id,
+      id: albumDbId,
+      slug: albumSlug,
       name: album.name,
       description: album.description,
       coverPhotoId,
@@ -194,8 +212,9 @@ async function seed(): Promise<void> {
     for (const p of photos) {
       insertPhoto.run({
         id: p.id,
-        albumId: album.id,
+        albumId: albumDbId,
         filename: p.filename,
+        slug: p.slug,
         title: p.title,
         commentary: p.commentary || null,
         takenAt: p.takenAt,

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "plansDirectory": "docs/projects",
+  "plansDirectory": "docs/projects/*/plans/",
   "permissions": {
     "allow": [
       "Bash(pnpm:*)",

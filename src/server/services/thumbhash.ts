@@ -1,3 +1,4 @@
+import sharp from "sharp";
 import { rgbaToThumbHash, thumbHashToRGBA } from "thumbhash";
 
 /**
@@ -13,6 +14,21 @@ export function encodeThumbHash(
 ): string {
   const hash = rgbaToThumbHash(width, height, rgba);
   return Buffer.from(hash).toString("base64");
+}
+
+/**
+ * Compute a base64 ThumbHash for an original image at ingest. Honors EXIF
+ * orientation and downscales to ≤100px on the longest edge (ThumbHash's input
+ * limit) before encoding.
+ */
+export async function computeThumbHash(original: Buffer): Promise<string> {
+  const { data, info } = await sharp(original)
+    .rotate()
+    .resize(100, 100, { fit: "inside", withoutEnlargement: true })
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  return encodeThumbHash(new Uint8Array(data), info.width, info.height);
 }
 
 /** Decode a stored base64 ThumbHash back to an RGBA bitmap (used in tests/SSR). */

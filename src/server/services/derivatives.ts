@@ -1,8 +1,10 @@
+import { mkdir, rename, writeFile } from "node:fs/promises";
+import sharp, { type Sharp } from "sharp";
 import { paths } from "../config.js";
 
 /**
  * Resized derivatives generated from each original at ingest. The timeline
- * serves `full`; the album grid can serve `thumb`.
+ * serves `full`; the album grid serves `thumb`.
  */
 export interface DerivativeSpec {
   readonly name: string;
@@ -17,19 +19,50 @@ export const DERIVATIVES: readonly DerivativeSpec[] = [
 
 export const DERIVATIVE_NAMES = new Set(DERIVATIVES.map((d) => d.name));
 
-/** Absolute path where a given photo's derivative variant is stored. */
-export function derivativePath(photoId: string, variant: string): string {
-  return `${paths.derivatives}/${photoId}/${variant}.webp`;
+/**
+ * Output formats emitted per size. Order is the negotiation preference: the
+ * media route walks this list (best → worst) and serves the first the client
+ * accepts. JPEG is the universal fallback every client understands.
+ */
+export interface DerivativeFormat {
+  readonly ext: "avif" | "webp" | "jpeg";
+  readonly mime: string;
+  readonly encode: (pipeline: Sharp) => Sharp;
+}
+
+export const DERIVATIVE_FORMATS: readonly DerivativeFormat[] = [
+  { ext: "avif", mime: "image/avif", encode: (p) => p.avif({ quality: 50 }) },
+  { ext: "webp", mime: "image/webp", encode: (p) => p.webp({ quality: 80 }) },
+  { ext: "jpeg", mime: "image/jpeg", encode: (p) => p.jpeg({ quality: 82, mozjpeg: true }) },
+] as const;
+
+/** Absolute path where a given photo's derivative variant/format is stored. */
+export function derivativePath(photoId: string, variant: string, ext: string): string {
+  return `${paths.derivatives}/${photoId}/${variant}.${ext}`;
 }
 
 /**
- * Generate all derivative sizes for an original buffer.
+ * Generate every size × format derivative for an original buffer.
  *
- * TODO(later pass): implement the real sharp pipeline — for each
- * {@link DerivativeSpec}, resize the original to `maxEdge`, encode to webp,
- * and write to {@link derivativePath}. Until then ingestion is stubbed and
- * the media route serves a generated placeholder.
+ * For each {@link DerivativeSpec} × {@link DerivativeFormat}: honor EXIF
+ * orientation (`.rotate()`), resize to fit `maxEdge` (never enlarging), encode,
+ * and write atomically (temp file + rename) so a crashed ingest can't leave a
+ * half-written file that `existsSync` would treat as valid.
  */
-export async function generateDerivatives(_photoId: string, _original: Buffer): Promise<void> {
-  throw new Error("generateDerivatives: not implemented (later pass)");
+export async function generateDerivatives(photoId: string, original: Buffer): Promise<void> {
+  await mkdir(`${paths.derivatives}/${photoId}`, { recursive: true });
+
+  for (const spec of DERIVATIVES) {
+    for (const format of DERIVATIVE_FORMATS) {
+      const pipeline = sharp(original)
+        .rotate()
+        .resize(spec.maxEdge, spec.maxEdge, { fit: "inside", withoutEnlargement: true });
+      const buffer = await format.encode(pipeline).toBuffer();
+
+      const finalPath = derivativePath(photoId, spec.name, format.ext);
+      const tmpPath = `${finalPath}.tmp`;
+      await writeFile(tmpPath, buffer);
+      await rename(tmpPath, finalPath);
+    }
+  }
 }

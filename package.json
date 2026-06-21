@@ -8,6 +8,8 @@
     "dev:server": "tsx watch --env-file-if-exists=.env src/server/server.ts",
     "dev:css": "tailwindcss -i src/client/css/app.css -o public/css/app.css --watch",
     "dev:js": "node scripts/esbuild.js --watch",
+    "dev:upload": "tsx --env-file-if-exists=.env scripts/upload-photo.ts",
+    "dev:album": "tsx --env-file-if-exists=.env scripts/create-album.ts",
     "build": "pnpm build:server && pnpm build:css && pnpm build:js",
     "build:server": "tsc -p tsconfig.json && node scripts/copy-assets.js",
     "build:css": "tailwindcss -i src/client/css/app.css -o public/css/app.css --minify",

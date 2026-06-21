@@ -2,7 +2,7 @@ import { Readable } from "node:stream";
 import busboy from "busboy";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { verifyHmac } from "../plugins/hmac-auth.js";
-import { ingestPhoto, type IngestResult } from "../services/photos.js";
+import { createAlbum, ingestPhoto, type IngestResult } from "../services/photos.js";
 
 const MAX_BODY = 60 * 1024 * 1024; // 60 MB per request
 
@@ -43,12 +43,24 @@ function parseMultipart(headers: FastifyRequest["headers"], raw: Buffer): Promis
  *   X-Signature  — hex HMAC-SHA256 over `${X-Timestamp}.` + <raw request body bytes>
  *                  using ADMIN_HMAC_SECRET. Requests outside a ±5 min window are rejected.
  *
- * iOS Shortcut contract for POST /admin/photos (multipart/form-data, bulk-capable):
- *   file        — original image part(s); the original filename is preserved and
- *                 re-uploading the same (albumId, filename) replaces the entry.
- *   albumId     — target album id (text field)
- *   title       — optional text field
- *   commentary  — optional text field
+ * iOS Shortcut contract (all requests multipart/form-data so the raw body feeds
+ * both HMAC verification and the parser):
+ *
+ *   POST /admin/albums — create a named album once.
+ *     name        — album name (text field, required)
+ *     slug        — optional explicit slug (derived from name otherwise)
+ *     description — optional text field
+ *     → 201 { id, slug }
+ *
+ *   GET  /api/albums   — list { id, slug, name } to pick a target slug from.
+ *
+ *   POST /admin/photos — ingest (bulk-capable).
+ *     file        — original image part(s); the original filename is preserved and
+ *                   re-uploading the same (album, filename) replaces the entry.
+ *     album       — target album slug (text field, optional; default "discover")
+ *     title       — optional text field
+ *     commentary  — optional text field
+ *     → 200 { status, created, replaced, photos }
  */
 export async function adminRoutes(app: FastifyInstance): Promise<void> {
   // Buffer the raw body so the exact bytes feed both HMAC verification and the
@@ -68,6 +80,22 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     verifyHmac(request, raw);
   });
 
+  app.post("/albums", async (request, reply) => {
+    const contentType = request.headers["content-type"] ?? "";
+    if (!contentType.includes("multipart/form-data") || !Buffer.isBuffer(request.body)) {
+      return reply.code(415).send({ error: "expected multipart/form-data" });
+    }
+
+    const { fields } = await parseMultipart(request.headers, request.body);
+    const name = fields.name?.trim();
+    if (!name) {
+      return reply.code(400).send({ error: "missing name field" });
+    }
+
+    const album = createAlbum({ name, slug: fields.slug, description: fields.description });
+    return reply.code(201).send(album);
+  });
+
   app.post("/photos", async (request, reply) => {
     const contentType = request.headers["content-type"] ?? "";
     if (!contentType.includes("multipart/form-data") || !Buffer.isBuffer(request.body)) {
@@ -75,28 +103,26 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     }
 
     const { fields, files } = await parseMultipart(request.headers, request.body);
-
-    const albumId = fields.albumId;
-    if (!albumId) {
-      return reply.code(400).send({ error: "missing albumId field" });
-    }
     if (files.length === 0) {
       return reply.code(400).send({ error: "no file parts in request" });
     }
 
-    const ingested: IngestResult[] = [];
+    const photos: IngestResult[] = [];
+    let created = 0;
+    let replaced = 0;
     for (const file of files) {
-      ingested.push(
-        await ingestPhoto({
-          albumId,
-          filename: file.filename,
-          title: fields.title,
-          commentary: fields.commentary,
-          data: file.data,
-        }),
-      );
+      const result = await ingestPhoto({
+        album: fields.album,
+        filename: file.filename,
+        title: fields.title,
+        commentary: fields.commentary,
+        data: file.data,
+      });
+      photos.push(result);
+      if (result.status === "created") created++;
+      else replaced++;
     }
 
-    return reply.code(200).send({ status: "ok", count: ingested.length, ingested });
+    return reply.code(200).send({ status: "ok", created, replaced, photos });
   });
 }

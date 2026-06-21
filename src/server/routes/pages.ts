@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { getAlbum, listAlbums, listPhotos } from "../services/photos.js";
+import { getAlbumBySlug, listAlbums, listPhotos } from "../services/photos.js";
 import { albumsPage } from "../views/albums.js";
 import { layout } from "../views/layout.js";
 import { showcasePage } from "../views/showcase.js";
@@ -15,8 +15,8 @@ export async function pageRoutes(app: FastifyInstance): Promise<void> {
     return reply.type("text/html").send(html);
   });
 
-  app.get<{ Params: { id: string } }>("/albums/:id", async (request, reply) => {
-    const album = getAlbum(request.params.id);
+  app.get<{ Params: { slug: string } }>("/albums/:slug", async (request, reply) => {
+    const album = getAlbumBySlug(request.params.slug);
     if (!album) {
       const html = layout({
         title: "Not found — Atelier",

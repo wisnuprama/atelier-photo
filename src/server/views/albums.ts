@@ -10,7 +10,7 @@ function albumCard(album: AlbumWithCover): string {
     : "";
 
   return `<a class="album group relative block w-full overflow-hidden bg-hairline"
-          style="aspect-ratio:3/4" href="/albums/${esc(album.id)}"
+          style="aspect-ratio:3/4" href="/albums/${esc(album.slug)}"
           aria-label="Open album ${esc(album.name)}">
     <div class="thumbhash absolute inset-0"${thumbAttr}></div>
     ${img}

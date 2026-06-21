@@ -1,0 +1,27 @@
+# Photo Gallery Web — User Guide
+
+A personal, minimalist black‑and‑white photo gallery. These pages explain how to
+browse the gallery, how to add photographs, and how to run and maintain the app.
+
+## Contents
+
+1. [Overview](./overview.md) — what the gallery is and how it's organized.
+2. [Browsing the gallery](./browsing-the-gallery.md) — albums, the photo timeline,
+   and the full‑screen viewer (keyboard, touch, photo info).
+3. [Adding photos](./adding-photos.md) — the admin ingest workflow: creating
+   albums, uploading from an iOS Shortcut or `curl`, and how replacing works.
+4. [Running & maintenance](./running-and-maintenance.md) — commands, environment
+   variables, where files live on disk, and resetting the database.
+
+### Developer notes
+
+- [Admin ingestion — multipart parsing & HMAC](./admin-ingestion-hmac.md) — why the
+  ingest route buffers the body and uses `busboy` rather than `@fastify/multipart`.
+
+## Quick orientation
+
+- **Visitors** browse albums at `/` and open an album at `/albums/<slug>`.
+- **You (the owner)** add photos by sending HMAC‑signed uploads to `/admin/photos`
+  — typically from an iOS Shortcut. See [Adding photos](./adding-photos.md).
+- Photos are the hero: the interface stays out of the way, everything is keyboard
+  navigable, and images load blur‑up with no layout shift.

@@ -133,7 +133,7 @@ export function showcasePage(album: AlbumWithCover, photos: Photo[]): string {
 
   return `<main id="showcaseView">
   <section class="max-w-[1200px] mx-auto px-5 sm:px-8 pt-12 sm:pt-16 pb-8 sm:pb-10">
-    <a href="/" class="inline-flex items-center gap-2 -ml-[22px] font-mono text-[10px] label text-stone hover:text-ink uppercase transition-colors">
+    <a href="/" class="inline-flex items-center gap-2 -ml-[16px] font-mono text-[10px] label text-stone hover:text-ink uppercase transition-colors">
       ${icon("arrow-left", { class: "w-3.5 h-3.5" })} Albums
     </a>
     <h2 id="showcaseTitle" class="font-serif text-[32px] sm:text-[44px] leading-tight mt-5">${esc(album.name)}</h2>
