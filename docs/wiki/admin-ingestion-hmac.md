@@ -5,7 +5,7 @@
 The bootstrap plan listed `@fastify/multipart`, but it parses from `request.raw`,
 which the HMAC hook must drain to sign the raw body — the two conflict. It was
 replaced with **`busboy`**: the admin route buffers the body once (via a
-content-type parser), and the *same bytes* feed both HMAC verification and
+content-type parser), and the _same bytes_ feed both HMAC verification and
 parsing. This matches the plan's "HMAC over raw body" contract correctly and
 isn't mentioned in `CLAUDE.md`, so there's no doc conflict.
 
@@ -26,7 +26,7 @@ An HTTP request body arrives as a Node `Readable` stream (`request.raw`, the
 `IncomingMessage`). It is **single-use**: once something reads it to the end, the
 bytes are gone — there is no rewind. Two things both need those bytes:
 
-1. **HMAC verification** needs the *complete raw body* — the signature is
+1. **HMAC verification** needs the _complete raw body_ — the signature is
    `HMAC(secret, "${timestamp}." + rawBodyBytes)`. You cannot verify a signature
    over data you have not fully read.
 2. **Multipart parsing** (busboy) needs to read the same body stream to pull out
@@ -47,7 +47,10 @@ The problem is what `@fastify/multipart` actually does:
   just sets a flag:
 
   ```js
-  function setMultipart (req, _payload, done) { req[kMultipart] = true; done() }
+  function setMultipart(req, _payload, done) {
+    req[kMultipart] = true;
+    done();
+  }
   ```
 
 - The real reading happens later, lazily, when the route calls `request.parts()`
@@ -61,7 +64,7 @@ The problem is what `@fastify/multipart` actually does:
   ```
 
 So when a `preParsing` hook drains the stream to compute the HMAC, it drains
-`request.raw`. The replacement stream it returns is used by *Fastify's* parser
+`request.raw`. The replacement stream it returns is used by _Fastify's_ parser
 layer — but busboy never looks there. It goes straight back to `request.raw`,
 now empty → **zero fields, zero files** (the `400 "missing albumId field"`
 response, even though the HMAC passed).
@@ -77,7 +80,7 @@ memory and stores it as `request.body` (a `Buffer`). A `Buffer` is not
 single-use — it can be read any number of times. So now:
 
 - the `preValidation` hook reads `request.body` to verify the HMAC, and
-- the handler reads the *same* `request.body` and feeds it to busboy
+- the handler reads the _same_ `request.body` and feeds it to busboy
   (`Readable.from(buffer).pipe(bb)`).
 
 One read of the network stream, two reads of the buffer — no contention, and the

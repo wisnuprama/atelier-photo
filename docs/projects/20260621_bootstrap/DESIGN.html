@@ -1,339 +1,543 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Atelier — Photography</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Atelier — Photography</title>
 
-<!-- Tailwind (Play CDN, for the MVP only — the real build uses compiled Tailwind) -->
-<script src="https://cdn.tailwindcss.com"></script>
-<!-- Lucide icons -->
-<script src="https://unpkg.com/lucide@latest"></script>
-<!-- Fonts: Cormorant Garamond (display, personal), Inter (UI labels), IBM Plex Mono (data/EXIF) -->
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+    <!-- Tailwind (Play CDN, for the MVP only — the real build uses compiled Tailwind) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Fonts: Cormorant Garamond (display, personal), Inter (UI labels), IBM Plex Mono (data/EXIF) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
 
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          paper: "#FFFFFF",
-          ink: "#0A0A0A",
-          stone: "#6B6B6B",
-          hairline: "#E6E6E6",
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              paper: "#FFFFFF",
+              ink: "#0A0A0A",
+              stone: "#6B6B6B",
+              hairline: "#E6E6E6",
+            },
+            fontFamily: {
+              serif: ['"Cormorant Garamond"', "Georgia", "serif"],
+              sans: ['"Inter"', "system-ui", "sans-serif"],
+              mono: ['"IBM Plex Mono"', "ui-monospace", "monospace"],
+            },
+          },
         },
-        fontFamily: {
-          serif: ['"Cormorant Garamond"', "Georgia", "serif"],
-          sans: ['"Inter"', "system-ui", "sans-serif"],
-          mono: ['"IBM Plex Mono"', "ui-monospace", "monospace"],
-        },
-      },
-    },
-  };
-</script>
+      };
+    </script>
 
-<style>
-  html { scroll-behavior: smooth; }
-  body { -webkit-font-smoothing: antialiased; }
+    <style>
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        -webkit-font-smoothing: antialiased;
+      }
 
-  /* Gallery wall-label letterspacing */
-  .label { letter-spacing: 0.18em; }
-  .label-tight { letter-spacing: 0.12em; }
+      /* Gallery wall-label letterspacing */
+      .label {
+        letter-spacing: 0.18em;
+      }
+      .label-tight {
+        letter-spacing: 0.12em;
+      }
 
-  /* Shimmer placeholder shown until an image decodes */
-  .shimmer {
-    background: linear-gradient(100deg, #f2f2f2 30%, #e9e9e9 50%, #f2f2f2 70%);
-    background-size: 200% 100%;
-    animation: shimmer 1.4s ease-in-out infinite;
-  }
-  @keyframes shimmer { to { background-position: -200% 0; } }
+      /* Shimmer placeholder shown until an image decodes */
+      .shimmer {
+        background: linear-gradient(100deg, #f2f2f2 30%, #e9e9e9 50%, #f2f2f2 70%);
+        background-size: 200% 100%;
+        animation: shimmer 1.4s ease-in-out infinite;
+      }
+      @keyframes shimmer {
+        to {
+          background-position: -200% 0;
+        }
+      }
 
-  .photo-img { opacity: 0; transition: opacity 0.7s ease; }
-  .photo-img.loaded { opacity: 1; }
+      .photo-img {
+        opacity: 0;
+        transition: opacity 0.7s ease;
+      }
+      .photo-img.loaded {
+        opacity: 1;
+      }
 
-  /* Album hover overlay */
-  .album-overlay { opacity: 0; transition: opacity 0.45s ease; }
-  .album:hover .album-overlay,
-  .album:focus-visible .album-overlay { opacity: 1; }
-  .album:hover .album-img { transform: scale(1.03); }
-  .album-img { transition: transform 1.1s cubic-bezier(0.2,0.7,0.2,1); }
+      /* Album hover overlay */
+      .album-overlay {
+        opacity: 0;
+        transition: opacity 0.45s ease;
+      }
+      .album:hover .album-overlay,
+      .album:focus-visible .album-overlay {
+        opacity: 1;
+      }
+      .album:hover .album-img {
+        transform: scale(1.03);
+      }
+      .album-img {
+        transition: transform 1.1s cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
 
-  /* Year rail */
-  .year-btn { transition: color 0.3s ease, opacity 0.3s ease; }
-  .year-btn[data-active="true"] { color: #0A0A0A; }
-  .year-btn[data-active="true"] .tick { width: 28px; background:#0A0A0A; }
-  .tick { transition: width 0.3s ease, background 0.3s ease; }
+      /* Year rail */
+      .year-btn {
+        transition:
+          color 0.3s ease,
+          opacity 0.3s ease;
+      }
+      .year-btn[data-active="true"] {
+        color: #0a0a0a;
+      }
+      .year-btn[data-active="true"] .tick {
+        width: 28px;
+        background: #0a0a0a;
+      }
+      .tick {
+        transition:
+          width 0.3s ease,
+          background 0.3s ease;
+      }
 
-  /* Lightbox */
-  .lightbox { transition: opacity 0.35s ease; }
+      /* Lightbox */
+      .lightbox {
+        transition: opacity 0.35s ease;
+      }
 
-  /* Vertical gesture hint */
-  @keyframes swipeBounce { 0%,100%{ transform: translateY(-4px);} 50%{ transform: translateY(4px);} }
-  .swipe-bounce { animation: swipeBounce 1.4s ease-in-out infinite; }
+      /* Vertical gesture hint */
+      @keyframes swipeBounce {
+        0%,
+        100% {
+          transform: translateY(-4px);
+        }
+        50% {
+          transform: translateY(4px);
+        }
+      }
+      .swipe-bounce {
+        animation: swipeBounce 1.4s ease-in-out infinite;
+      }
 
-  /* Visible keyboard focus everywhere */
-  :focus-visible { outline: 1.5px solid #0A0A0A; outline-offset: 3px; }
+      /* Visible keyboard focus everywhere */
+      :focus-visible {
+        outline: 1.5px solid #0a0a0a;
+        outline-offset: 3px;
+      }
 
-  /* Thin scrollbar inside EXIF panel */
-  .exif-scroll::-webkit-scrollbar { width: 0; }
+      /* Thin scrollbar inside EXIF panel */
+      .exif-scroll::-webkit-scrollbar {
+        width: 0;
+      }
 
-  @media (prefers-reduced-motion: reduce) {
-    *, ::before, ::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
-    .photo-img { opacity: 1 !important; }
-  }
-</style>
-</head>
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        ::before,
+        ::after {
+          animation: none !important;
+          transition: none !important;
+          scroll-behavior: auto !important;
+        }
+        .photo-img {
+          opacity: 1 !important;
+        }
+      }
+    </style>
+  </head>
 
-<body class="bg-paper text-ink font-sans antialiased">
+  <body class="bg-paper text-ink font-sans antialiased">
+    <!-- ============ NAV ============ -->
+    <header
+      id="nav"
+      class="sticky top-0 z-40 bg-paper/90 backdrop-blur-sm border-b border-transparent transition-colors"
+    >
+      <div class="max-w-[1400px] mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
+        <button onclick="goAlbums()" class="text-left">
+          <span class="font-serif text-[22px] leading-none tracking-[0.04em]">Atelier</span>
+          <span class="block font-mono text-[9px] label text-stone mt-0.5">PHOTOGRAPHY</span>
+        </button>
 
-<!-- ============ NAV ============ -->
-<header id="nav" class="sticky top-0 z-40 bg-paper/90 backdrop-blur-sm border-b border-transparent transition-colors">
-  <div class="max-w-[1400px] mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
-    <button onclick="goAlbums()" class="text-left">
-      <span class="font-serif text-[22px] leading-none tracking-[0.04em]">Atelier</span>
-      <span class="block font-mono text-[9px] label text-stone mt-0.5">PHOTOGRAPHY</span>
-    </button>
+        <!-- desktop links -->
+        <nav class="hidden sm:flex items-center gap-9 font-sans text-[11px] label-tight uppercase">
+          <button onclick="goAlbums()" class="text-ink hover:text-stone transition-colors">
+            Albums
+          </button>
+          <a href="#" class="text-stone hover:text-ink transition-colors">Exhibitions</a>
+          <a href="#" class="text-stone hover:text-ink transition-colors">About</a>
+          <a href="#" class="text-stone hover:text-ink transition-colors">Contact</a>
+        </nav>
 
-    <!-- desktop links -->
-    <nav class="hidden sm:flex items-center gap-9 font-sans text-[11px] label-tight uppercase">
-      <button onclick="goAlbums()" class="text-ink hover:text-stone transition-colors">Albums</button>
-      <a href="#" class="text-stone hover:text-ink transition-colors">Exhibitions</a>
-      <a href="#" class="text-stone hover:text-ink transition-colors">About</a>
-      <a href="#" class="text-stone hover:text-ink transition-colors">Contact</a>
-    </nav>
-
-    <!-- mobile toggle -->
-    <button class="sm:hidden p-1" onclick="toggleMobileMenu()" aria-label="Open menu">
-      <i data-lucide="menu" class="w-5 h-5"></i>
-    </button>
-  </div>
-
-  <!-- mobile menu -->
-  <div id="mobileMenu" class="hidden sm:hidden border-t border-hairline bg-paper">
-    <nav class="px-5 py-4 flex flex-col gap-4 font-sans text-[13px] label-tight uppercase">
-      <button onclick="goAlbums(); toggleMobileMenu()" class="text-left">Albums</button>
-      <a href="#" class="text-stone">Exhibitions</a>
-      <a href="#" class="text-stone">About</a>
-      <a href="#" class="text-stone">Contact</a>
-    </nav>
-  </div>
-</header>
-
-<!-- ============ ALBUMS VIEW ============ -->
-<main id="albumsView">
-  <section class="max-w-[1400px] mx-auto px-5 sm:px-8 pt-14 sm:pt-20 pb-6">
-    <p class="font-mono text-[10px] label text-stone uppercase">Selected Work · 2021—2026</p>
-    <h1 class="font-serif text-[34px] sm:text-[46px] leading-[1.05] mt-3 max-w-2xl">
-      A quiet record of light, place, and the moments between.
-    </h1>
-  </section>
-
-  <section class="max-w-[1400px] mx-auto px-5 sm:px-8 pb-24">
-    <div id="albumGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"></div>
-  </section>
-</main>
-
-<!-- ============ SHOWCASE VIEW ============ -->
-<main id="showcaseView" class="hidden">
-  <!-- album header -->
-  <section class="max-w-[1200px] mx-auto px-5 sm:px-8 pt-12 sm:pt-16 pb-8 sm:pb-10">
-    <button onclick="goAlbums()" class="inline-flex items-center gap-2 -ml-[22px] font-mono text-[10px] label text-stone hover:text-ink uppercase transition-colors">
-      <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Albums
-    </button>
-    <h2 id="showcaseTitle" class="font-serif text-[32px] sm:text-[44px] leading-tight mt-5"></h2>
-    <p id="showcaseMeta" class="font-mono text-[10px] label text-stone uppercase mt-3"></p>
-    <p id="showcaseDesc" class="font-sans text-[14px] text-stone leading-relaxed mt-5 max-w-xl"></p>
-  </section>
-
-  <!-- timeline + year rail -->
-  <div class="max-w-[1200px] mx-auto px-2 sm:px-4 pb-32 relative">
-    <div id="photoStream" class="flex flex-col gap-3 sm:gap-5"></div>
-
-    <!-- year rail (desktop) -->
-    <aside id="yearRail" class="hidden lg:flex flex-col gap-3 fixed right-8 top-1/2 -translate-y-1/2 z-30"></aside>
-  </div>
-
-  <!-- floating year chip (mobile) -->
-  <div id="yearChip" class="lg:hidden hidden fixed right-4 bottom-6 z-30 bg-ink text-paper font-mono text-[11px] px-3 py-1.5 rounded-full shadow-lg"></div>
-</main>
-
-<!-- ============ LIGHTBOX ============ -->
-<div id="lightbox" class="hidden fixed inset-0 z-50 bg-paper lightbox overscroll-none" role="dialog" aria-modal="true" aria-label="Photo viewer">
-  <div class="flex h-full flex-row">
-    <!-- image stage; extra top inset clears the host app's modal header, bottom inset clears the toolbar -->
-    <div id="imageStage" class="relative flex-1 flex items-center justify-center bg-paper min-h-0 touch-none px-3 sm:px-8 lg:px-10 pt-16 sm:pt-10 lg:pt-10 pb-24 sm:pb-20 lg:pb-20">
-
-      <img id="lightboxImg" src="" alt="" class="max-h-full max-w-full object-contain" />
-
-      <!-- one-time vertical-swipe coach mark (touch only) -->
-      <div id="swipeHint" class="lg:hidden pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-2 bg-paper/85 backdrop-blur-sm px-5 py-4 rounded-2xl shadow-sm opacity-0 transition-opacity duration-500">
-        <i data-lucide="chevrons-up-down" class="w-6 h-6 text-ink swipe-bounce"></i>
-        <span class="font-mono text-[9px] label uppercase text-stone">Swipe to browse</span>
+        <!-- mobile toggle -->
+        <button class="sm:hidden p-1" onclick="toggleMobileMenu()" aria-label="Open menu">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
       </div>
 
-      <!-- bottom toolbar: kept out of the app's top chrome + home-indicator zones -->
-      <div class="absolute inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 px-5 pt-8 pb-[max(14px,env(safe-area-inset-bottom))] bg-gradient-to-t from-paper via-paper/85 to-transparent">
-        <button onclick="closeLightbox()" class="p-1.5 text-ink/70 hover:text-ink transition-colors" aria-label="Close viewer">
-          <i data-lucide="x" class="w-6 h-6"></i>
-        </button>
+      <!-- mobile menu -->
+      <div id="mobileMenu" class="hidden sm:hidden border-t border-hairline bg-paper">
+        <nav class="px-5 py-4 flex flex-col gap-4 font-sans text-[13px] label-tight uppercase">
+          <button
+            onclick="
+              goAlbums();
+              toggleMobileMenu();
+            "
+            class="text-left"
+          >
+            Albums
+          </button>
+          <a href="#" class="text-stone">Exhibitions</a>
+          <a href="#" class="text-stone">About</a>
+          <a href="#" class="text-stone">Contact</a>
+        </nav>
+      </div>
+    </header>
 
-        <div class="flex items-center gap-5">
-          <button onclick="prevPhoto()" class="p-1.5 text-stone hover:text-ink transition-colors" aria-label="Previous photo">
-            <i data-lucide="chevron-up" class="w-6 h-6"></i>
-          </button>
-          <span id="lightboxCount" class="font-mono text-[10px] label text-stone min-w-[58px] text-center"></span>
-          <button onclick="nextPhoto()" class="p-1.5 text-stone hover:text-ink transition-colors" aria-label="Next photo">
-            <i data-lucide="chevron-down" class="w-6 h-6"></i>
-          </button>
+    <!-- ============ ALBUMS VIEW ============ -->
+    <main id="albumsView">
+      <section class="max-w-[1400px] mx-auto px-5 sm:px-8 pt-14 sm:pt-20 pb-6">
+        <p class="font-mono text-[10px] label text-stone uppercase">Selected Work · 2021—2026</p>
+        <h1 class="font-serif text-[34px] sm:text-[46px] leading-[1.05] mt-3 max-w-2xl">
+          A quiet record of light, place, and the moments between.
+        </h1>
+      </section>
+
+      <section class="max-w-[1400px] mx-auto px-5 sm:px-8 pb-24">
+        <div
+          id="albumGrid"
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+        ></div>
+      </section>
+    </main>
+
+    <!-- ============ SHOWCASE VIEW ============ -->
+    <main id="showcaseView" class="hidden">
+      <!-- album header -->
+      <section class="max-w-[1200px] mx-auto px-5 sm:px-8 pt-12 sm:pt-16 pb-8 sm:pb-10">
+        <button
+          onclick="goAlbums()"
+          class="inline-flex items-center gap-2 -ml-[22px] font-mono text-[10px] label text-stone hover:text-ink uppercase transition-colors"
+        >
+          <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Albums
+        </button>
+        <h2
+          id="showcaseTitle"
+          class="font-serif text-[32px] sm:text-[44px] leading-tight mt-5"
+        ></h2>
+        <p id="showcaseMeta" class="font-mono text-[10px] label text-stone uppercase mt-3"></p>
+        <p
+          id="showcaseDesc"
+          class="font-sans text-[14px] text-stone leading-relaxed mt-5 max-w-xl"
+        ></p>
+      </section>
+
+      <!-- timeline + year rail -->
+      <div class="max-w-[1200px] mx-auto px-2 sm:px-4 pb-32 relative">
+        <div id="photoStream" class="flex flex-col gap-3 sm:gap-5"></div>
+
+        <!-- year rail (desktop) -->
+        <aside
+          id="yearRail"
+          class="hidden lg:flex flex-col gap-3 fixed right-8 top-1/2 -translate-y-1/2 z-30"
+        ></aside>
+      </div>
+
+      <!-- floating year chip (mobile) -->
+      <div
+        id="yearChip"
+        class="lg:hidden hidden fixed right-4 bottom-6 z-30 bg-ink text-paper font-mono text-[11px] px-3 py-1.5 rounded-full shadow-lg"
+      ></div>
+    </main>
+
+    <!-- ============ LIGHTBOX ============ -->
+    <div
+      id="lightbox"
+      class="hidden fixed inset-0 z-50 bg-paper lightbox overscroll-none"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Photo viewer"
+    >
+      <div class="flex h-full flex-row">
+        <!-- image stage; extra top inset clears the host app's modal header, bottom inset clears the toolbar -->
+        <div
+          id="imageStage"
+          class="relative flex-1 flex items-center justify-center bg-paper min-h-0 touch-none px-3 sm:px-8 lg:px-10 pt-16 sm:pt-10 lg:pt-10 pb-24 sm:pb-20 lg:pb-20"
+        >
+          <img id="lightboxImg" src="" alt="" class="max-h-full max-w-full object-contain" />
+
+          <!-- one-time vertical-swipe coach mark (touch only) -->
+          <div
+            id="swipeHint"
+            class="lg:hidden pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-2 bg-paper/85 backdrop-blur-sm px-5 py-4 rounded-2xl shadow-sm opacity-0 transition-opacity duration-500"
+          >
+            <i data-lucide="chevrons-up-down" class="w-6 h-6 text-ink swipe-bounce"></i>
+            <span class="font-mono text-[9px] label uppercase text-stone">Swipe to browse</span>
+          </div>
+
+          <!-- bottom toolbar: kept out of the app's top chrome + home-indicator zones -->
+          <div
+            class="absolute inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 px-5 pt-8 pb-[max(14px,env(safe-area-inset-bottom))] bg-gradient-to-t from-paper via-paper/85 to-transparent"
+          >
+            <button
+              onclick="closeLightbox()"
+              class="p-1.5 text-ink/70 hover:text-ink transition-colors"
+              aria-label="Close viewer"
+            >
+              <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+
+            <div class="flex items-center gap-5">
+              <button
+                onclick="prevPhoto()"
+                class="p-1.5 text-stone hover:text-ink transition-colors"
+                aria-label="Previous photo"
+              >
+                <i data-lucide="chevron-up" class="w-6 h-6"></i>
+              </button>
+              <span
+                id="lightboxCount"
+                class="font-mono text-[10px] label text-stone min-w-[58px] text-center"
+              ></span>
+              <button
+                onclick="nextPhoto()"
+                class="p-1.5 text-stone hover:text-ink transition-colors"
+                aria-label="Next photo"
+              >
+                <i data-lucide="chevron-down" class="w-6 h-6"></i>
+              </button>
+            </div>
+
+            <button
+              onclick="toggleExif()"
+              class="lg:hidden p-1.5 text-ink/70 hover:text-ink transition-colors"
+              aria-label="Show photo info"
+            >
+              <i data-lucide="info" class="w-[22px] h-[22px]"></i>
+            </button>
+            <span class="hidden lg:block w-9" aria-hidden="true"></span>
+          </div>
         </div>
 
-        <button onclick="toggleExif()" class="lg:hidden p-1.5 text-ink/70 hover:text-ink transition-colors" aria-label="Show photo info">
-          <i data-lucide="info" class="w-[22px] h-[22px]"></i>
-        </button>
-        <span class="hidden lg:block w-9" aria-hidden="true"></span>
+        <!-- mobile scrim (tap to dismiss the info sheet) -->
+        <div
+          id="exifScrim"
+          class="lg:hidden hidden fixed inset-0 z-30 bg-ink/30"
+          onclick="toggleExif()"
+        ></div>
+
+        <!-- EXIF: slide-up sheet on mobile, static sidebar on desktop -->
+        <aside
+          id="exifPanel"
+          class="exif-scroll absolute inset-x-0 bottom-0 max-h-[78%] translate-y-full rounded-t-2xl shadow-[0_-8px_30px_rgba(0,0,0,0.12)] lg:static lg:translate-y-0 lg:max-h-none lg:w-[340px] lg:shrink-0 lg:rounded-none lg:shadow-none border-t lg:border-t-0 lg:border-l border-hairline bg-paper overflow-y-auto p-6 sm:p-8 transition-transform duration-300 ease-out z-40"
+        >
+          <!-- mobile sheet header -->
+          <div class="flex items-center justify-between mb-5 lg:hidden">
+            <span class="font-mono text-[9px] label text-stone uppercase">Photo Info</span>
+            <button
+              onclick="toggleExif()"
+              class="p-1 text-stone hover:text-ink transition-colors"
+              aria-label="Hide info"
+            >
+              <i data-lucide="chevron-down" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <h3 id="exifTitle" class="font-serif text-[24px] leading-tight"></h3>
+          <p id="exifDate" class="font-mono text-[10px] label text-stone uppercase mt-2"></p>
+
+          <p
+            id="exifNote"
+            class="font-sans text-[13.5px] text-stone leading-relaxed mt-6 italic"
+          ></p>
+
+          <div class="mt-8 pt-6 border-t border-hairline">
+            <p class="font-mono text-[9px] label text-stone uppercase mb-4">Capture Data</p>
+            <dl id="exifList" class="flex flex-col gap-0"></dl>
+          </div>
+        </aside>
       </div>
     </div>
 
-    <!-- mobile scrim (tap to dismiss the info sheet) -->
-    <div id="exifScrim" class="lg:hidden hidden fixed inset-0 z-30 bg-ink/30" onclick="toggleExif()"></div>
+    <script>
+      /* ------------------------------------------------------------------ *
+       *  MOCK DATA  (the production app pulls this from the Fastify/SQLite
+       *  API; here it stands in so the UI/UX is fully clickable)
+       * ------------------------------------------------------------------ */
+      const CAMERAS = [
+        { body: "Sony α7C II", lens: "FE 35mm f/1.8" },
+        { body: "Sony α7C II", lens: "FE 100-400mm GM" },
+        { body: "Sony α7 IV", lens: "FE 24-70mm GM II" },
+        { body: "Sony α7C II", lens: "FE 85mm f/1.4 GM" },
+      ];
+      const APERTURES = ["f/1.8", "f/2.0", "f/2.8", "f/4.0", "f/5.6", "f/8.0"];
+      const SHUTTERS = ["1/8000s", "1/2000s", "1/500s", "1/250s", "1/125s", "1/60s", "1/15s"];
+      const ISOS = ["100", "200", "400", "640", "1250", "3200"];
+      const FOCALS = ["35mm", "85mm", "135mm", "200mm", "400mm", "24mm"];
 
-    <!-- EXIF: slide-up sheet on mobile, static sidebar on desktop -->
-    <aside id="exifPanel" class="exif-scroll
-        absolute inset-x-0 bottom-0 max-h-[78%] translate-y-full rounded-t-2xl shadow-[0_-8px_30px_rgba(0,0,0,0.12)]
-        lg:static lg:translate-y-0 lg:max-h-none lg:w-[340px] lg:shrink-0 lg:rounded-none lg:shadow-none
-        border-t lg:border-t-0 lg:border-l border-hairline bg-paper overflow-y-auto
-        p-6 sm:p-8 transition-transform duration-300 ease-out z-40">
+      // portrait or landscape dimensions for natural variety in the stream
+      const RATIOS = [
+        [1600, 1067],
+        [1067, 1600],
+        [1600, 1200],
+        [1500, 1000],
+        [1080, 1350],
+      ];
 
-      <!-- mobile sheet header -->
-      <div class="flex items-center justify-between mb-5 lg:hidden">
-        <span class="font-mono text-[9px] label text-stone uppercase">Photo Info</span>
-        <button onclick="toggleExif()" class="p-1 text-stone hover:text-ink transition-colors" aria-label="Hide info">
-          <i data-lucide="chevron-down" class="w-5 h-5"></i>
-        </button>
-      </div>
+      function makePhotos(seedBase, count, titlePool) {
+        const out = [];
+        for (let i = 0; i < count; i++) {
+          const cam = CAMERAS[i % CAMERAS.length];
+          const [w, h] = RATIOS[i % RATIOS.length];
+          // spread dates across recent years, most recent first
+          const year = 2026 - Math.floor(i / 4);
+          const month = ((i * 5) % 12) + 1;
+          const day = ((i * 7) % 27) + 1;
+          out.push({
+            id: seedBase + "-" + i,
+            seed: seedBase + i,
+            w,
+            h,
+            title: titlePool[i % titlePool.length],
+            note:
+              i % 3 === 0
+                ? "Caught in passing on a slow afternoon — I kept the frame deliberately spare so the light could do the talking."
+                : i % 3 === 1
+                  ? ""
+                  : "One of a small series shot the same morning; this is the one that held still.",
+            date: new Date(year, month - 1, day),
+            filename: seedBase.toUpperCase() + "_" + String(1000 + i) + ".jpg",
+            camera: cam.body,
+            lens: cam.lens,
+            focal: FOCALS[i % FOCALS.length],
+            aperture: APERTURES[i % APERTURES.length],
+            shutter: SHUTTERS[i % SHUTTERS.length],
+            iso: ISOS[i % ISOS.length],
+          });
+        }
+        // sort by recently taken
+        out.sort((a, b) => b.date - a.date);
+        return out;
+      }
 
-      <h3 id="exifTitle" class="font-serif text-[24px] leading-tight"></h3>
-      <p id="exifDate" class="font-mono text-[10px] label text-stone uppercase mt-2"></p>
+      const ALBUMS = [
+        {
+          id: "cities",
+          name: "Cities After Dark",
+          cover: "city12",
+          desc: "Concrete, neon, and the long exposures that turn empty streets into something cinematic.",
+          photos: makePhotos("city", 14, [
+            "Crossing",
+            "Underpass",
+            "Late Window",
+            "Signal",
+            "Rooftop",
+            "Vacancy",
+          ]),
+        },
+        {
+          id: "coast",
+          name: "Coastlines",
+          cover: "coast8",
+          desc: "Where the land gives way. Mostly first light, mostly cold.",
+          photos: makePhotos("coast", 11, [
+            "Low Tide",
+            "Headland",
+            "Drift",
+            "Salt",
+            "Horizon Line",
+            "Pier",
+          ]),
+        },
+        {
+          id: "portrait",
+          name: "Portraits",
+          cover: "port4",
+          desc: "People, held briefly still.",
+          photos: makePhotos("port", 9, ["Held", "In Profile", "Studio Light", "Quiet", "Turn"]),
+        },
+        {
+          id: "mountains",
+          name: "High Ground",
+          cover: "mtn21",
+          desc: "Altitude, weather, and the patience it takes to wait one out.",
+          photos: makePhotos("mtn", 13, [
+            "Ridge",
+            "Whiteout",
+            "First Snow",
+            "Treeline",
+            "Saddle",
+            "Descent",
+          ]),
+        },
+        {
+          id: "still",
+          name: "Still Life",
+          cover: "still3",
+          desc: "Ordinary objects, given a wall and a window.",
+          photos: makePhotos("still", 8, ["Vessel", "Fold", "Glass", "Shadowbox", "Arrangement"]),
+        },
+        {
+          id: "streets",
+          name: "Streets",
+          cover: "street17",
+          desc: "Unposed, uninvited, the city as it actually moves.",
+          photos: makePhotos("street", 12, [
+            "Hurry",
+            "Awning",
+            "Reflection",
+            "Corner",
+            "Passing",
+            "Queue",
+          ]),
+        },
+      ];
 
-      <p id="exifNote" class="font-sans text-[13.5px] text-stone leading-relaxed mt-6 italic"></p>
+      const IMG = (seed, w, h) => `https://picsum.photos/seed/${seed}/${w}/${h}`;
 
-      <div class="mt-8 pt-6 border-t border-hairline">
-        <p class="font-mono text-[9px] label text-stone uppercase mb-4">Capture Data</p>
-        <dl id="exifList" class="flex flex-col gap-0"></dl>
-      </div>
-    </aside>
-  </div>
-</div>
+      /* ------------------------------------------------------------------ *
+       *  STATE + ELEMENTS
+       * ------------------------------------------------------------------ */
+      let currentAlbum = null;
+      let lightboxIndex = 0;
 
-<script>
-/* ------------------------------------------------------------------ *
- *  MOCK DATA  (the production app pulls this from the Fastify/SQLite
- *  API; here it stands in so the UI/UX is fully clickable)
- * ------------------------------------------------------------------ */
-const CAMERAS = [
-  { body: "Sony α7C II",  lens: "FE 35mm f/1.8" },
-  { body: "Sony α7C II",  lens: "FE 100-400mm GM" },
-  { body: "Sony α7 IV",   lens: "FE 24-70mm GM II" },
-  { body: "Sony α7C II",  lens: "FE 85mm f/1.4 GM" },
-];
-const APERTURES = ["f/1.8","f/2.0","f/2.8","f/4.0","f/5.6","f/8.0"];
-const SHUTTERS  = ["1/8000s","1/2000s","1/500s","1/250s","1/125s","1/60s","1/15s"];
-const ISOS      = ["100","200","400","640","1250","3200"];
-const FOCALS    = ["35mm","85mm","135mm","200mm","400mm","24mm"];
+      const albumsView = document.getElementById("albumsView");
+      const showcaseView = document.getElementById("showcaseView");
+      const lightbox = document.getElementById("lightbox");
 
-// portrait or landscape dimensions for natural variety in the stream
-const RATIOS = [[1600,1067],[1067,1600],[1600,1200],[1500,1000],[1080,1350]];
+      /* ------------------------------------------------------------------ *
+       *  LAZY LOADING  — IntersectionObserver swaps shimmer → real image
+       * ------------------------------------------------------------------ */
+      const lazyObserver = new IntersectionObserver(
+        (entries, obs) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            const img = entry.target;
+            img.src = img.dataset.src;
+            img.addEventListener("load", () => {
+              img.classList.add("loaded");
+              const ph = img.previousElementSibling;
+              if (ph && ph.classList.contains("shimmer")) ph.style.opacity = "0";
+            });
+            obs.unobserve(img);
+          });
+        },
+        { rootMargin: "400px 0px" },
+      );
 
-function makePhotos(seedBase, count, titlePool) {
-  const out = [];
-  for (let i = 0; i < count; i++) {
-    const cam = CAMERAS[i % CAMERAS.length];
-    const [w, h] = RATIOS[i % RATIOS.length];
-    // spread dates across recent years, most recent first
-    const year = 2026 - Math.floor(i / 4);
-    const month = ((i * 5) % 12) + 1;
-    const day = ((i * 7) % 27) + 1;
-    out.push({
-      id: seedBase + "-" + i,
-      seed: seedBase + i,
-      w, h,
-      title: titlePool[i % titlePool.length],
-      note: i % 3 === 0
-        ? "Caught in passing on a slow afternoon — I kept the frame deliberately spare so the light could do the talking."
-        : (i % 3 === 1 ? "" : "One of a small series shot the same morning; this is the one that held still."),
-      date: new Date(year, month - 1, day),
-      filename: seedBase.toUpperCase() + "_" + String(1000 + i) + ".jpg",
-      camera: cam.body,
-      lens: cam.lens,
-      focal: FOCALS[i % FOCALS.length],
-      aperture: APERTURES[i % APERTURES.length],
-      shutter: SHUTTERS[i % SHUTTERS.length],
-      iso: ISOS[i % ISOS.length],
-    });
-  }
-  // sort by recently taken
-  out.sort((a, b) => b.date - a.date);
-  return out;
-}
-
-const ALBUMS = [
-  { id:"cities", name:"Cities After Dark", cover:"city12",
-    desc:"Concrete, neon, and the long exposures that turn empty streets into something cinematic.",
-    photos: makePhotos("city", 14, ["Crossing","Underpass","Late Window","Signal","Rooftop","Vacancy"]) },
-  { id:"coast", name:"Coastlines", cover:"coast8",
-    desc:"Where the land gives way. Mostly first light, mostly cold.",
-    photos: makePhotos("coast", 11, ["Low Tide","Headland","Drift","Salt","Horizon Line","Pier"]) },
-  { id:"portrait", name:"Portraits", cover:"port4",
-    desc:"People, held briefly still.",
-    photos: makePhotos("port", 9, ["Held","In Profile","Studio Light","Quiet","Turn"]) },
-  { id:"mountains", name:"High Ground", cover:"mtn21",
-    desc:"Altitude, weather, and the patience it takes to wait one out.",
-    photos: makePhotos("mtn", 13, ["Ridge","Whiteout","First Snow","Treeline","Saddle","Descent"]) },
-  { id:"still", name:"Still Life", cover:"still3",
-    desc:"Ordinary objects, given a wall and a window.",
-    photos: makePhotos("still", 8, ["Vessel","Fold","Glass","Shadowbox","Arrangement"]) },
-  { id:"streets", name:"Streets", cover:"street17",
-    desc:"Unposed, uninvited, the city as it actually moves.",
-    photos: makePhotos("street", 12, ["Hurry","Awning","Reflection","Corner","Passing","Queue"]) },
-];
-
-const IMG = (seed, w, h) => `https://picsum.photos/seed/${seed}/${w}/${h}`;
-
-/* ------------------------------------------------------------------ *
- *  STATE + ELEMENTS
- * ------------------------------------------------------------------ */
-let currentAlbum = null;
-let lightboxIndex = 0;
-
-const albumsView   = document.getElementById("albumsView");
-const showcaseView = document.getElementById("showcaseView");
-const lightbox     = document.getElementById("lightbox");
-
-/* ------------------------------------------------------------------ *
- *  LAZY LOADING  — IntersectionObserver swaps shimmer → real image
- * ------------------------------------------------------------------ */
-const lazyObserver = new IntersectionObserver((entries, obs) => {
-  entries.forEach((entry) => {
-    if (!entry.isIntersecting) return;
-    const img = entry.target;
-    img.src = img.dataset.src;
-    img.addEventListener("load", () => {
-      img.classList.add("loaded");
-      const ph = img.previousElementSibling;
-      if (ph && ph.classList.contains("shimmer")) ph.style.opacity = "0";
-    });
-    obs.unobserve(img);
-  });
-}, { rootMargin: "400px 0px" });
-
-/* ------------------------------------------------------------------ *
- *  ALBUMS GRID
- * ------------------------------------------------------------------ */
-function renderAlbums() {
-  const grid = document.getElementById("albumGrid");
-  grid.innerHTML = ALBUMS.map((a) => `
+      /* ------------------------------------------------------------------ *
+       *  ALBUMS GRID
+       * ------------------------------------------------------------------ */
+      function renderAlbums() {
+        const grid = document.getElementById("albumGrid");
+        grid.innerHTML = ALBUMS.map(
+          (a) => `
     <button class="album group relative block w-full overflow-hidden bg-hairline"
             style="aspect-ratio:3/4" onclick="openAlbum('${a.id}')"
             aria-label="Open album ${a.name}">
@@ -344,25 +548,28 @@ function renderAlbums() {
         <span class="font-serif italic text-paper text-[26px] sm:text-[30px] text-center px-4">${a.name}</span>
       </div>
     </button>
-  `).join("");
+  `,
+        ).join("");
 
-  grid.querySelectorAll("img[data-src]").forEach((img) => lazyObserver.observe(img));
-  lucide.createIcons();
-}
+        grid.querySelectorAll("img[data-src]").forEach((img) => lazyObserver.observe(img));
+        lucide.createIcons();
+      }
 
-/* ------------------------------------------------------------------ *
- *  SHOWCASE  (timeline, 1 photo per row, year rail)
- * ------------------------------------------------------------------ */
-function openAlbum(id) {
-  currentAlbum = ALBUMS.find((a) => a.id === id);
-  document.getElementById("showcaseTitle").textContent = currentAlbum.name;
-  document.getElementById("showcaseDesc").textContent = currentAlbum.desc;
-  document.getElementById("showcaseMeta").textContent =
-    currentAlbum.photos.length + " Photographs";
+      /* ------------------------------------------------------------------ *
+       *  SHOWCASE  (timeline, 1 photo per row, year rail)
+       * ------------------------------------------------------------------ */
+      function openAlbum(id) {
+        currentAlbum = ALBUMS.find((a) => a.id === id);
+        document.getElementById("showcaseTitle").textContent = currentAlbum.name;
+        document.getElementById("showcaseDesc").textContent = currentAlbum.desc;
+        document.getElementById("showcaseMeta").textContent =
+          currentAlbum.photos.length + " Photographs";
 
-  const stream = document.getElementById("photoStream");
+        const stream = document.getElementById("photoStream");
 
-  stream.innerHTML = currentAlbum.photos.map((p, i) => `
+        stream.innerHTML = currentAlbum.photos
+          .map(
+            (p, i) => `
     <figure class="photo-row" data-year="${p.date.getFullYear()}">
       <button class="block w-full overflow-hidden bg-hairline relative group"
               style="aspect-ratio:${p.w}/${p.h}" onclick="openLightbox(${i})"
@@ -372,238 +579,287 @@ function openAlbum(id) {
              data-src="${IMG(p.seed, p.w, p.h)}" alt="${p.title}" />
       </button>
     </figure>
-  `).join("");
+  `,
+          )
+          .join("");
 
-  stream.querySelectorAll("img[data-src]").forEach((img) => lazyObserver.observe(img));
+        stream.querySelectorAll("img[data-src]").forEach((img) => lazyObserver.observe(img));
 
-  buildYearRail();
-  albumsView.classList.add("hidden");
-  showcaseView.classList.remove("hidden");
-  window.scrollTo(0, 0);
-  lucide.createIcons();
-}
+        buildYearRail();
+        albumsView.classList.add("hidden");
+        showcaseView.classList.remove("hidden");
+        window.scrollTo(0, 0);
+        lucide.createIcons();
+      }
 
-function goAlbums() {
-  showcaseView.classList.add("hidden");
-  albumsView.classList.remove("hidden");
-  document.getElementById("yearChip").classList.add("hidden");
-  window.scrollTo(0, 0);
-}
+      function goAlbums() {
+        showcaseView.classList.add("hidden");
+        albumsView.classList.remove("hidden");
+        document.getElementById("yearChip").classList.add("hidden");
+        window.scrollTo(0, 0);
+      }
 
-/* ----- year rail ----- */
-let yearSections = [];
-function buildYearRail() {
-  const years = [...new Set(currentAlbum.photos.map((p) => p.date.getFullYear()))]
-    .sort((a, b) => b - a);
-  const rail = document.getElementById("yearRail");
-  rail.innerHTML = years.map((y) => `
+      /* ----- year rail ----- */
+      let yearSections = [];
+      function buildYearRail() {
+        const years = [...new Set(currentAlbum.photos.map((p) => p.date.getFullYear()))].sort(
+          (a, b) => b - a,
+        );
+        const rail = document.getElementById("yearRail");
+        rail.innerHTML = years
+          .map(
+            (y) => `
     <button class="year-btn flex items-center gap-3 justify-end text-stone hover:text-ink"
             data-year="${y}" onclick="scrollToYear(${y})">
       <span class="font-mono text-[11px]">${y}</span>
       <span class="tick block h-px w-3 bg-stone"></span>
     </button>
-  `).join("");
+  `,
+          )
+          .join("");
 
-  // map each year to its first photo element
-  yearSections = years.map((y) => ({
-    year: y,
-    el: document.querySelector(`.photo-row[data-year="${y}"]`),
-  }));
-  updateYearRail();
-}
+        // map each year to its first photo element
+        yearSections = years.map((y) => ({
+          year: y,
+          el: document.querySelector(`.photo-row[data-year="${y}"]`),
+        }));
+        updateYearRail();
+      }
 
-function scrollToYear(y) {
-  const sec = yearSections.find((s) => s.year === y);
-  if (sec && sec.el) {
-    const top = sec.el.getBoundingClientRect().top + window.scrollY - 100;
-    window.scrollTo({ top, behavior: "smooth" });
-  }
-}
+      function scrollToYear(y) {
+        const sec = yearSections.find((s) => s.year === y);
+        if (sec && sec.el) {
+          const top = sec.el.getBoundingClientRect().top + window.scrollY - 100;
+          window.scrollTo({ top, behavior: "smooth" });
+        }
+      }
 
-function updateYearRail() {
-  if (showcaseView.classList.contains("hidden") || !yearSections.length) return;
-  const mid = window.scrollY + window.innerHeight * 0.4;
-  let active = yearSections[0].year;
-  for (const s of yearSections) {
-    if (s.el && s.el.offsetTop <= mid) active = s.year;
-  }
-  document.querySelectorAll("#yearRail .year-btn").forEach((b) => {
-    b.dataset.active = (Number(b.dataset.year) === active) ? "true" : "false";
-  });
-  const chip = document.getElementById("yearChip");
-  chip.textContent = active;
-  chip.classList.remove("hidden");
-}
+      function updateYearRail() {
+        if (showcaseView.classList.contains("hidden") || !yearSections.length) return;
+        const mid = window.scrollY + window.innerHeight * 0.4;
+        let active = yearSections[0].year;
+        for (const s of yearSections) {
+          if (s.el && s.el.offsetTop <= mid) active = s.year;
+        }
+        document.querySelectorAll("#yearRail .year-btn").forEach((b) => {
+          b.dataset.active = Number(b.dataset.year) === active ? "true" : "false";
+        });
+        const chip = document.getElementById("yearChip");
+        chip.textContent = active;
+        chip.classList.remove("hidden");
+      }
 
-/* ------------------------------------------------------------------ *
- *  LIGHTBOX  (fullscreen + EXIF sidebar, prev/next, swipe, keyboard)
- * ------------------------------------------------------------------ */
-function openLightbox(i) {
-  lightboxIndex = i;
-  closeExifSheet();          // always start with the info sheet down on mobile
-  renderLightbox();
-  lightbox.classList.remove("hidden");
-  document.body.style.overflow = "hidden";
-  lucide.createIcons();
-  showSwipeHint();
-}
+      /* ------------------------------------------------------------------ *
+       *  LIGHTBOX  (fullscreen + EXIF sidebar, prev/next, swipe, keyboard)
+       * ------------------------------------------------------------------ */
+      function openLightbox(i) {
+        lightboxIndex = i;
+        closeExifSheet(); // always start with the info sheet down on mobile
+        renderLightbox();
+        lightbox.classList.remove("hidden");
+        document.body.style.overflow = "hidden";
+        lucide.createIcons();
+        showSwipeHint();
+      }
 
-/* mobile EXIF sheet */
-function toggleExif() {
-  const panel = document.getElementById("exifPanel");
-  const scrim = document.getElementById("exifScrim");
-  const open = panel.classList.contains("translate-y-0");
-  if (open) {
-    panel.classList.remove("translate-y-0");
-    panel.classList.add("translate-y-full");
-    scrim.classList.add("hidden");
-  } else {
-    panel.classList.remove("translate-y-full");
-    panel.classList.add("translate-y-0");
-    scrim.classList.remove("hidden");
-  }
-}
-function closeExifSheet() {
-  const panel = document.getElementById("exifPanel");
-  panel.classList.remove("translate-y-0");
-  panel.classList.add("translate-y-full");
-  document.getElementById("exifScrim").classList.add("hidden");
-}
+      /* mobile EXIF sheet */
+      function toggleExif() {
+        const panel = document.getElementById("exifPanel");
+        const scrim = document.getElementById("exifScrim");
+        const open = panel.classList.contains("translate-y-0");
+        if (open) {
+          panel.classList.remove("translate-y-0");
+          panel.classList.add("translate-y-full");
+          scrim.classList.add("hidden");
+        } else {
+          panel.classList.remove("translate-y-full");
+          panel.classList.add("translate-y-0");
+          scrim.classList.remove("hidden");
+        }
+      }
+      function closeExifSheet() {
+        const panel = document.getElementById("exifPanel");
+        panel.classList.remove("translate-y-0");
+        panel.classList.add("translate-y-full");
+        document.getElementById("exifScrim").classList.add("hidden");
+      }
 
-function closeLightbox() {
-  closeExifSheet();
-  // sync the showcase scroll position to the photo we were viewing
-  const row = document.querySelectorAll(".photo-row")[lightboxIndex];
-  lightbox.classList.add("hidden");
-  document.body.style.overflow = "";
-  if (row) {
-    const top = row.getBoundingClientRect().top + window.scrollY - 90;
-    window.scrollTo({ top, behavior: "auto" });
-  }
-}
+      function closeLightbox() {
+        closeExifSheet();
+        // sync the showcase scroll position to the photo we were viewing
+        const row = document.querySelectorAll(".photo-row")[lightboxIndex];
+        lightbox.classList.add("hidden");
+        document.body.style.overflow = "";
+        if (row) {
+          const top = row.getBoundingClientRect().top + window.scrollY - 90;
+          window.scrollTo({ top, behavior: "auto" });
+        }
+      }
 
-function renderLightbox() {
-  const p = currentAlbum.photos[lightboxIndex];
-  const img = document.getElementById("lightboxImg");
-  img.style.opacity = "0";
-  const full = IMG(p.seed, p.w, p.h);
-  const tmp = new Image();
-  tmp.onload = () => { img.src = full; img.style.transition = "opacity .4s"; img.style.opacity = "1"; };
-  tmp.src = full;
-  img.alt = p.title;
+      function renderLightbox() {
+        const p = currentAlbum.photos[lightboxIndex];
+        const img = document.getElementById("lightboxImg");
+        img.style.opacity = "0";
+        const full = IMG(p.seed, p.w, p.h);
+        const tmp = new Image();
+        tmp.onload = () => {
+          img.src = full;
+          img.style.transition = "opacity .4s";
+          img.style.opacity = "1";
+        };
+        tmp.src = full;
+        img.alt = p.title;
 
-  document.getElementById("exifTitle").textContent = p.title;
-  document.getElementById("exifDate").textContent =
-    p.date.toLocaleDateString("en-US", { day:"numeric", month:"long", year:"numeric" });
+        document.getElementById("exifTitle").textContent = p.title;
+        document.getElementById("exifDate").textContent = p.date.toLocaleDateString("en-US", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
 
-  const noteEl = document.getElementById("exifNote");
-  noteEl.textContent = p.note || "";
-  noteEl.style.display = p.note ? "block" : "none";
+        const noteEl = document.getElementById("exifNote");
+        noteEl.textContent = p.note || "";
+        noteEl.style.display = p.note ? "block" : "none";
 
-  const rows = [
-    ["File", p.filename],
-    ["Camera", p.camera],
-    ["Lens", p.lens],
-    ["Focal length", p.focal],
-    ["Aperture", p.aperture],
-    ["Shutter", p.shutter],
-    ["ISO", p.iso],
-  ];
-  document.getElementById("exifList").innerHTML = rows.map(([k, v]) => `
+        const rows = [
+          ["File", p.filename],
+          ["Camera", p.camera],
+          ["Lens", p.lens],
+          ["Focal length", p.focal],
+          ["Aperture", p.aperture],
+          ["Shutter", p.shutter],
+          ["ISO", p.iso],
+        ];
+        document.getElementById("exifList").innerHTML = rows
+          .map(
+            ([k, v]) => `
     <div class="flex items-baseline justify-between gap-4 py-2 border-b border-hairline last:border-0">
       <dt class="font-mono text-[10px] label text-stone uppercase">${k}</dt>
       <dd class="font-mono text-[12px] text-ink text-right">${v}</dd>
     </div>
-  `).join("");
+  `,
+          )
+          .join("");
 
-  document.getElementById("lightboxCount").textContent =
-    String(lightboxIndex + 1).padStart(2, "0") + " / " +
-    String(currentAlbum.photos.length).padStart(2, "0");
-}
+        document.getElementById("lightboxCount").textContent =
+          String(lightboxIndex + 1).padStart(2, "0") +
+          " / " +
+          String(currentAlbum.photos.length).padStart(2, "0");
+      }
 
-function nextPhoto() {
-  lightboxIndex = (lightboxIndex + 1) % currentAlbum.photos.length;
-  renderLightbox();
-}
-function prevPhoto() {
-  lightboxIndex = (lightboxIndex - 1 + currentAlbum.photos.length) % currentAlbum.photos.length;
-  renderLightbox();
-}
+      function nextPhoto() {
+        lightboxIndex = (lightboxIndex + 1) % currentAlbum.photos.length;
+        renderLightbox();
+      }
+      function prevPhoto() {
+        lightboxIndex =
+          (lightboxIndex - 1 + currentAlbum.photos.length) % currentAlbum.photos.length;
+        renderLightbox();
+      }
 
-/* ----- keyboard + vertical swipe ----- */
-document.addEventListener("keydown", (e) => {
-  if (lightbox.classList.contains("hidden")) return;
-  if (e.key === "Escape") closeLightbox();
-  if (e.key === "ArrowDown" || e.key === "ArrowRight") nextPhoto();
-  if (e.key === "ArrowUp" || e.key === "ArrowLeft") prevPhoto();
-});
+      /* ----- keyboard + vertical swipe ----- */
+      document.addEventListener("keydown", (e) => {
+        if (lightbox.classList.contains("hidden")) return;
+        if (e.key === "Escape") closeLightbox();
+        if (e.key === "ArrowDown" || e.key === "ArrowRight") nextPhoto();
+        if (e.key === "ArrowUp" || e.key === "ArrowLeft") prevPhoto();
+      });
 
-/* ----- vertical swipe, hardened for iOS modal webviews ----- */
-const imageStage = document.getElementById("imageStage");
-const EDGE_TOP = 44;     // native sheet-dismiss grabber zone — leave it to the host
-const EDGE_BOTTOM = 24;  // iOS home-indicator zone
+      /* ----- vertical swipe, hardened for iOS modal webviews ----- */
+      const imageStage = document.getElementById("imageStage");
+      const EDGE_TOP = 44; // native sheet-dismiss grabber zone — leave it to the host
+      const EDGE_BOTTOM = 24; // iOS home-indicator zone
 
-let sY = null, sX = null, sT = 0, sActive = false;
+      let sY = null,
+        sX = null,
+        sT = 0,
+        sActive = false;
 
-imageStage.addEventListener("touchstart", (e) => {
-  const t = e.touches[0];
-  sActive = t.clientY > EDGE_TOP && t.clientY < window.innerHeight - EDGE_BOTTOM;
-  sY = t.clientY; sX = t.clientX; sT = Date.now();
-}, { passive: true });
+      imageStage.addEventListener(
+        "touchstart",
+        (e) => {
+          const t = e.touches[0];
+          sActive = t.clientY > EDGE_TOP && t.clientY < window.innerHeight - EDGE_BOTTOM;
+          sY = t.clientY;
+          sX = t.clientX;
+          sT = Date.now();
+        },
+        { passive: true },
+      );
 
-imageStage.addEventListener("touchmove", (e) => {
-  if (!sActive || sY === null) return;
-  const t = e.touches[0];
-  const dy = t.clientY - sY, dx = t.clientX - sX;
-  // own predominantly-vertical pans so the host's swipe-to-dismiss / rubber-band can't engage
-  if (Math.abs(dy) > Math.abs(dx)) e.preventDefault();
-}, { passive: false });
+      imageStage.addEventListener(
+        "touchmove",
+        (e) => {
+          if (!sActive || sY === null) return;
+          const t = e.touches[0];
+          const dy = t.clientY - sY,
+            dx = t.clientX - sX;
+          // own predominantly-vertical pans so the host's swipe-to-dismiss / rubber-band can't engage
+          if (Math.abs(dy) > Math.abs(dx)) e.preventDefault();
+        },
+        { passive: false },
+      );
 
-imageStage.addEventListener("touchend", (e) => {
-  if (sY === null) { sActive = false; return; }
-  const panel = document.getElementById("exifPanel");
-  const sheetOpen = panel.classList.contains("translate-y-0") && window.innerWidth < 1024;
-  const t = e.changedTouches[0];
-  const dy = t.clientY - sY, dx = t.clientX - sX, dt = Math.max(Date.now() - sT, 1);
-  const decisive =
-    sActive && !sheetOpen &&
-    Math.abs(dy) > Math.abs(dx) * 1.2 &&          // clearly vertical, not diagonal
-    Math.abs(dy) > 50 &&                          // far enough to count
-    (Math.abs(dy) / dt > 0.3 || Math.abs(dy) > 130); // a flick, or a long deliberate drag
-  if (decisive) {
-    dy < 0 ? nextPhoto() : prevPhoto();           // up → next, down → previous
-    document.getElementById("swipeHint").classList.add("opacity-0");
-  }
-  sY = null; sActive = false;
-}, { passive: false });
+      imageStage.addEventListener(
+        "touchend",
+        (e) => {
+          if (sY === null) {
+            sActive = false;
+            return;
+          }
+          const panel = document.getElementById("exifPanel");
+          const sheetOpen = panel.classList.contains("translate-y-0") && window.innerWidth < 1024;
+          const t = e.changedTouches[0];
+          const dy = t.clientY - sY,
+            dx = t.clientX - sX,
+            dt = Math.max(Date.now() - sT, 1);
+          const decisive =
+            sActive &&
+            !sheetOpen &&
+            Math.abs(dy) > Math.abs(dx) * 1.2 && // clearly vertical, not diagonal
+            Math.abs(dy) > 50 && // far enough to count
+            (Math.abs(dy) / dt > 0.3 || Math.abs(dy) > 130); // a flick, or a long deliberate drag
+          if (decisive) {
+            dy < 0 ? nextPhoto() : prevPhoto(); // up → next, down → previous
+            document.getElementById("swipeHint").classList.add("opacity-0");
+          }
+          sY = null;
+          sActive = false;
+        },
+        { passive: false },
+      );
 
-/* one-time gesture coach mark */
-let hintTimer = null;
-function showSwipeHint() {
-  const hint = document.getElementById("swipeHint");
-  clearTimeout(hintTimer);
-  hint.classList.remove("opacity-0");
-  hintTimer = setTimeout(() => hint.classList.add("opacity-0"), 2600);
-}
+      /* one-time gesture coach mark */
+      let hintTimer = null;
+      function showSwipeHint() {
+        const hint = document.getElementById("swipeHint");
+        clearTimeout(hintTimer);
+        hint.classList.remove("opacity-0");
+        hintTimer = setTimeout(() => hint.classList.add("opacity-0"), 2600);
+      }
 
-/* ------------------------------------------------------------------ *
- *  MISC: mobile menu, nav border on scroll, year tracking
- * ------------------------------------------------------------------ */
-function toggleMobileMenu() {
-  document.getElementById("mobileMenu").classList.toggle("hidden");
-}
+      /* ------------------------------------------------------------------ *
+       *  MISC: mobile menu, nav border on scroll, year tracking
+       * ------------------------------------------------------------------ */
+      function toggleMobileMenu() {
+        document.getElementById("mobileMenu").classList.toggle("hidden");
+      }
 
-const navEl = document.getElementById("nav");
-window.addEventListener("scroll", () => {
-  navEl.classList.toggle("border-hairline", window.scrollY > 8);
-  updateYearRail();
-}, { passive: true });
+      const navEl = document.getElementById("nav");
+      window.addEventListener(
+        "scroll",
+        () => {
+          navEl.classList.toggle("border-hairline", window.scrollY > 8);
+          updateYearRail();
+        },
+        { passive: true },
+      );
 
-/* ------------------------------------------------------------------ *
- *  INIT
- * ------------------------------------------------------------------ */
-renderAlbums();
-lucide.createIcons();
-</script>
-</body>
+      /* ------------------------------------------------------------------ *
+       *  INIT
+       * ------------------------------------------------------------------ */
+      renderAlbums();
+      lucide.createIcons();
+    </script>
+  </body>
 </html>

@@ -7,11 +7,12 @@ truth: [`REQUIREMENTS.md`](./REQUIREMENTS.md) and the clickable prototype
 [`DESIGN.html`](./DESIGN.html) (Tailwind Play CDN + vanilla JS + mock data).
 
 This pass is **foundation only**: stand up the project skeleton, toolchain, server,
-DB schema, build pipeline, and container so the app runs end-to-end with *stubbed*
+DB schema, build pipeline, and container so the app runs end-to-end with _stubbed_
 features. Feature logic (real ingestion, derivative generation, full viewer behavior)
 is scaffolded with clear interfaces + TODOs, to be filled in later passes.
 
 Decisions locked with the user:
+
 - **Scope:** foundation/scaffolding only.
 - **Frontend:** vanilla TS + **Fastify SSR** (server renders HTML; vanilla client TS
   for interactivity), compiled Tailwind. No SPA framework — honors the
@@ -84,9 +85,9 @@ podman/photogallery.container   # quadlet
 
 - `albums(id PK, name, description, cover_photo_id, position, created_at)`
 - `photos(id PK, album_id FK, filename, title, commentary, taken_at, width, height,
-  thumbhash, camera_body, lens, focal_length, aperture, shutter, iso, created_at,
-  UNIQUE(album_id, filename))` — `taken_at` drives most-recent sort; `width/height`
-  + `thumbhash` reserve the CLS-free box.
+thumbhash, camera_body, lens, focal_length, aperture, shutter, iso, created_at,
+UNIQUE(album_id, filename))` — `taken_at` drives most-recent sort; `width/height`
+  - `thumbhash` reserve the CLS-free box.
 - Index: `(album_id, taken_at DESC)`.
 - "Replace on same filename" = upsert keyed on `UNIQUE(album_id, filename)`.
 
