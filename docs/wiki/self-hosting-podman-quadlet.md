@@ -3,10 +3,23 @@
 Quadlet integrates Podman containers with systemd so the gallery starts on boot,
 restarts on failure, and is managed with standard `systemctl` commands.
 
-## 1. Build the image
+## 1. Get the image
+
+Choose one option. The `Image=` line in the quadlet unit must match whichever
+tag you use.
+
+**Option A — pull from GitHub Container Registry:**
+
+```sh
+podman pull ghcr.io/wisnuprama/atelier-photo:latest
+# quadlet: Image=ghcr.io/wisnuprama/atelier-photo:latest
+```
+
+**Option B — build locally** from the source:
 
 ```sh
 podman build -t localhost/atelier-photo:latest .
+# quadlet: Image=localhost/atelier-photo:latest
 ```
 
 ## 2. Create the environment file
@@ -26,6 +39,8 @@ chmod 600 ~/.config/atelier-photo/atelier-photo.env
 ## 3. Install the quadlet unit
 
 Copy the provided unit file to the systemd container drop-in directory:
+
+Quadlet file: [atelier-photo.container](podman/atelier-photo.container)
 
 ```sh
 # Rootless (recommended — runs as your user)
@@ -68,6 +83,15 @@ podman exec -it systemd-atelier-photo node dist/server/db/migrate.js
 | `podman volume inspect atelier-photo-data` | Inspect the data volume |
 
 ## Updating
+
+**From ghcr.io:**
+
+```sh
+podman pull ghcr.io/wisnuprama/atelier-photo:latest
+systemctl --user restart atelier-photo
+```
+
+**From source:**
 
 ```sh
 podman build -t localhost/atelier-photo:latest .

@@ -17,6 +17,8 @@ browse the gallery, how to add photographs, and how to run and maintain the app.
 
 - [Self-hosting with Podman Quadlet](./self-hosting-podman-quadlet.md) — run the
   gallery as a systemd service with Podman Quadlet.
+- [Publishing the image to ghcr.io](./publishing-image-to-ghcr.md) — build and
+  push the container image to GitHub Container Registry for server pulls.
 
 ### Developer notes
 

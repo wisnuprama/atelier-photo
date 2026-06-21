@@ -7,7 +7,7 @@ After=network-online.target
 Wants=network-online.target
 
 [Container]
-Image=localhost/atelier-photo:latest
+Image=ghcr.io/wisnuprama/atelier-photo:latest
 PublishPort=3000:3000
 
 # Persistent data (sqlite db + originals/ + derivatives/).
