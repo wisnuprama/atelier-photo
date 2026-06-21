@@ -12,7 +12,10 @@
       "Bash(npx tailwindcss:*)",
       "Bash(npx esbuild:*)",
       "Bash(podman build:*)",
-      "Bash(podman run:*)"
+      "Bash(podman run:*)",
+      "Bash(asdf --version)",
+      "Bash(asdf plugin *)",
+      "Bash(asdf list *)"
     ]
   }
 }

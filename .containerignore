@@ -1,0 +1,10 @@
+node_modules
+dist
+public/css
+public/js
+data
+.git
+*.log
+.DS_Store
+.env
+.env.*

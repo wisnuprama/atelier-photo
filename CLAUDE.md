@@ -11,8 +11,7 @@ Personal, minimalist black-and-white photo gallery. A professional-but-personal
 **Rule — plan & design docs:** 
 - When there is new project, create new folder under `docs/projects/`.
 - Each project plan/design documents live in each project folder, e.g.
-  `docs/projects/{project_name}/`. When a new plan is approved, write it there (e.g.
-  `PLAN.md`); do not leave plan docs only in `~/.claude/plans`. 
+  `docs/projects/{project_name}/plans/`. When a new plan is approved, write it there; do not leave plan docs only in `~/.claude/plans`. 
 
 ## Stack
 

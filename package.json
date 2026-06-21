@@ -1,0 +1,53 @@
+{
+  "name": "photogalleryweb",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.17.1",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n server,css,js -c blue,magenta,green \"pnpm dev:server\" \"pnpm dev:css\" \"pnpm dev:js\"",
+    "dev:server": "tsx watch --env-file-if-exists=.env src/server/server.ts",
+    "dev:css": "tailwindcss -i src/client/css/app.css -o public/css/app.css --watch",
+    "dev:js": "node scripts/esbuild.js --watch",
+    "build": "pnpm build:server && pnpm build:css && pnpm build:js",
+    "build:server": "tsc -p tsconfig.json && node scripts/copy-assets.js",
+    "build:css": "tailwindcss -i src/client/css/app.css -o public/css/app.css --minify",
+    "build:js": "node scripts/esbuild.js",
+    "start": "node dist/server/server.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint",
+    "fmt": "oxfmt src scripts",
+    "fmt:check": "oxfmt --check src scripts",
+    "db:migrate": "tsx --env-file-if-exists=.env src/server/db/migrate.ts",
+    "db:seed": "tsx --env-file-if-exists=.env src/server/db/seed.ts"
+  },
+  "dependencies": {
+    "@fastify/static": "^9.1.3",
+    "better-sqlite3": "^12.11.1",
+    "busboy": "^1.6.0",
+    "exifr": "^7.1.3",
+    "fastify": "^5.8.5",
+    "lucide-static": "^1.21.0",
+    "sharp": "^0.35.2",
+    "thumbhash": "^0.1.1"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["better-sqlite3", "esbuild", "sharp", "@parcel/watcher"]
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.1",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/busboy": "^1.5.4",
+    "@types/node": "^24.0.0",
+    "concurrently": "^10.0.3",
+    "esbuild": "^0.28.1",
+    "oxfmt": "^0.55.0",
+    "oxlint": "^1.70.0",
+    "tailwindcss": "^4.3.1",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
+  }
+}
