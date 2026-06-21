@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { getAlbumBySlug, listAlbums, listPhotos } from "../services/photos.js";
+import { getAlbumBySlug, getPhotoYearRange, listAlbums, listPhotos } from "../services/photos.js";
 import { albumsPage } from "../views/albums.js";
 import { layout } from "../views/layout.js";
 import { showcasePage } from "../views/showcase.js";
@@ -10,7 +10,7 @@ export async function pageRoutes(app: FastifyInstance): Promise<void> {
     const html = layout({
       title: "Atelier — Wisnu Photography",
       activeNav: "albums",
-      body: albumsPage(listAlbums()),
+      body: albumsPage(listAlbums(), getPhotoYearRange()),
     });
     return reply.type("text/html").send(html);
   });

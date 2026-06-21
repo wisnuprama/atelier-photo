@@ -20,14 +20,23 @@ function albumCard(album: AlbumWithCover): string {
   </a>`;
 }
 
-export function albumsPage(albums: AlbumWithCover[]): string {
+export function albumsPage(
+  albums: AlbumWithCover[],
+  yearRange: Readonly<{ oldest: number; newest: number }> | null,
+): string {
   const grid = albums.length
     ? albums.map(albumCard).join("\n")
     : `<p class="font-mono text-[11px] label text-stone uppercase col-span-full">No albums yet.</p>`;
 
+  const yearLabel = yearRange
+    ? yearRange.oldest === yearRange.newest
+      ? `Selected Work · ${yearRange.oldest}`
+      : `Selected Work · ${yearRange.oldest}—${yearRange.newest}`
+    : "Selected Work";
+
   return `<main id="albumsView">
   <section class="max-w-[1400px] mx-auto px-5 sm:px-8 pt-14 sm:pt-20 pb-6">
-    <p class="font-mono text-[10px] label text-stone uppercase">Selected Work · 2021—2026</p>
+    <p class="font-mono text-[10px] label text-stone uppercase">${yearLabel}</p>
     <h1 class="font-serif text-[34px] sm:text-[46px] leading-[1.05] mt-3 max-w-2xl">
       A quiet record of light, place, and the moments between.
     </h1>

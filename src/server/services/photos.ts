@@ -152,6 +152,23 @@ function toPhoto(row: PhotoRow): Photo {
   };
 }
 
+let yearRangeCache: Readonly<{ oldest: number; newest: number }> | null = null;
+
+export function getPhotoYearRange(): Readonly<{ oldest: number; newest: number }> | null {
+  if (yearRangeCache) return yearRangeCache;
+  const row = getDb()
+    .prepare<[], { oldest: string | null; newest: string | null }>(
+      `SELECT MIN(taken_at) AS oldest, MAX(taken_at) AS newest FROM photos WHERE taken_at IS NOT NULL`,
+    )
+    .get();
+  if (!row?.oldest || !row?.newest) return null;
+  yearRangeCache = Object.freeze({
+    oldest: new Date(row.oldest).getUTCFullYear(),
+    newest: new Date(row.newest).getUTCFullYear(),
+  });
+  return yearRangeCache;
+}
+
 export function listAlbums(): AlbumWithCover[] {
   const rows = getDb()
     .prepare<[], AlbumRow>(
@@ -388,5 +405,6 @@ export async function ingestPhoto(input: IngestPhotoInput): Promise<IngestResult
     });
   })();
 
+  yearRangeCache = null;
   return { id: photoId, slug, status };
 }
