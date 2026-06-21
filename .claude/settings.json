@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "plansDirectory": "docs/projects",
+  "permissions": {
+    "allow": [
+      "Bash(pnpm:*)",
+      "Bash(node:*)",
+      "Bash(npx tsc:*)",
+      "Bash(tsc:*)",
+      "Bash(oxlint:*)",
+      "Bash(oxfmt:*)",
+      "Bash(npx tailwindcss:*)",
+      "Bash(npx esbuild:*)",
+      "Bash(podman build:*)",
+      "Bash(podman run:*)"
+    ]
+  }
+}

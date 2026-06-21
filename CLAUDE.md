@@ -1,0 +1,51 @@
+# Photo Gallery Web
+
+Personal, minimalist black-and-white photo gallery. A professional-but-personal
+"contemporary gallery building" for showcasing photographs.
+
+## Documentation
+
+- Requirements: `docs/projects/Photo Gallery Web/REQUIREMENTS.md`
+- Design prototype: `docs/projects/Photo Gallery Web/DESIGN.html`
+
+**Rule — plan & design docs:** 
+- When there is new project, create new folder under `docs/projects/`.
+- Each project plan/design documents live in each project folder, e.g.
+  `docs/projects/{project_name}/`. When a new plan is approved, write it there (e.g.
+  `PLAN.md`); do not leave plan docs only in `~/.claude/plans`. 
+
+## Stack
+
+- Node 24 LTS, **TypeScript 6**, **ESM** (`"type": "module"`).
+- **Fastify** server with **SSR** (HTML rendered server-side via template-literal
+  views); vanilla TS for client interactivity. No SPA framework.
+- **better-sqlite3** for the database.
+- **Tailwind v4** (compiled via `@tailwindcss/cli`, CSS-first `@theme`) — not the CDN.
+- `lucide-static` for icons (inlined into SSR markup).
+- `esbuild` bundles client TS → `public/js`.
+- `sharp` + `exifr` + `thumbhash` for the ingest/derivative pipeline.
+
+## Package manager
+
+**pnpm only** — do not use npm or yarn.
+
+## Common commands
+
+- `pnpm dev` — watch server + Tailwind + esbuild.
+- `pnpm build` — `tsc` (server → `dist`) + Tailwind compile + esbuild bundle.
+- `pnpm start` — run `dist/server/server.js`.
+- `pnpm typecheck` — `tsc --noEmit`.
+- `pnpm lint` — **oxlint**. `pnpm fmt` — **oxfmt**.
+- `pnpm db:migrate` / `pnpm db:seed`.
+
+## Conventions
+
+- ESM imports throughout; no CommonJS.
+- Keep it lightweight: prefer web standards and plain CSS; avoid adding frameworks
+  or heavy dependencies.
+- The photos are the hero; the interface stays out of the way.
+- Accessibility is required: keyboard navigable, visible focus, honor
+  `prefers-reduced-motion`, meaningful `alt` text.
+- Data, originals, and derivatives live under `data/` (mounted as a Podman volume);
+  secrets (`ADMIN_KEY_ID`, `ADMIN_HMAC_SECRET`) come from env — never commit them.
+- Container/runtime via **Podman** (Containerfile + named volume + quadlet).

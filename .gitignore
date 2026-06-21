@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+public/css/
+public/js/
+
+# Runtime data (sqlite db, originals, derivatives) — mounted as a volume
+data/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Misc
+*.log
+.DS_Store
