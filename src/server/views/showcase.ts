@@ -65,7 +65,10 @@ function lightbox(): string {
   return `<div id="lightbox" class="hidden fixed inset-0 z-50 bg-paper lightbox overscroll-none" role="dialog" aria-modal="true" aria-label="Photo viewer">
   <div class="flex h-full flex-row">
     <div id="imageStage" class="relative flex-1 flex items-center justify-center bg-paper min-h-0 touch-none px-3 sm:px-8 lg:px-10 pt-16 sm:pt-10 lg:pt-10 pb-24 sm:pb-20 lg:pb-20">
-      <img id="lightboxImg" src="" alt="" class="max-h-full max-w-full object-contain" />
+      <div id="imageFrame" class="relative w-full h-full">
+        <img id="lightboxImgA" src="" alt="" class="absolute inset-0 w-full h-full object-contain" />
+        <img id="lightboxImgB" src="" alt="" class="absolute inset-0 w-full h-full object-contain opacity-0" />
+      </div>
 
       <div id="swipeHint" class="lg:hidden pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-2 bg-paper/85 backdrop-blur-sm px-5 py-4 rounded-2xl shadow-sm opacity-0 transition-opacity duration-500">
         ${icon("chevrons-up-down", { class: "w-6 h-6 text-ink swipe-bounce" })}
