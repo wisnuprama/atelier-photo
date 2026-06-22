@@ -37,7 +37,7 @@ function photoRow(photo: Photo, index: number): string {
   const thumbAttr = photo.thumbhash ? ` data-thumbhash="${esc(photo.thumbhash)}"` : "";
   const alt = photo.title ? esc(photo.title) : "Photograph";
   return `<figure class="photo-row" data-year="${yearOf(photo)}">
-    <button class="block w-full overflow-hidden bg-hairline relative group"
+    <button class="block w-full overflow-hidden bg-hairline relative group touch-manipulation"
             style="aspect-ratio:${photo.width}/${photo.height}"
             data-viewer-open data-index="${index}"
             aria-label="View ${alt} full screen">
