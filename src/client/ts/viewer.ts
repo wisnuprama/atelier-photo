@@ -186,8 +186,43 @@ export function initViewer(): void {
   }
 
   // ----- wire controls (data-attribute driven) -----
+  // Grid thumbnails open on `click`, but iOS/WebKit suppresses the synthesized
+  // click when a tap drifts slightly on a vertically-scrollable list — so the
+  // viewer never opened on touch. Add a pointer-based fallback that opens on a
+  // short, near-stationary tap, debounced so the (sometimes-fired) click and the
+  // fallback can't double-open.
+  let lastOpenTs = 0;
+  const openFromTrigger = (btn: HTMLElement): void => {
+    const now = Date.now();
+    if (now - lastOpenTs < 500) return;
+    lastOpenTs = now;
+    openViewer(Number(btn.dataset.index), btn);
+  };
+
   for (const btn of document.querySelectorAll<HTMLElement>("[data-viewer-open]")) {
-    btn.addEventListener("click", () => openViewer(Number(btn.dataset.index), btn));
+    btn.addEventListener("click", () => openFromTrigger(btn));
+
+    let px = 0;
+    let py = 0;
+    let pt = 0;
+    btn.addEventListener(
+      "pointerdown",
+      (e) => {
+        px = e.clientX;
+        py = e.clientY;
+        pt = Date.now();
+      },
+      { passive: true },
+    );
+    btn.addEventListener(
+      "pointerup",
+      (e) => {
+        if (e.pointerType === "mouse") return; // mouse fires a reliable click already
+        const moved = Math.hypot(e.clientX - px, e.clientY - py);
+        if (moved < 12 && Date.now() - pt < 700) openFromTrigger(btn);
+      },
+      { passive: true },
+    );
   }
   for (const btn of document.querySelectorAll<HTMLElement>("[data-viewer-close]")) {
     btn.addEventListener("click", close);
