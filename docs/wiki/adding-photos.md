@@ -138,14 +138,23 @@ Both accept `--url <base>` to target a non-default host (defaults to
 
 ## iOS Shortcut
 
-Build a Shortcut that, for each selected photo:
+The signature must cover the **exact** multipart bytes that are sent, and the
+Shortcuts app has no HMAC (or hashing) action and builds the multipart body
+internally — so it can't sign its own request. The working recipe does the
+signing in the free **Scriptable** app, sharing photos to it from the share
+sheet. The HMAC contract on the server is unchanged.
 
-1. Reads `ADMIN_KEY_ID` / `ADMIN_HMAC_SECRET` (store them in the Shortcut or a
-   secure note).
+**→ Full step-by-step guide with the ready-to-paste script:
+[Uploading from iOS with Scriptable](./ios-shortcut-scriptable.md).**
+
+In short, for each selected photo the script:
+
+1. Reads `ADMIN_KEY_ID` / `ADMIN_HMAC_SECRET` from the iOS Keychain.
 2. Sets `X-Timestamp` to the current time in milliseconds.
-3. Computes `X-Signature` as the HMAC‑SHA256 over `"<timestamp>." + <body bytes>`.
-4. Sends a `multipart/form-data` `POST` to `/admin/photos` with the photo as the
-   `file` part and an optional `album` slug.
+3. Builds the `multipart/form-data` body by hand and computes `X-Signature` as
+   the HMAC‑SHA256 over `"<timestamp>." + <body bytes>`.
+4. Sends a `POST` to `/admin/photos` with the photo as the `file` part and an
+   optional `album` slug.
 
-To target a specific album, first call `GET /api/albums` and let the Shortcut pick
-a slug; otherwise omit `album` and the photo lands in **Discover**.
+To target a specific album, the script can call `GET /api/albums` and let you
+pick a slug; otherwise omit `album` and the photo lands in **Discover**.

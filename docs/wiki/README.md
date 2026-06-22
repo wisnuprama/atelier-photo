@@ -10,6 +10,8 @@ browse the gallery, how to add photographs, and how to run and maintain the app.
    and the full‑screen viewer (keyboard, touch, photo info).
 3. [Adding photos](./adding-photos.md) — the admin ingest workflow: creating
    albums, uploading from an iOS Shortcut or `curl`, and how replacing works.
+   - [Uploading from iOS with Scriptable](./ios-shortcut-scriptable.md) — the
+     concrete share-sheet recipe (ready-to-paste signing script).
 4. [Running & maintenance](./running-and-maintenance.md) — commands, environment
    variables, where files live on disk, and resetting the database.
 
