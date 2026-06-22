@@ -245,6 +245,10 @@ function bytesToHex(b) {
   return s;
 }
 
+function sha256Hex(bytes) {
+  return bytesToHex(new Sha256().update(bytes).digest());
+}
+
 const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 function bytesToBase64(bytes) {
   let out = "";
@@ -307,15 +311,15 @@ function gatherFiles() {
     files.push({ filename: name, mime: mimeFor(name), bytes: data.getBytes() });
   }
 
-  // Fallback: images without a file URL (re-encoded to JPEG; EXIF is lost).
+  // Fallback: bare images with no file URL (re-encoded to JPEG; EXIF is lost).
+  // A bare Image carries no filename, so derive a STABLE one from the content
+  // hash — re-sharing the same image then replaces instead of piling up
+  // duplicates (the server keys replace on album + filename). Using a timestamp
+  // here would create a new photo on every upload.
   if (files.length === 0 && args.images && args.images.length) {
-    let i = 0;
     for (const img of args.images) {
-      files.push({
-        filename: `IMG_${Date.now()}_${i++}.jpg`,
-        mime: "image/jpeg",
-        bytes: Data.fromJPEG(img).getBytes(),
-      });
+      const bytes = Data.fromJPEG(img).getBytes();
+      files.push({ filename: `atelier-${sha256Hex(bytes).slice(0, 16)}.jpg`, mime: "image/jpeg", bytes });
     }
   }
   return files;
@@ -367,10 +371,15 @@ async function upload(files, meta) {
 }
 
 // ---------- UI flows ----------
-async function promptMeta(count) {
+async function promptMeta(files) {
+  const names = files.map((f) => f.filename);
+  const shown =
+    names.slice(0, 4).join("\n") + (names.length > 4 ? `\n…and ${names.length - 4} more` : "");
   const a = new Alert();
   a.title = "Upload to Atelier";
-  a.message = `${count} photo${count === 1 ? "" : "s"}`;
+  // Show the exact filename(s) — re-uploading the same name to the same album
+  // replaces that photo, so this is your chance to confirm the identity.
+  a.message = `${files.length} photo${files.length === 1 ? "" : "s"} — uploads as:\n${shown}`;
   a.addTextField("Album slug (blank = discover)", kcGet(KC.album));
   a.addTextField("Title (optional)", "");
   a.addTextField("Commentary (optional)", "");
@@ -450,7 +459,7 @@ async function toggleHeic() {
 
 async function runUpload(files) {
   if (files.length === 0) return notify("Nothing to upload", "No photos were provided.");
-  const meta = await promptMeta(files.length);
+  const meta = await promptMeta(files);
   if (!meta) return;
   try {
     const { status, text } = await upload(files, meta);
@@ -514,6 +523,35 @@ Script.complete();
 - **Headers**: `X-Key-Id`, `X-Timestamp` (epoch ms), `X-Signature`.
 - **Fields**: `album` (slug), optional `title` / `commentary`, and one or more
   `file` parts — bulk-capable, exactly like `POST /admin/photos` expects.
+
+## Filenames & the replace rule
+
+The server identifies a photo by **album slug + filename**: re-uploading the same
+filename to the same album **replaces** it (keeping its id/slug/URLs), and a new
+filename creates a new photo — see
+[Adding photos → Replacing a photo](./adding-photos.md#replacing-a-photo). So the
+filename the script sends matters, and where it comes from depends on the input:
+
+- **Shared from Photos (the normal case)** — iOS exports the asset to a temp file
+  whose **basename is the capture name**, e.g. `IMG_4523.HEIC`. The temp
+  *directory* changes on every share, but the server only sees the basename, and
+  that's stable per photo — so re-sharing the same shot **replaces** it as you'd
+  expect. Two wrinkles to know about:
+  - An **edited** photo often exports as `FullSizeRender.jpg` (a different name
+    than the original), so it lands as a separate photo.
+  - **Screenshots / third-party apps** may use generic names like `image.jpg`;
+    two such files could collide and overwrite each other in the same album.
+- **Bare images with no file URL** (some share paths give a raw image, not a
+  file) — there's no filename to use, so the script derives a **stable
+  `atelier-<contentHash>.jpg`** from the bytes. Identical content reuses the same
+  name (replaces); different content gets a new name. These uploads are
+  re-encoded to JPEG, so EXIF is lost (same caveat as HEIC→JPEG).
+- **Menu → "Upload from Files…"** — the **Files app name is used verbatim**, so
+  this is the way to control the filename precisely (rename in Files first if you
+  want a specific identity).
+
+In every case the confirmation sheet lists the exact filename(s) that will be
+sent, so you can see whether an upload will create or replace before it goes.
 
 ## Troubleshooting
 
