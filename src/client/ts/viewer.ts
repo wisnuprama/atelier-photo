@@ -61,11 +61,31 @@ export function initViewer(): void {
       frame!.style.transition = "";
     }
     frame!.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    // Promote to a compositor layer only while zoomed/panned; drop it at rest
+    // so we don't pin a layer for every photo that's never zoomed.
+    frame!.style.willChange = scale > 1 ? "transform" : "";
   }
 
   function clampPan(): void {
-    const maxTx = Math.max(0, ((scale - 1) * frame!.offsetWidth) / 2);
-    const maxTy = Math.max(0, ((scale - 1) * frame!.offsetHeight) / 2);
+    // Clamp to the displayed image box (object-contain), not the frame, so we
+    // can't pan letterbox/empty paper into view for off-aspect photos.
+    const fw = frame!.offsetWidth;
+    const fh = frame!.offsetHeight;
+    let dw = fw;
+    let dh = fh;
+    const img = layers[front];
+    if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+      const ar = img.naturalWidth / img.naturalHeight;
+      if (fw / fh > ar) {
+        dh = fh;
+        dw = fh * ar;
+      } else {
+        dw = fw;
+        dh = fw / ar;
+      }
+    }
+    const maxTx = Math.max(0, (scale * dw - fw) / 2);
+    const maxTy = Math.max(0, (scale * dh - fh) / 2);
     tx = Math.max(-maxTx, Math.min(maxTx, tx));
     ty = Math.max(-maxTy, Math.min(maxTy, ty));
   }
@@ -250,13 +270,20 @@ export function initViewer(): void {
     if (!isOpen()) return;
     if (e.key === "Escape") {
       // First press resets zoom if zoomed; second press (or zoom already 1) closes.
-      if (scale > 1) { resetZoom(true); return; }
+      if (scale > 1) {
+        resetZoom(true);
+        return;
+      }
       close();
     } else if (e.key === "ArrowDown" || e.key === "ArrowRight") next();
     else if (e.key === "ArrowUp" || e.key === "ArrowLeft") prev();
-    else if (e.key === "+" || e.key === "=") { zoomAround(scale * 1.3, 0, 0); applyTransform(true); }
-    else if (e.key === "-") { zoomAround(scale / 1.3, 0, 0); applyTransform(true); }
-    else if (e.key === "0") resetZoom(true);
+    else if (e.key === "+" || e.key === "=") {
+      zoomAround(scale * 1.3, 0, 0);
+      applyTransform(true);
+    } else if (e.key === "-") {
+      zoomAround(scale / 1.3, 0, 0);
+      applyTransform(true);
+    } else if (e.key === "0") resetZoom(true);
   });
 
   // ----- scroll-wheel zoom (desktop / trackpad pinch) -----
@@ -367,6 +394,7 @@ export function initViewer(): void {
     (e) => {
       if (pinching) {
         if (e.touches.length < 2) return;
+        if (pinchDist0 < 1) return; // coincident touches — avoid divide-by-zero
         const dist = getTouchDist(e);
         // Keep the initial centroid fixed while scaling.
         const newScale = Math.max(1, Math.min(5, pinchScale0 * (dist / pinchDist0)));
