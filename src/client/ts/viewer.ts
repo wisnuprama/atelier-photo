@@ -33,10 +33,11 @@ export function initViewer(): void {
   const imgA = document.getElementById("lightboxImgA") as HTMLImageElement | null;
   const imgB = document.getElementById("lightboxImgB") as HTMLImageElement | null;
   const stage = document.getElementById("imageStage");
+  const frame = document.getElementById("imageFrame");
   const panel = document.getElementById("exifPanel");
   const scrim = document.getElementById("exifScrim");
   const hint = document.getElementById("swipeHint");
-  if (!lightbox || !imgA || !imgB || !stage || !panel || photos.length === 0) return;
+  if (!lightbox || !imgA || !imgB || !stage || !frame || !panel || photos.length === 0) return;
 
   const layers: [HTMLImageElement, HTMLImageElement] = [imgA, imgB];
   let front: 0 | 1 = 0;
@@ -48,6 +49,64 @@ export function initViewer(): void {
 
   const $ = byId;
 
+  // ----- zoom state -----
+  let scale = 1;
+  let tx = 0;
+  let ty = 0;
+
+  function applyTransform(animated?: boolean): void {
+    if (animated && !reduceMotion) {
+      frame!.style.transition = "transform 0.15s ease-out";
+    } else {
+      frame!.style.transition = "";
+    }
+    frame!.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    // Promote to a compositor layer only while zoomed/panned; drop it at rest
+    // so we don't pin a layer for every photo that's never zoomed.
+    frame!.style.willChange = scale > 1 ? "transform" : "";
+  }
+
+  function clampPan(): void {
+    // Clamp to the displayed image box (object-contain), not the frame, so we
+    // can't pan letterbox/empty paper into view for off-aspect photos.
+    const fw = frame!.offsetWidth;
+    const fh = frame!.offsetHeight;
+    let dw = fw;
+    let dh = fh;
+    const img = layers[front];
+    if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+      const ar = img.naturalWidth / img.naturalHeight;
+      if (fw / fh > ar) {
+        dh = fh;
+        dw = fh * ar;
+      } else {
+        dw = fw;
+        dh = fw / ar;
+      }
+    }
+    const maxTx = Math.max(0, (scale * dw - fw) / 2);
+    const maxTy = Math.max(0, (scale * dh - fh) / 2);
+    tx = Math.max(-maxTx, Math.min(maxTx, tx));
+    ty = Math.max(-maxTy, Math.min(maxTy, ty));
+  }
+
+  function resetZoom(animated?: boolean): void {
+    scale = 1;
+    tx = 0;
+    ty = 0;
+    applyTransform(animated);
+  }
+
+  // Zoom to newScale keeping the point (cx, cy) — relative to frame center — fixed on screen.
+  function zoomAround(newScale: number, cx: number, cy: number): void {
+    const clamped = Math.max(1, Math.min(5, newScale));
+    tx += cx * (1 - clamped / scale);
+    ty += cy * (1 - clamped / scale);
+    scale = clamped;
+    clampPan();
+  }
+
+  // ----- EXIF panel -----
   function closeExifSheet(): void {
     panel!.classList.remove("translate-y-0");
     panel!.classList.add("translate-y-full");
@@ -152,6 +211,7 @@ export function initViewer(): void {
     index = i;
     lastFocused = trigger;
     closeExifSheet();
+    resetZoom();
     render();
     lightbox!.classList.remove("hidden");
     document.body.style.overflow = "hidden";
@@ -173,10 +233,12 @@ export function initViewer(): void {
   }
 
   function next(): void {
+    resetZoom();
     index = (index + 1) % photos.length;
     render();
   }
   function prev(): void {
+    resetZoom();
     index = (index - 1 + photos.length) % photos.length;
     render();
   }
@@ -206,26 +268,123 @@ export function initViewer(): void {
   // ----- keyboard -----
   document.addEventListener("keydown", (e) => {
     if (!isOpen()) return;
-    if (e.key === "Escape") close();
-    else if (e.key === "ArrowDown" || e.key === "ArrowRight") next();
+    if (e.key === "Escape") {
+      // First press resets zoom if zoomed; second press (or zoom already 1) closes.
+      if (scale > 1) {
+        resetZoom(true);
+        return;
+      }
+      close();
+    } else if (e.key === "ArrowDown" || e.key === "ArrowRight") next();
     else if (e.key === "ArrowUp" || e.key === "ArrowLeft") prev();
+    else if (e.key === "+" || e.key === "=") {
+      zoomAround(scale * 1.3, 0, 0);
+      applyTransform(true);
+    } else if (e.key === "-") {
+      zoomAround(scale / 1.3, 0, 0);
+      applyTransform(true);
+    } else if (e.key === "0") resetZoom(true);
   });
 
-  // ----- vertical swipe, hardened for iOS modal webviews -----
+  // ----- scroll-wheel zoom (desktop / trackpad pinch) -----
+  stage.addEventListener(
+    "wheel",
+    (e) => {
+      e.preventDefault();
+      const rect = frame!.getBoundingClientRect();
+      const cx = e.clientX - (rect.left + rect.width / 2);
+      const cy = e.clientY - (rect.top + rect.height / 2);
+      // macOS trackpad pinch fires wheel+ctrlKey with larger deltaY values.
+      const factor = e.ctrlKey ? 0.02 : 0.005;
+      zoomAround(scale * (1 + -e.deltaY * factor), cx, cy);
+      applyTransform();
+    },
+    { passive: false },
+  );
+
+  // ----- touch gestures: swipe nav, pinch zoom, pan, double-tap -----
+  // Hardened for iOS modal webviews (see swipe-fix plan).
+
+  // Swipe / pan state
   let sY: number | null = null;
   let sX = 0;
   let sT = 0;
   let sActive = false;
+  let panLastX = 0;
+  let panLastY = 0;
+
+  // Pinch state
+  let pinching = false;
+  let pinchDist0 = 0;
+  let pinchScale0 = 1;
+  let pinchCx = 0;
+  let pinchCy = 0;
+
+  // Double-tap state
+  let lastTapT = 0;
+  let lastTapX = 0;
+  let lastTapY = 0;
+
+  function getTouchDist(e: TouchEvent): number {
+    const t0 = e.touches[0]!;
+    const t1 = e.touches[1]!;
+    return Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+  }
+
+  function getTouchCenter(e: TouchEvent): [number, number] {
+    const t0 = e.touches[0]!;
+    const t1 = e.touches[1]!;
+    const rect = frame!.getBoundingClientRect();
+    return [
+      (t0.clientX + t1.clientX) / 2 - (rect.left + rect.width / 2),
+      (t0.clientY + t1.clientY) / 2 - (rect.top + rect.height / 2),
+    ];
+  }
 
   stage.addEventListener(
     "touchstart",
     (e) => {
+      if (e.touches.length === 2) {
+        // Begin pinch: capture initial distance and centroid relative to frame center.
+        pinching = true;
+        pinchDist0 = getTouchDist(e);
+        pinchScale0 = scale;
+        [pinchCx, pinchCy] = getTouchCenter(e);
+        sY = null;
+        sActive = false;
+        return;
+      }
+
       const t = e.touches[0];
       if (!t) return;
+
+      // Double-tap detection: two taps within 300 ms and 30 px.
+      const now = Date.now();
+      const tapDist = Math.hypot(t.clientX - lastTapX, t.clientY - lastTapY);
+      if (now - lastTapT < 300 && tapDist < 30) {
+        if (scale > 1) {
+          resetZoom(true);
+        } else {
+          const rect = frame!.getBoundingClientRect();
+          const cx = t.clientX - (rect.left + rect.width / 2);
+          const cy = t.clientY - (rect.top + rect.height / 2);
+          zoomAround(2.5, cx, cy);
+          applyTransform(true);
+        }
+        lastTapT = 0; // prevent triple-tap re-triggering
+        return;
+      }
+      lastTapT = now;
+      lastTapX = t.clientX;
+      lastTapY = t.clientY;
+
+      // Single-touch start: record for swipe nav (scale=1) or pan (scale>1).
       sActive = t.clientY > EDGE_TOP && t.clientY < window.innerHeight - EDGE_BOTTOM;
       sY = t.clientY;
       sX = t.clientX;
       sT = Date.now();
+      panLastX = t.clientX;
+      panLastY = t.clientY;
     },
     { passive: true },
   );
@@ -233,13 +392,41 @@ export function initViewer(): void {
   stage.addEventListener(
     "touchmove",
     (e) => {
-      if (!sActive || sY === null) return;
+      if (pinching) {
+        if (e.touches.length < 2) return;
+        if (pinchDist0 < 1) return; // coincident touches — avoid divide-by-zero
+        const dist = getTouchDist(e);
+        // Keep the initial centroid fixed while scaling.
+        const newScale = Math.max(1, Math.min(5, pinchScale0 * (dist / pinchDist0)));
+        tx += pinchCx * (1 - newScale / scale);
+        ty += pinchCy * (1 - newScale / scale);
+        scale = newScale;
+        clampPan();
+        applyTransform();
+        e.preventDefault();
+        return;
+      }
+
+      if (sY === null) return;
       const t = e.touches[0];
       if (!t) return;
+
+      if (scale > 1) {
+        // Pan mode: drag translates the image; swipe nav is suppressed.
+        tx += t.clientX - panLastX;
+        ty += t.clientY - panLastY;
+        clampPan();
+        applyTransform();
+        panLastX = t.clientX;
+        panLastY = t.clientY;
+        e.preventDefault();
+        return;
+      }
+
+      // Swipe mode (scale === 1): own predominantly-vertical pans so the host's
+      // swipe-to-dismiss / Safari rubber-band cannot hijack navigation.
       const dy = t.clientY - sY;
       const dx = t.clientX - sX;
-      // Own predominantly-vertical pans so the host's swipe-to-dismiss / Safari
-      // rubber-band cannot hijack navigation.
       if (Math.abs(dy) > Math.abs(dx)) e.preventDefault();
     },
     { passive: false },
@@ -248,10 +435,23 @@ export function initViewer(): void {
   stage.addEventListener(
     "touchend",
     (e) => {
+      if (pinching) {
+        if (e.touches.length < 2) pinching = false;
+        return;
+      }
+
+      if (scale > 1) {
+        // End of pan — no navigation.
+        sY = null;
+        sActive = false;
+        return;
+      }
+
       if (sY === null) {
         sActive = false;
         return;
       }
+
       const sheetOpen = panel!.classList.contains("translate-y-0") && window.innerWidth < 1024;
       const t = e.changedTouches[0];
       if (t) {
