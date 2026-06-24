@@ -31,17 +31,19 @@ podman build \
   -t "${ARM64}" \
   -f Containerfile .
 
-echo "==> Creating multi-arch manifest  →  ${MANIFEST}"
-podman manifest rm "${MANIFEST}" 2>/dev/null || podman rmi "${MANIFEST}" 2>/dev/null || true
-podman manifest create "${MANIFEST}"
-podman manifest add "${MANIFEST}" "${AMD64}"
-podman manifest add "${MANIFEST}" "${ARM64}"
-
 echo "==> Pushing per-arch images"
 podman push "${AMD64}"
 podman push "${ARM64}"
 
+# Build the manifest from the already-pushed registry images (docker:// transport)
+# so Podman never needs to resolve entries from local container storage.
+echo "==> Creating multi-arch manifest from registry  →  ${MANIFEST}"
+podman manifest rm "${MANIFEST}" 2>/dev/null || podman rmi "${MANIFEST}" 2>/dev/null || true
+podman manifest create "${MANIFEST}"
+podman manifest add "${MANIFEST}" "docker://${AMD64}"
+podman manifest add "${MANIFEST}" "docker://${ARM64}"
+
 echo "==> Pushing manifest ${MANIFEST}"
-podman manifest push --all "${MANIFEST}"
+podman manifest push "${MANIFEST}"
 
 echo "==> Done. Pushed ${MANIFEST} (amd64 + arm64)"

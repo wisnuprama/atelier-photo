@@ -88,6 +88,86 @@ async function filePart(boundary: string, path: string): Promise<Buffer> {
   ]);
 }
 
+type FileStatus = "pending" | "uploading" | "done" | "failed";
+
+interface FileState {
+  name: string;
+  status: FileStatus;
+  detail: string;
+}
+
+const BATCH_SIZE = 10;
+
+function renderStatus(states: FileState[], done: number, total: number): void {
+  const lines = states.map(({ name, status, detail }) => {
+    const icon =
+      status === "pending" ? "·" : status === "uploading" ? "⟳" : status === "done" ? "✓" : "✗";
+    return `  ${icon} ${name}${detail ? `  ${detail}` : ""}`;
+  });
+  process.stdout.write(lines.join("\n") + `\n\n  ${done}/${total} complete\n`);
+}
+
+function clearLines(n: number): void {
+  for (let i = 0; i < n; i++) {
+    process.stdout.write("\x1b[1A\x1b[2K");
+  }
+}
+
+async function uploadOne(
+  file: string,
+  args: Args,
+  keyId: string,
+  secret: string,
+  state: FileState,
+  onUpdate: () => void,
+): Promise<boolean> {
+  state.status = "uploading";
+  onUpdate();
+
+  const boundary = `----galleryupload${Date.now().toString(16)}`;
+  const parts: Buffer[] = [];
+  if (args.album) parts.push(field(boundary, "album", args.album));
+  if (args.title) parts.push(field(boundary, "title", args.title));
+  if (args.commentary) parts.push(field(boundary, "commentary", args.commentary));
+  parts.push(await filePart(boundary, file));
+  parts.push(Buffer.from(`--${boundary}--\r\n`));
+  const body = Buffer.concat(parts);
+
+  const ts = String(Date.now());
+  const sig = createHmac("sha256", secret).update(`${ts}.`).update(body).digest("hex");
+
+  const endpoint = `${args.url}/admin/photos`;
+  try {
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "content-type": `multipart/form-data; boundary=${boundary}`,
+        "x-key-id": keyId,
+        "x-timestamp": ts,
+        "x-signature": sig,
+      },
+      body,
+    });
+
+    const text = await res.text();
+    if (!res.ok) {
+      state.status = "failed";
+      state.detail = `${res.status} ${res.statusText} — ${text.trim()}`;
+      onUpdate();
+      return false;
+    }
+    state.status = "done";
+    state.detail = `${res.status}`;
+    onUpdate();
+    return true;
+  } catch (err) {
+    state.status = "failed";
+    state.detail = err instanceof Error ? err.message : String(err);
+    onUpdate();
+    return false;
+  }
+}
+
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
 
@@ -99,41 +179,60 @@ async function main(): Promise<void> {
     );
   }
 
-  const boundary = `----galleryupload${Date.now().toString(16)}`;
-  const parts: Buffer[] = [];
-  if (args.album) parts.push(field(boundary, "album", args.album));
-  if (args.title) parts.push(field(boundary, "title", args.title));
-  if (args.commentary) parts.push(field(boundary, "commentary", args.commentary));
-  for (const file of args.files) parts.push(await filePart(boundary, file));
-  parts.push(Buffer.from(`--${boundary}--\r\n`));
-  const body = Buffer.concat(parts);
-
-  const ts = String(Date.now());
-  const sig = createHmac("sha256", secret).update(`${ts}.`).update(body).digest("hex");
-
+  const total = args.files.length;
   const endpoint = `${args.url}/admin/photos`;
   console.log(
-    `Uploading ${args.files.length} file(s) to ${endpoint}${args.album ? ` (album: ${args.album})` : ""}`,
+    `Uploading ${total} file(s) to ${endpoint}${args.album ? ` (album: ${args.album})` : ""}\n`,
   );
 
-  const res = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "content-type": `multipart/form-data; boundary=${boundary}`,
-      "x-key-id": keyId,
-      "x-timestamp": ts,
-      "x-signature": sig,
-    },
-    body,
-  });
+  let totalDone = 0;
+  let totalFailed = 0;
 
-  const text = await res.text();
-  if (!res.ok) {
-    console.error(`✗ ${res.status} ${res.statusText}\n${text}`);
-    process.exitCode = 1;
-    return;
+  for (let i = 0; i < total; i += BATCH_SIZE) {
+    const batch = args.files.slice(i, i + BATCH_SIZE);
+    const states: FileState[] = batch.map((f) => ({
+      name: basename(f),
+      status: "pending",
+      detail: "",
+    }));
+
+    // lines rendered = states.length rows + 1 blank + 1 progress = states.length + 2
+    const lineCount = states.length + 2;
+    let rendered = false;
+
+    const redraw = () => {
+      if (rendered) clearLines(lineCount);
+      renderStatus(
+        states,
+        totalDone + states.filter((s) => s.status === "done" || s.status === "failed").length,
+        total,
+      );
+      rendered = true;
+    };
+
+    redraw();
+
+    const results = await Promise.allSettled(
+      batch.map((file, j) => uploadOne(file, args, keyId, secret, states[j], redraw)),
+    );
+
+    for (const r of results) {
+      if (r.status === "fulfilled" && r.value) totalDone++;
+      else totalFailed++;
+    }
+
+    // final redraw for this batch with accurate totals
+    clearLines(lineCount);
+    renderStatus(states, totalDone, total);
   }
-  console.log(`✓ ${res.status}`, text);
+
+  console.log();
+  if (totalFailed > 0) {
+    console.error(`${totalFailed} file(s) failed.`);
+    process.exitCode = 1;
+  } else {
+    console.log(`All ${totalDone} file(s) uploaded successfully.`);
+  }
 }
 
 main().catch((err) => {
