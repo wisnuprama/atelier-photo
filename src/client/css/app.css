@@ -94,6 +94,11 @@ body {
   transition: opacity 0.35s ease;
 }
 
+/* Promote image frame to its own compositor layer during zoom/pan. */
+#imageFrame {
+  will-change: transform;
+}
+
 /* Vertical gesture hint */
 @keyframes swipeBounce {
   0%,

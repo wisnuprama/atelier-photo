@@ -64,7 +64,7 @@ function yearRail(photos: Photo[]): string {
 function lightbox(): string {
   return `<div id="lightbox" class="hidden fixed inset-0 z-50 bg-paper lightbox overscroll-none" role="dialog" aria-modal="true" aria-label="Photo viewer">
   <div class="flex h-full flex-row">
-    <div id="imageStage" class="relative flex-1 flex items-center justify-center bg-paper min-h-0 touch-none px-3 sm:px-8 lg:px-10 pt-16 sm:pt-10 lg:pt-10 pb-24 sm:pb-20 lg:pb-20">
+    <div id="imageStage" class="relative flex-1 flex items-center justify-center bg-paper min-h-0 touch-none overflow-hidden px-3 sm:px-8 lg:px-10 pt-16 sm:pt-10 lg:pt-10 pb-24 sm:pb-20 lg:pb-20">
       <div id="imageFrame" class="relative w-full h-full">
         <img id="lightboxImgA" src="" alt="" class="absolute inset-0 w-full h-full object-contain" />
         <img id="lightboxImgB" src="" alt="" class="absolute inset-0 w-full h-full object-contain opacity-0" />
