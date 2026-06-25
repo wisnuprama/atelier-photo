@@ -33,10 +33,13 @@ function viewerData(photos: Photo[]) {
   }));
 }
 
-function photoRow(photo: Photo, index: number): string {
+function photoRow(photo: Photo, index: number, isAdmin: boolean): string {
   const thumbAttr = photo.thumbhash ? ` data-thumbhash="${esc(photo.thumbhash)}"` : "";
   const alt = photo.title ? esc(photo.title) : "Photograph";
-  return `<figure class="photo-row" data-year="${yearOf(photo)}">
+  const adminAttrs = isAdmin
+    ? ` data-admin-photo data-photo-id="${esc(photo.id)}" class="photo-row select-none" data-year="${yearOf(photo)}"`
+    : ` class="photo-row" data-year="${yearOf(photo)}"`;
+  return `<figure${adminAttrs}>
     <button class="block w-full overflow-hidden bg-hairline relative group"
             style="aspect-ratio:${photo.width}/${photo.height}"
             data-viewer-open data-index="${index}"
@@ -125,13 +128,25 @@ function lightbox(): string {
 </div>`;
 }
 
-export function showcasePage(album: AlbumWithCover, photos: Photo[]): string {
+export function showcasePage(album: AlbumWithCover, photos: Photo[], isAdmin = false): string {
   const stream = photos.length
-    ? photos.map((p, i) => photoRow(p, i)).join("\n")
+    ? photos.map((p, i) => photoRow(p, i, isAdmin)).join("\n")
     : `<p class="font-mono text-[11px] label text-stone uppercase px-3">No photos in this album yet.</p>`;
 
   const desc = album.description
     ? `<p id="showcaseDesc" class="font-sans text-[14px] text-stone leading-relaxed mt-5 max-w-xl">${esc(album.description)}</p>`
+    : "";
+
+  const adminStrip = isAdmin
+    ? `<div class="max-w-[1200px] mx-auto px-5 sm:px-8 pb-2 flex items-center gap-3">
+        <span class="font-mono text-[9px] label text-stone uppercase tracking-widest">Admin</span>
+        <span class="font-mono text-[9px] label text-stone/40">·</span>
+        <span class="font-mono text-[9px] label text-stone/60">Long-press photo to manage</span>
+        <span class="font-mono text-[9px] label text-stone/40 ml-auto">·</span>
+        <form method="POST" action="/admin/logout" class="inline">
+          <button type="submit" class="font-mono text-[9px] label text-stone hover:text-ink uppercase tracking-widest transition-colors">Sign out</button>
+        </form>
+      </div>`
     : "";
 
   return `<main id="showcaseView">
@@ -143,6 +158,7 @@ export function showcasePage(album: AlbumWithCover, photos: Photo[]): string {
     <p id="showcaseMeta" class="font-mono text-[10px] label text-stone uppercase mt-3">${album.photoCount} Photographs</p>
     ${desc}
   </section>
+  ${adminStrip}
 
   <div class="max-w-[1200px] mx-auto px-2 sm:px-4 pb-32 relative">
     <div id="photoStream" class="flex flex-col gap-3 sm:gap-5">

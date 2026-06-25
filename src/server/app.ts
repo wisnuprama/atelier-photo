@@ -1,11 +1,13 @@
 import { mkdirSync } from "node:fs";
 import { resolve } from "node:path";
+import fastifyCookie from "@fastify/cookie";
 import fastifyStatic from "@fastify/static";
 import Fastify, { type FastifyInstance } from "fastify";
 import { config } from "./config.js";
 import { migrate } from "./db/migrate.js";
 import { adminRoutes } from "./routes/admin.js";
 import { apiRoutes } from "./routes/api.js";
+import { authRoutes } from "./routes/auth.js";
 import { mediaRoutes } from "./routes/media.js";
 import { pageRoutes } from "./routes/pages.js";
 import { layout } from "./views/layout.js";
@@ -22,10 +24,12 @@ export async function buildApp(): Promise<FastifyInstance> {
   const publicDir = resolve(process.cwd(), "public");
   mkdirSync(publicDir, { recursive: true });
   await app.register(fastifyStatic, { root: publicDir, prefix: "/" });
+  await app.register(fastifyCookie);
 
   await app.register(pageRoutes);
   await app.register(mediaRoutes);
   await app.register(apiRoutes, { prefix: "/api" });
+  await app.register(authRoutes, { prefix: "/admin" });
   await app.register(adminRoutes, { prefix: "/admin" });
 
   app.setErrorHandler((_error, _request, reply) => {

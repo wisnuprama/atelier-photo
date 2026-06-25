@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import { parse as parsePath } from "node:path";
 import type { Database } from "better-sqlite3";
 import sharp from "sharp";
@@ -407,4 +407,28 @@ export async function ingestPhoto(input: IngestPhotoInput): Promise<IngestResult
 
   yearRangeCache = null;
   return { id: photoId, slug, status };
+}
+
+export async function deletePhoto(photoId: string): Promise<void> {
+  const db = getDb();
+  const existing = db
+    .prepare<[string], { id: string }>(`SELECT id FROM photos WHERE id = ?`)
+    .get(photoId);
+  if (!existing) {
+    const err = new Error("Photo not found") as Error & { statusCode: number };
+    err.statusCode = 404;
+    throw err;
+  }
+
+  db.transaction(() => {
+    db.prepare(`UPDATE albums SET cover_photo_id = NULL WHERE cover_photo_id = ?`).run(photoId);
+    db.prepare(`DELETE FROM photos WHERE id = ?`).run(photoId);
+  })();
+
+  yearRangeCache = null;
+
+  await Promise.all([
+    rm(`${paths.originals}/${photoId}`, { recursive: true, force: true }).catch(() => {}),
+    rm(`${paths.derivatives}/${photoId}`, { recursive: true, force: true }).catch(() => {}),
+  ]);
 }

@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import { getAdminSession } from "../plugins/session.js";
 import { getAlbumBySlug, getPhotoYearRange, listAlbums, listPhotos } from "../services/photos.js";
 import { albumsPage } from "../views/albums.js";
 import { layout } from "../views/layout.js";
@@ -30,9 +31,10 @@ export async function pageRoutes(app: FastifyInstance): Promise<void> {
     }
 
     const photos = listPhotos(album.id);
+    const isAdmin = getAdminSession(request);
     const html = layout({
       title: `${esc(album.name)} — Still`,
-      body: showcasePage(album, photos),
+      body: showcasePage(album, photos, isAdmin),
     });
     return reply.type("text/html").send(html);
   });
