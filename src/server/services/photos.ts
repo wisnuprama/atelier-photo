@@ -421,7 +421,16 @@ export async function deletePhoto(photoId: string): Promise<void> {
   }
 
   db.transaction(() => {
-    db.prepare(`UPDATE albums SET cover_photo_id = NULL WHERE cover_photo_id = ?`).run(photoId);
+    // Promote the most recently uploaded remaining photo as cover; NULL if none left.
+    db.prepare(
+      `UPDATE albums
+       SET cover_photo_id = (
+         SELECT id FROM photos
+         WHERE album_id = albums.id AND id != ?
+         ORDER BY created_at DESC LIMIT 1
+       )
+       WHERE cover_photo_id = ?`,
+    ).run(photoId, photoId);
     db.prepare(`DELETE FROM photos WHERE id = ?`).run(photoId);
   })();
 

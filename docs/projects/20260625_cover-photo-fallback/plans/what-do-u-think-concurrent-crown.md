@@ -44,6 +44,149 @@ No other files need to change. The service function signature, the route, and th
 
 ---
 
+## Unit Test
+
+### Infrastructure note
+
+Vitest is not yet installed. This plan includes the minimal setup needed to run the one new test file. Full infrastructure (coverage thresholds, all 17 modules) is tracked separately in `docs/projects/20260621_unit-test/`.
+
+**New devDependencies:**
+```
+vitest
+```
+
+**New `vitest.config.ts`** (root):
+```ts
+import { defineConfig } from "vitest/config";
+
+export default defineConfig({
+  test: {
+    globals: true,
+    environment: "node",
+    include: ["src/**/*.test.ts"],
+    pool: "forks",  // required: better-sqlite3 native addon can't cross worker threads
+    isolate: true,
+    server: { deps: { external: ["better-sqlite3", /\.node$/] } },
+  },
+});
+```
+
+**`package.json` scripts to add:**
+```json
+"test": "vitest run",
+"test:watch": "vitest"
+```
+
+**`tsconfig.json`** — add `"src/**/*.test.ts"` to `exclude` so `tsc` build ignores test files.
+
+---
+
+### New test file: `src/server/services/photos.test.ts`
+
+Uses a real in-memory SQLite database (`:memory:`) so the correlated subquery is exercised for real — a mock DB cannot validate SQL logic. File I/O (`fs.rm`, `fs.mkdir`, `fs.writeFile`, `sharp`, `exifr`, `thumbhash`) is mocked to keep the test fast and hermetic.
+
+**Setup pattern:**
+```ts
+import { vi, beforeEach, afterEach, describe, it, expect } from "vitest";
+
+// Mock all I/O and config before any imports resolve
+vi.mock("../config.js", () => ({
+  config: { adminKeyId: "k", adminHmacSecret: "s", isProduction: false, dataDir: "/tmp/t" },
+  paths: { db: ":memory:", originals: "/tmp/o", derivatives: "/tmp/d" },
+}));
+vi.mock("node:fs/promises");          // stubs mkdir, writeFile, rm
+vi.mock("./derivatives.js");           // stubs generateDerivatives
+vi.mock("./exif.js");                  // stubs extractExif
+vi.mock("./thumbhash.js");             // stubs computeThumbHash
+vi.mock("sharp");                      // stubs intrinsicDimensions path
+
+import Database from "better-sqlite3";
+import { readFileSync } from "node:fs";
+import { getDb, closeDb } from "../db/index.js";
+import { deletePhoto, createAlbum, ingestPhoto } from "./photos.js";
+
+// Point the singleton to a fresh in-memory DB per test file (forks isolation).
+// Override getDb to return our controlled instance, or let migrate() run on :memory:.
+```
+
+Because `pool: "forks"` gives each test *file* a fresh process, the `getDb()` singleton is fresh per file. Pointing `paths.db` at `":memory:"` means `migrate()` (called on first `getDb()`) creates a clean schema.
+
+**Test cases for `deletePhoto()`:**
+
+```ts
+describe("deletePhoto", () => {
+  let albumId: string;
+
+  beforeEach(() => {
+    // create album + photos via the real service functions
+    const album = createAlbum({ name: "Test" });
+    albumId = album.id;  // need to expose or look up
+  });
+
+  afterEach(() => {
+    closeDb();
+  });
+
+  it("throws 404 for unknown photoId", async () => {
+    await expect(deletePhoto("no-such-id")).rejects.toMatchObject({ statusCode: 404 });
+  });
+
+  it("sets cover to most recently uploaded photo when cover is deleted", async () => {
+    // insert two photos directly into DB (bypass ingest pipeline)
+    const db = getDb();
+    db.prepare(`INSERT INTO photos (id, album_id, slug, filename, width, height)
+                VALUES ('p1', ?, 's1', 'a.jpg', 1, 1)`).run(albumId);
+    db.prepare(`INSERT INTO photos (id, album_id, slug, filename, width, height)
+                VALUES ('p2', ?, 's2', 'b.jpg', 1, 1)`).run(albumId);
+    db.prepare(`UPDATE albums SET cover_photo_id = 'p1' WHERE id = ?`).run(albumId);
+
+    await deletePhoto("p1");
+
+    const row = db.prepare(`SELECT cover_photo_id FROM albums WHERE id = ?`).get(albumId) as { cover_photo_id: string };
+    expect(row.cover_photo_id).toBe("p2");
+  });
+
+  it("sets cover to NULL when the last photo is deleted", async () => {
+    const db = getDb();
+    db.prepare(`INSERT INTO photos (id, album_id, slug, filename, width, height)
+                VALUES ('p1', ?, 's1', 'a.jpg', 1, 1)`).run(albumId);
+    db.prepare(`UPDATE albums SET cover_photo_id = 'p1' WHERE id = ?`).run(albumId);
+
+    await deletePhoto("p1");
+
+    const row = db.prepare(`SELECT cover_photo_id FROM albums WHERE id = ?`).get(albumId) as { cover_photo_id: string | null };
+    expect(row.cover_photo_id).toBeNull();
+  });
+
+  it("leaves cover unchanged when a non-cover photo is deleted", async () => {
+    const db = getDb();
+    db.prepare(`INSERT INTO photos (id, album_id, slug, filename, width, height)
+                VALUES ('p1', ?, 's1', 'a.jpg', 1, 1)`).run(albumId);
+    db.prepare(`INSERT INTO photos (id, album_id, slug, filename, width, height)
+                VALUES ('p2', ?, 's2', 'b.jpg', 1, 1)`).run(albumId);
+    db.prepare(`UPDATE albums SET cover_photo_id = 'p1' WHERE id = ?`).run(albumId);
+
+    await deletePhoto("p2");
+
+    const row = db.prepare(`SELECT cover_photo_id FROM albums WHERE id = ?`).get(albumId) as { cover_photo_id: string };
+    expect(row.cover_photo_id).toBe("p1");
+  });
+
+  it("removes the photo row from the DB", async () => {
+    const db = getDb();
+    db.prepare(`INSERT INTO photos (id, album_id, slug, filename, width, height)
+                VALUES ('p1', ?, 's1', 'a.jpg', 1, 1)`).run(albumId);
+
+    await deletePhoto("p1");
+
+    const row = db.prepare(`SELECT id FROM photos WHERE id = 'p1'`).get();
+    expect(row).toBeUndefined();
+  });
+});
+```
+
+---
+
 ## Verification
 
 1. `pnpm typecheck` — clean (no type changes involved).
