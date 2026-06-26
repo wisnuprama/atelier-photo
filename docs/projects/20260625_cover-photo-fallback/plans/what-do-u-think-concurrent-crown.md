@@ -187,6 +187,59 @@ describe("deletePhoto", () => {
 
 ---
 
+## Unit Test
+
+### Infrastructure (if not yet installed)
+
+Per `docs/projects/20260621_unit-test/plans/vast-dancing-forest.md`, the test runner is **Vitest**.
+If it isn't set up yet, first add:
+
+```
+pnpm add -D vitest
+```
+
+And create `vitest.config.ts` and `tsconfig.test.json` as documented in that plan. Add `"test": "vitest run"` to `package.json` scripts.
+
+### Test file: `src/server/services/photos.test.ts`
+
+The SQL logic is best covered with a **real in-memory SQLite database** (no mocking) so the correlated subquery is actually exercised. Use `migrate()` to apply the schema, helpers to insert rows, and `closeDb()` in `afterEach`.
+
+```ts
+// Setup pattern
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { vi, beforeEach, afterEach, describe, it, expect } from "vitest";
+
+// Point DATA_DIR to a temp dir so file cleanup paths don't error
+vi.stubEnv("DATA_DIR", join(tmpdir(), "photo-test"));
+// The real better-sqlite3 db — path set via env above
+```
+
+**Test cases for `deletePhoto()`:**
+
+| # | Scenario | Assert |
+|---|----------|--------|
+| 1 | Photo doesn't exist | throws error with `statusCode === 404` |
+| 2 | Delete a non-cover photo | `cover_photo_id` of album unchanged |
+| 3 | Delete cover photo; 1 other photo remains | `cover_photo_id` set to that other photo's id |
+| 4 | Delete cover photo; 2 other photos remain | `cover_photo_id` set to the **most recently created** photo (not the oldest) |
+| 5 | Delete cover photo; no other photos in album | `cover_photo_id` set to `NULL` |
+| 6 | Delete cover photo; a second album exists with its own cover | second album's `cover_photo_id` untouched |
+
+Cases 3–6 also assert that `SELECT id FROM photos WHERE id = ?` returns no row (photo is gone from DB).
+
+File cleanup (`fs.rm`) is fire-and-forget; mock it to avoid touching the filesystem in tests:
+```ts
+vi.mock("node:fs/promises", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("node:fs/promises")>()),
+  rm: vi.fn().mockResolvedValue(undefined),
+  mkdir: vi.fn().mockResolvedValue(undefined),
+  writeFile: vi.fn().mockResolvedValue(undefined),
+}));
+```
+
+---
+
 ## Verification
 
 1. `pnpm typecheck` — clean (no type changes involved).
