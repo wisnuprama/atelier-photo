@@ -38,10 +38,44 @@ echo "    ${TAG}"
 
 LAST_TAG="$(git describe --tags --abbrev=0 2>/dev/null || echo "")"
 if [[ -n "${LAST_TAG}" ]]; then
-  COMMITS="$(git log "${LAST_TAG}..HEAD" --oneline)"
+  RANGE="${LAST_TAG}..HEAD"
 else
-  COMMITS="$(git log --oneline)"
+  RANGE="HEAD"
 fi
+COMMITS="$(git log "${RANGE}" --oneline)"
+
+# Categorize conventional-commit subjects into keep-a-changelog sections.
+#   feat            -> Added
+#   fix             -> Fixed
+#   perf|refactor|revert -> Changed
+#   merges, docs|chore|test|ci|build|style -> dropped
+ADDED=""
+CHANGED=""
+FIXED=""
+while IFS= read -r subject; do
+  [[ -z "${subject}" ]] && continue
+  case "${subject}" in
+    Merge\ *) continue ;;
+  esac
+  # Split "type(scope): message" -> type / message
+  if [[ "${subject}" =~ ^([a-z]+)(\([^\)]*\))?(!)?:\ (.*)$ ]]; then
+    type="${BASH_REMATCH[1]}"
+    msg="${BASH_REMATCH[4]}"
+  else
+    type="other"
+    msg="${subject}"
+  fi
+  # Capitalize the first letter of the message.
+  msg="$(printf '%s' "${msg:0:1}" | tr '[:lower:]' '[:upper:]')${msg:1}"
+  line="- ${msg}"
+  case "${type}" in
+    feat)                  ADDED+="${line}"$'\n' ;;
+    fix)                   FIXED+="${line}"$'\n' ;;
+    perf|refactor|revert)  CHANGED+="${line}"$'\n' ;;
+    docs|chore|test|ci|build|style) ;;  # omit from changelog
+    *)                     CHANGED+="${line}"$'\n' ;;
+  esac
+done <<< "$(git log "${RANGE}" --format='%s')"
 
 TMPFILE="$(mktemp /tmp/changelog-XXXXXX.md)"
 trap 'rm -f "${TMPFILE}"' EXIT
@@ -51,16 +85,13 @@ cat > "${TMPFILE}" <<EOF
 
 ### Added
 
--
-
+${ADDED:--}
 ### Changed
 
--
-
+${CHANGED:--}
 ### Fixed
 
--
-
+${FIXED:--}
 <!-- commits since ${LAST_TAG:-beginning} (for reference):
 ${COMMITS}
 -->
