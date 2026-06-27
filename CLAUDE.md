@@ -33,6 +33,21 @@ Personal, minimalist black-and-white photo gallery. A professional-but-personal
 
 **pnpm only** — do not use npm or yarn.
 
+## Dev environment
+
+The project uses a **Fedora Toolbox** container for local development on supported
+systems (Fedora / any host with `toolbox` installed).
+
+- `make setup` — installs deps and runs DB migrations; auto-provisions the
+  toolbox container (`atelier-photo`) when `toolbox` is detected on the host.
+- `./scripts/setup-toolbox.sh` — provision only (idempotent; re-running is safe).
+- `./scripts/setup-toolbox.sh --enter` — provision then drop into the container.
+- `toolbox enter atelier-photo` — enter an already-provisioned container.
+
+The script installs inside the container: `gcc/gcc-c++`, `make`, `python3`,
+`vips-devel` (required by `sharp`), Node.js 24 (NodeSource RPM), and
+pnpm 10.17.1 (via corepack).
+
 ## Common commands
 
 - `pnpm dev` — watch server + Tailwind + esbuild.

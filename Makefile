@@ -9,7 +9,8 @@ help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*##' $(MAKEFILE_LIST) \
 	  | awk 'BEGIN {FS=":.*##"}; {printf "  %-14s %s\n", $$1, $$2}'
 
-setup: ## Install deps and run DB migrations
+setup: ## Install deps and run DB migrations (auto-provisions toolbox on supported systems)
+	@if command -v toolbox > /dev/null 2>&1; then ./scripts/setup-toolbox.sh; fi
 	pnpm install --frozen-lockfile
 	pnpm db:migrate
 
