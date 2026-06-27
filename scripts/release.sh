@@ -118,8 +118,10 @@ EOF
 echo "==> Opening editor for changelog entry (save and quit when done)"
 "${EDITOR:-vi}" "${TMPFILE}"
 
-# Strip the reference comment block before inserting into CHANGELOG.md
-ENTRY="$(sed '/^<!--/,/^-->/d' "${TMPFILE}" | sed '/^[[:space:]]*$/{ /./!d }' | sed -e 's/[[:space:]]*$//')"
+# Strip the reference comment block, trim trailing whitespace, and squeeze
+# repeated blank lines (portable across BSD/GNU sed; `cat -s` handles the
+# blank-line collapse). Command substitution drops trailing newlines.
+ENTRY="$(sed '/^<!--/,/^-->/d' "${TMPFILE}" | sed -e 's/[[:space:]]*$//' | cat -s)"
 
 if [[ -z "$(echo "${ENTRY}" | tr -d '[:space:]')" ]]; then
   echo "==> Aborting: changelog entry is empty." >&2
