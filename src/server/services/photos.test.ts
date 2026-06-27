@@ -1,0 +1,118 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("../config.js", () => ({
+  config: { adminKeyId: "k", adminHmacSecret: "s", isProduction: false, dataDir: "/tmp/t" },
+  paths: { db: ":memory:", originals: "/tmp/t/originals", derivatives: "/tmp/t/derivatives" },
+}));
+
+vi.mock("node:fs/promises", () => ({
+  rm: vi.fn().mockResolvedValue(undefined),
+  mkdir: vi.fn().mockResolvedValue(undefined),
+  writeFile: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("./derivatives.js", () => ({ generateDerivatives: vi.fn().mockResolvedValue(undefined) }));
+vi.mock("./exif.js", () => ({
+  extractExif: vi.fn().mockResolvedValue({
+    takenAt: null,
+    cameraBody: null,
+    lens: null,
+    focalLength: null,
+    aperture: null,
+    shutter: null,
+    iso: null,
+  }),
+}));
+vi.mock("./thumbhash.js", () => ({ computeThumbHash: vi.fn().mockResolvedValue(null) }));
+vi.mock("sharp", () => ({
+  default: vi.fn(() => ({
+    metadata: vi.fn().mockResolvedValue({ width: 10, height: 10 }),
+  })),
+}));
+
+import { closeDb, getDb } from "../db/index.js";
+import { migrate } from "../db/migrate.js";
+import { createAlbum, deletePhoto } from "./photos.js";
+
+describe("deletePhoto", () => {
+  let albumId: string;
+
+  beforeEach(() => {
+    closeDb(); // reset singleton → next getDb() opens a fresh :memory: DB
+    migrate();
+    const album = createAlbum({ name: "Test Album" });
+    albumId = album.id;
+  });
+
+  afterEach(() => {
+    closeDb();
+  });
+
+  function insertPhoto(id: string, slug: string, filename: string, createdAt?: string): void {
+    const db = getDb();
+    const ts = createdAt ?? new Date().toISOString();
+    db.prepare(
+      `INSERT INTO photos (id, album_id, slug, filename, width, height, created_at)
+       VALUES (?, ?, ?, ?, 10, 10, ?)`,
+    ).run(id, albumId, slug, filename, ts);
+  }
+
+  function getCoverPhotoId(): string | null {
+    const row = getDb()
+      .prepare<[string], { cover_photo_id: string | null }>(
+        `SELECT cover_photo_id FROM albums WHERE id = ?`,
+      )
+      .get(albumId);
+    return row?.cover_photo_id ?? null;
+  }
+
+  it("throws 404 for an unknown photoId", async () => {
+    await expect(deletePhoto("does-not-exist")).rejects.toMatchObject({ statusCode: 404 });
+  });
+
+  it("removes the photo row from the database", async () => {
+    insertPhoto("p1", "s1", "a.jpg");
+    await deletePhoto("p1");
+    const row = getDb().prepare(`SELECT id FROM photos WHERE id = 'p1'`).get();
+    expect(row).toBeUndefined();
+  });
+
+  it("sets cover to most recently uploaded remaining photo when cover is deleted", async () => {
+    // p1 uploaded first, p2 uploaded after
+    insertPhoto("p1", "s1", "a.jpg", "2025-01-01T00:00:00.000Z");
+    insertPhoto("p2", "s2", "b.jpg", "2025-06-01T00:00:00.000Z");
+    getDb().prepare(`UPDATE albums SET cover_photo_id = 'p1' WHERE id = ?`).run(albumId);
+
+    await deletePhoto("p1");
+
+    expect(getCoverPhotoId()).toBe("p2");
+  });
+
+  it("sets cover to NULL when the last photo is deleted", async () => {
+    insertPhoto("p1", "s1", "a.jpg");
+    getDb().prepare(`UPDATE albums SET cover_photo_id = 'p1' WHERE id = ?`).run(albumId);
+
+    await deletePhoto("p1");
+
+    expect(getCoverPhotoId()).toBeNull();
+  });
+
+  it("leaves cover unchanged when a non-cover photo is deleted", async () => {
+    insertPhoto("p1", "s1", "a.jpg");
+    insertPhoto("p2", "s2", "b.jpg");
+    getDb().prepare(`UPDATE albums SET cover_photo_id = 'p1' WHERE id = ?`).run(albumId);
+
+    await deletePhoto("p2");
+
+    expect(getCoverPhotoId()).toBe("p1");
+  });
+
+  it("sets cover to NULL when cover is deleted and album had no explicit cover (cover_photo_id was already NULL)", async () => {
+    insertPhoto("p1", "s1", "a.jpg");
+    // cover_photo_id is NULL (default) — deleting p1 should leave it NULL
+
+    await deletePhoto("p1");
+
+    expect(getCoverPhotoId()).toBeNull();
+  });
+});

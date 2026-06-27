@@ -1,3 +1,4 @@
+import { initAdmin } from "./admin.js";
 import { initLazyLoad } from "./lazyload.js";
 import { initNav } from "./nav.js";
 import { initShowcase } from "./showcase.js";
@@ -10,6 +11,7 @@ function init(): void {
   initNav();
   initShowcase();
   initViewer();
+  initAdmin();
 }
 
 if (document.readyState === "loading") {
