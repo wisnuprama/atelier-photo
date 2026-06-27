@@ -39,9 +39,15 @@ function photoRow(photo: Photo, index: number, isAdmin: boolean): string {
   const adminAttrs = isAdmin
     ? ` data-admin-photo data-photo-id="${esc(photo.id)}" class="photo-row select-none" data-year="${yearOf(photo)}"`
     : ` class="photo-row" data-year="${yearOf(photo)}"`;
+  // Tall portraits would otherwise exceed the viewport (you can't see the whole
+  // photo at once). Cap their height to a fraction of the viewport and let the
+  // aspect-ratio derive the width; landscapes are short enough to never hit it.
+  // dvh tracks mobile browser chrome; max-width + mx-auto keep it centered.
+  const portraitCap =
+    photo.height > photo.width ? ` max-width:calc(85dvh * ${photo.width} / ${photo.height});` : "";
   return `<figure${adminAttrs}>
-    <button class="block w-full overflow-hidden bg-hairline relative group"
-            style="aspect-ratio:${photo.width}/${photo.height}"
+    <button class="block w-full mx-auto overflow-hidden bg-hairline relative group"
+            style="aspect-ratio:${photo.width}/${photo.height};${portraitCap}"
             data-viewer-open data-index="${index}"
             aria-label="View ${alt} full screen">
       <div class="thumbhash absolute inset-0"${thumbAttr}></div>
