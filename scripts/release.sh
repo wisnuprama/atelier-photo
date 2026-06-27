@@ -44,6 +44,16 @@ else
 fi
 COMMITS="$(git log "${RANGE}" --oneline)"
 
+# Derive the GitHub repo URL (https://github.com/owner/repo) from the origin
+# remote so changelog entries can link to each commit.
+REMOTE_URL="$(git remote get-url origin 2>/dev/null || echo "")"
+REPO_URL="$(printf '%s' "${REMOTE_URL}" \
+  | sed -E 's#^git@github\.com:#https://github.com/#; s#^https?://[^/]*github\.com/#https://github.com/#; s#\.git$##')"
+case "${REPO_URL}" in
+  https://github.com/*) ;;          # usable
+  *) REPO_URL="" ;;                 # non-GitHub remote: skip commit links
+esac
+
 # Categorize conventional-commit subjects into keep-a-changelog sections.
 #   feat            -> Added
 #   fix             -> Fixed
@@ -52,8 +62,10 @@ COMMITS="$(git log "${RANGE}" --oneline)"
 ADDED=""
 CHANGED=""
 FIXED=""
-while IFS= read -r subject; do
-  [[ -z "${subject}" ]] && continue
+while IFS= read -r logline; do
+  [[ -z "${logline}" ]] && continue
+  hash="${logline%% *}"
+  subject="${logline#* }"
   case "${subject}" in
     Merge\ *) continue ;;
   esac
@@ -67,7 +79,13 @@ while IFS= read -r subject; do
   fi
   # Capitalize the first letter of the message.
   msg="$(printf '%s' "${msg:0:1}" | tr '[:lower:]' '[:upper:]')${msg:1}"
-  line="- ${msg}"
+  # Append a reference-style commit link (resolved in a block at the bottom of
+  # the entry). Only emitted when we have a GitHub remote.
+  if [[ -n "${REPO_URL}" ]]; then
+    line="- ${msg} ([\`${hash}\`])"
+  else
+    line="- ${msg}"
+  fi
   case "${type}" in
     feat)                  ADDED+="${line}"$'\n' ;;
     fix)                   FIXED+="${line}"$'\n' ;;
@@ -75,7 +93,7 @@ while IFS= read -r subject; do
     docs|chore|test|ci|build|style) ;;  # omit from changelog
     *)                     CHANGED+="${line}"$'\n' ;;
   esac
-done <<< "$(git log "${RANGE}" --format='%s')"
+done <<< "$(git log "${RANGE}" --format='%h %s')"
 
 TMPFILE="$(mktemp /tmp/changelog-XXXXXX.md)"
 trap 'rm -f "${TMPFILE}"' EXIT
@@ -108,6 +126,25 @@ if [[ -z "$(echo "${ENTRY}" | tr -d '[:space:]')" ]]; then
   exit 1
 fi
 
+# Build reference-style commit-link definitions for every [`hash`] that survived
+# editing (deduped, in order of first appearance). Manually grouping several
+# hashes onto one line therefore "just works".
+LINKS=""
+if [[ -n "${REPO_URL}" ]]; then
+  HASHES="$(printf '%s\n' "${ENTRY}" \
+    | grep -oE '\[`[0-9a-f]{7,40}`\]' \
+    | tr -d '[]`' \
+    | awk '!seen[$0]++')"
+  if [[ -n "${HASHES}" ]]; then
+    LINKS="<!-- ${NEW_VERSION} commit links -->"$'\n\n'
+    while IFS= read -r h; do
+      [[ -z "${h}" ]] && continue
+      LINKS+="[\`${h}\`]: ${REPO_URL}/commit/${h}"$'\n'
+    done <<< "${HASHES}"
+    LINKS="${LINKS%$'\n'}"  # trim trailing newline
+  fi
+fi
+
 # Prepend the new entry before the first "## [" line in CHANGELOG.md
 CHANGELOG="CHANGELOG.md"
 PREAMBLE="$(awk '/^## \[/{exit} {print}' "${CHANGELOG}")"
@@ -115,8 +152,9 @@ BODY="$(awk '/^## \[/{found=1} found{print}' "${CHANGELOG}")"
 
 {
   printf '%s\n' "${PREAMBLE}"
-  printf '%s\n\n' "${ENTRY}"
-  printf '%s\n' "${BODY}"
+  printf '%s\n' "${ENTRY}"
+  [[ -n "${LINKS}" ]] && printf '\n%s\n' "${LINKS}"
+  printf '\n%s\n' "${BODY}"
 } > "${CHANGELOG}.tmp"
 mv "${CHANGELOG}.tmp" "${CHANGELOG}"
 
