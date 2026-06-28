@@ -7,7 +7,7 @@
 Each phase ships with its own tests (see **Tests per phase** below); a phase
 is only `[x]` when its code **and** its tests are green.
 
-- [ ] **Phase 0 — Deps & scaffolding:** add `jszip` (+ types) to `package.json`;
+- [x] **Phase 0 — Deps & scaffolding:** add `jszip` (+ types) to `package.json`;
       confirm ESM import.
 - [ ] **Phase 1 — Server data layer:** `listAllPhotos`, `updatePhoto`,
       `normalizePhotoFields` in `src/server/services/photos.ts`.
