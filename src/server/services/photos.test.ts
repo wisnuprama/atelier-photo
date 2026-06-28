@@ -33,7 +33,7 @@ vi.mock("sharp", () => ({
 import { consoleCtx } from "../context.js";
 import { closeDb, getDb } from "../db/index.js";
 import { migrate } from "../db/migrate.js";
-import { createAlbum, deletePhoto } from "./photos.js";
+import { createAlbum, deletePhoto, ingestPhoto } from "./photos.js";
 
 describe("deletePhoto", () => {
   let albumId: string;
@@ -117,5 +117,27 @@ describe("deletePhoto", () => {
     await deletePhoto(consoleCtx, "p1");
 
     expect(getCoverPhotoId()).toBeNull();
+  });
+});
+
+describe("ingestPhoto filename sanitization", () => {
+  beforeEach(() => {
+    closeDb();
+    migrate();
+  });
+
+  afterEach(() => {
+    closeDb();
+  });
+
+  it("rejects a filename containing path components", async () => {
+    await expect(
+      ingestPhoto(consoleCtx, { filename: "../escape/evil.jpg", data: Buffer.from("x") }),
+    ).rejects.toThrow(/path components/);
+  });
+
+  it("ingests a clean filename successfully", async () => {
+    const result = await ingestPhoto(consoleCtx, { filename: "photo.jpg", data: Buffer.from("x") });
+    expect(result.status).toBe("created");
   });
 });

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, rm, writeFile } from "node:fs/promises";
-import { parse as parsePath } from "node:path";
+import { basename, join, parse as parsePath } from "node:path";
 import type { Database } from "better-sqlite3";
 import type { Ctx } from "../context.js";
 import sharp from "sharp";
@@ -329,6 +329,13 @@ export async function ingestPhoto(ctx: Ctx, input: IngestPhotoInput): Promise<In
     throw new Error("ingestPhoto: filename and non-empty data are required");
   }
 
+  // Reject filenames carrying path components — they must never influence path
+  // construction on disk. Legitimate clients always send a bare filename.
+  const safeFilename = basename(input.filename);
+  if (safeFilename !== input.filename || safeFilename === "." || safeFilename === "..") {
+    throw new Error("ingestPhoto: filename must not contain path components");
+  }
+
   const db = getDb();
   const albumSlug = slugify(input.album || DEFAULT_ALBUM_SLUG);
   const albumId = ensureAlbum(
@@ -342,14 +349,14 @@ export async function ingestPhoto(ctx: Ctx, input: IngestPhotoInput): Promise<In
     .prepare<[string, string], { id: string; slug: string }>(
       `SELECT id, slug FROM photos WHERE album_id = ? AND filename = ?`,
     )
-    .get(albumId, input.filename);
+    .get(albumId, safeFilename);
 
   const photoId = existing?.id ?? randomUUID();
   const status: IngestResult["status"] = existing ? "replaced" : "created";
   const slug =
     existing?.slug ??
     uniqueSlug(
-      slugify(parsePath(input.filename).name || input.title || input.filename),
+      slugify(parsePath(safeFilename).name || input.title || safeFilename),
       (s) =>
         db.prepare(`SELECT 1 FROM photos WHERE album_id = ? AND slug = ?`).get(albumId, s) !==
         undefined,
@@ -358,7 +365,7 @@ export async function ingestPhoto(ctx: Ctx, input: IngestPhotoInput): Promise<In
   // Write the original, then derive everything from the in-memory buffer.
   const originalDir = `${paths.originals}/${photoId}`;
   await mkdir(originalDir, { recursive: true });
-  await writeFile(`${originalDir}/${input.filename}`, input.data);
+  await writeFile(`${originalDir}/${safeFilename}`, input.data);
 
   const [exif, dims, thumbhash] = await Promise.all([
     extractExif(ctx, input.data),
@@ -393,7 +400,7 @@ export async function ingestPhoto(ctx: Ctx, input: IngestPhotoInput): Promise<In
     ).run({
       id: photoId,
       albumId,
-      filename: input.filename,
+      filename: safeFilename,
       slug,
       title: input.title ?? null,
       commentary: input.commentary ?? null,
@@ -441,12 +448,17 @@ export async function deletePhoto(ctx: Ctx, photoId: string): Promise<void> {
 
   yearRangeCache = null;
 
+  // Use the id the DB returned, never the raw input, for path construction.
+  // Failures are non-fatal (the row is already gone) but logged so orphaned
+  // files can be debugged later. With force:true these only fire on real errors
+  // (e.g. permissions), not on a missing path.
+  const confirmedId = existing.id;
   const removeDir = (dir: string) =>
     rm(dir, { recursive: true, force: true }).catch((err: unknown) => {
-      ctx.log.error({ err, dir, photoId }, "deletePhoto: failed to remove directory");
+      ctx.log.error({ err, dir, photoId: confirmedId }, "deletePhoto: failed to remove directory");
     });
   await Promise.all([
-    removeDir(`${paths.originals}/${photoId}`),
-    removeDir(`${paths.derivatives}/${photoId}`),
+    removeDir(join(paths.originals, confirmedId)),
+    removeDir(join(paths.derivatives, confirmedId)),
   ]);
 }
