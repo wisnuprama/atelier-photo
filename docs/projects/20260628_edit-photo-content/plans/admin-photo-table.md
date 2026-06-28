@@ -55,6 +55,8 @@ Requirements: `docs/projects/20260628_edit-photo-content/requirements.md`.
 - **ZIP export:** add a minimal dependency (`jszip`) — generate the archive
   in-memory as a Node Buffer. (Departs from the usual "no new deps" preference,
   but hand-rolling a ZIP writer was judged not worth it.)
+- **CSV:** use **PapaParse** rather than a hand-rolled RFC-4180 parser — same
+  rationale (a proper, well-tested library over bespoke parsing).
 - **ID link target:** `/albums/{slug}#photo-{id}` — requires adding **hash
   deep-linking** to the lightbox in `src/client/ts/viewer.ts`. Album cell links
   to `/albums/{slug}` (no hash). Both open in a new tab.
@@ -105,10 +107,15 @@ Requirements: `docs/projects/20260628_edit-photo-content/requirements.md`.
 
 ### 2. `src/server/services/csv.ts` (new)
 
-- `toCsv(rows: string[][]): string` — RFC-4180 quoting (wrap fields containing
-  `,`/`"`/newline; escape `"` → `""`; CRLF line endings).
-- `parseCsv(text: string): string[][]` — small RFC-4180 parser handling quoted
-  fields, embedded commas/quotes/newlines. No dependency.
+Thin wrappers over **PapaParse** so we don't hand-roll RFC-4180 quoting:
+
+- `toCsv(rows: string[][]): string` — `Papa.unparse` (auto-quotes fields with
+  `,`/`"`/newline; escapes `"` → `""`; CRLF line endings).
+- `parseCsv(text: string): string[][]` — `Papa.parse` with `skipEmptyLines`
+  (handles quoted fields, embedded commas/quotes/newlines, `\n`/`\r\n`, trailing
+  newline).
+- `headerMatches(header, expected): boolean` — exact column-shape check
+  (trim per cell) to reject CSVs that don't match the export header.
 
 ### 3. `src/server/routes/auth.ts` (extend `authRoutes`)
 
@@ -191,8 +198,11 @@ All guarded by `getAdminSession`; page route redirects, API routes return 401.
 
 ## Build / deps
 
-- Add `jszip` to `dependencies` in `package.json` (`pnpm add jszip`); add
-  `@types/jszip` if types aren't bundled. Confirm it's ESM-importable.
+- Add `jszip` to `dependencies` (`pnpm add jszip`; types bundled). Confirm it's
+  ESM-importable.
+- Add `papaparse` to `dependencies` + `@types/papaparse` to `devDependencies`
+  (`pnpm add papaparse && pnpm add -D @types/papaparse`) for the CSV
+  reader/writer.
 - No esbuild config change (entry stays `main.ts`); no Tailwind config change
   (`@source` already scans `src/server/**` and `src/client/ts/**`).
 - No DB migration (requirement §7).
