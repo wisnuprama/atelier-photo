@@ -7,6 +7,8 @@ export interface Config {
   readonly adminKeyId: string;
   readonly adminHmacSecret: string;
   readonly isProduction: boolean;
+  readonly contactEmail: string;
+  readonly contactGreeting: string;
 }
 
 const dataDir = resolve(process.env.DATA_DIR ?? "data");
@@ -18,6 +20,8 @@ export const config: Config = {
   adminKeyId: process.env.ADMIN_KEY_ID ?? "",
   adminHmacSecret: process.env.ADMIN_HMAC_SECRET ?? "",
   isProduction: process.env.NODE_ENV === "production",
+  contactEmail: (process.env.CONTACT_EMAIL ?? "").trim(),
+  contactGreeting: (process.env.CONTACT_GREETING ?? "").trim() || "Get in Touch",
 };
 
 /** Canonical on-disk locations, all under DATA_DIR. */
