@@ -14,7 +14,7 @@
     "build:server": "tsc -p tsconfig.json && node scripts/copy-assets.js",
     "build:css": "tailwindcss -i src/client/css/app.css -o public/css/app.css --minify",
     "build:js": "node scripts/esbuild.js",
-    "start": "node dist/server/server.js",
+    "start": "UV_THREADPOOL_SIZE=4 node --max-old-space-size=1024 dist/server/server.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json --noEmit",

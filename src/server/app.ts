@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import fastifyCookie from "@fastify/cookie";
 import fastifyStatic from "@fastify/static";
 import Fastify, { type FastifyInstance } from "fastify";
+import sharp from "sharp";
 import { config } from "./config.js";
 import { migrate } from "./db/migrate.js";
 import { adminRoutes } from "./routes/admin.js";
@@ -14,6 +15,14 @@ import { pageRoutes } from "./routes/pages.js";
 import { layout } from "./views/layout.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
+  // libvips tuning for a small container (2 vCPU / 2 GB). `cache(false)` stops
+  // libvips retaining decoded inputs (off-heap memory the V8 heap cap can't
+  // bound); `concurrency` caps threads per op so ingest never grabs more than
+  // the core count. Note UV_THREADPOOL_SIZE / --max-old-space-size must be set
+  // on the start command / container env, not here (libuv/V8 read them at init).
+  sharp.cache(false);
+  sharp.concurrency(config.sharpConcurrency);
+
   // Apply DB schema before any route can query it.
   migrate();
 
