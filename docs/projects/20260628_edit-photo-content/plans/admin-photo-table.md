@@ -31,7 +31,7 @@ is only `[x]` when its code **and** its tests are green.
       `src/client/ts/viewer.ts`; figure ids + "Manage photos" link in
       `src/server/views/showcase.ts`.
   - [x] Tests: hash→index resolver helper unit-tested.
-- [ ] **Phase 7 — Verify:** `pnpm typecheck && pnpm lint && pnpm test` green +
+- [x] **Phase 7 — Verify:** `pnpm typecheck && pnpm lint && pnpm test` green +
       manual end-to-end checks.
 
 ## Context
