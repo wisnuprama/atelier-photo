@@ -1,6 +1,7 @@
 import { Readable } from "node:stream";
 import busboy from "busboy";
 import type { FastifyInstance, FastifyRequest } from "fastify";
+import { ctxFromRequest } from "../context.js";
 import { verifyHmac } from "../plugins/hmac-auth.js";
 import { createAlbum, ingestPhoto, type IngestResult } from "../services/photos.js";
 
@@ -92,7 +93,11 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       return reply.code(400).send({ error: "missing name field" });
     }
 
-    const album = createAlbum({ name, slug: fields.slug, description: fields.description });
+    const album = createAlbum(ctxFromRequest(request), {
+      name,
+      slug: fields.slug,
+      description: fields.description,
+    });
     return reply.code(201).send(album);
   });
 
@@ -107,11 +112,12 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       return reply.code(400).send({ error: "no file parts in request" });
     }
 
+    const ctx = ctxFromRequest(request);
     const photos: IngestResult[] = [];
     let created = 0;
     let replaced = 0;
     for (const file of files) {
-      const result = await ingestPhoto({
+      const result = await ingestPhoto(ctx, {
         album: fields.album,
         filename: file.filename,
         title: fields.title,

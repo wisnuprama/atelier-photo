@@ -1,6 +1,7 @@
 import { mkdir, rename, writeFile } from "node:fs/promises";
 import sharp, { type Sharp } from "sharp";
 import { paths } from "../config.js";
+import type { Ctx } from "../context.js";
 
 /**
  * Resized derivatives generated from each original at ingest. The timeline
@@ -49,7 +50,11 @@ export function derivativePath(photoId: string, variant: string, ext: string): s
  * and write atomically (temp file + rename) so a crashed ingest can't leave a
  * half-written file that `existsSync` would treat as valid.
  */
-export async function generateDerivatives(photoId: string, original: Buffer): Promise<void> {
+export async function generateDerivatives(
+  ctx: Ctx,
+  photoId: string,
+  original: Buffer,
+): Promise<void> {
   await mkdir(`${paths.derivatives}/${photoId}`, { recursive: true });
 
   for (const spec of DERIVATIVES) {

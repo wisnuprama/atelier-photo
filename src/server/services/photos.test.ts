@@ -30,6 +30,7 @@ vi.mock("sharp", () => ({
   })),
 }));
 
+import { consoleCtx } from "../context.js";
 import { closeDb, getDb } from "../db/index.js";
 import { migrate } from "../db/migrate.js";
 import { createAlbum, deletePhoto } from "./photos.js";
@@ -40,7 +41,7 @@ describe("deletePhoto", () => {
   beforeEach(() => {
     closeDb(); // reset singleton → next getDb() opens a fresh :memory: DB
     migrate();
-    const album = createAlbum({ name: "Test Album" });
+    const album = createAlbum(consoleCtx, { name: "Test Album" });
     albumId = album.id;
   });
 
@@ -67,12 +68,14 @@ describe("deletePhoto", () => {
   }
 
   it("throws 404 for an unknown photoId", async () => {
-    await expect(deletePhoto("does-not-exist")).rejects.toMatchObject({ statusCode: 404 });
+    await expect(deletePhoto(consoleCtx, "does-not-exist")).rejects.toMatchObject({
+      statusCode: 404,
+    });
   });
 
   it("removes the photo row from the database", async () => {
     insertPhoto("p1", "s1", "a.jpg");
-    await deletePhoto("p1");
+    await deletePhoto(consoleCtx, "p1");
     const row = getDb().prepare(`SELECT id FROM photos WHERE id = 'p1'`).get();
     expect(row).toBeUndefined();
   });
@@ -83,7 +86,7 @@ describe("deletePhoto", () => {
     insertPhoto("p2", "s2", "b.jpg", "2025-06-01T00:00:00.000Z");
     getDb().prepare(`UPDATE albums SET cover_photo_id = 'p1' WHERE id = ?`).run(albumId);
 
-    await deletePhoto("p1");
+    await deletePhoto(consoleCtx, "p1");
 
     expect(getCoverPhotoId()).toBe("p2");
   });
@@ -92,7 +95,7 @@ describe("deletePhoto", () => {
     insertPhoto("p1", "s1", "a.jpg");
     getDb().prepare(`UPDATE albums SET cover_photo_id = 'p1' WHERE id = ?`).run(albumId);
 
-    await deletePhoto("p1");
+    await deletePhoto(consoleCtx, "p1");
 
     expect(getCoverPhotoId()).toBeNull();
   });
@@ -102,7 +105,7 @@ describe("deletePhoto", () => {
     insertPhoto("p2", "s2", "b.jpg");
     getDb().prepare(`UPDATE albums SET cover_photo_id = 'p1' WHERE id = ?`).run(albumId);
 
-    await deletePhoto("p2");
+    await deletePhoto(consoleCtx, "p2");
 
     expect(getCoverPhotoId()).toBe("p1");
   });
@@ -111,7 +114,7 @@ describe("deletePhoto", () => {
     insertPhoto("p1", "s1", "a.jpg");
     // cover_photo_id is NULL (default) — deleting p1 should leave it NULL
 
-    await deletePhoto("p1");
+    await deletePhoto(consoleCtx, "p1");
 
     expect(getCoverPhotoId()).toBeNull();
   });

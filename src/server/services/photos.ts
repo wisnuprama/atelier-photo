@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { parse as parsePath } from "node:path";
 import type { Database } from "better-sqlite3";
+import type { Ctx } from "../context.js";
 import sharp from "sharp";
 import { paths } from "../config.js";
 import { getDb } from "../db/index.js";
@@ -154,7 +155,7 @@ function toPhoto(row: PhotoRow): Photo {
 
 let yearRangeCache: Readonly<{ oldest: number; newest: number }> | null = null;
 
-export function getPhotoYearRange(): Readonly<{ oldest: number; newest: number }> | null {
+export function getPhotoYearRange(_ctx: Ctx): Readonly<{ oldest: number; newest: number }> | null {
   if (yearRangeCache) return yearRangeCache;
   const row = getDb()
     .prepare<[], { oldest: string | null; newest: string | null }>(
@@ -169,7 +170,7 @@ export function getPhotoYearRange(): Readonly<{ oldest: number; newest: number }
   return yearRangeCache;
 }
 
-export function listAlbums(): AlbumWithCover[] {
+export function listAlbums(_ctx: Ctx): AlbumWithCover[] {
   const rows = getDb()
     .prepare<[], AlbumRow>(
       `SELECT ${ALBUM_COLUMNS} FROM albums a ${COVER_JOIN}
@@ -179,7 +180,7 @@ export function listAlbums(): AlbumWithCover[] {
   return rows.map(toAlbumWithCover);
 }
 
-export function getAlbum(id: string): AlbumWithCover | undefined {
+export function getAlbum(_ctx: Ctx, id: string): AlbumWithCover | undefined {
   const row = getDb()
     .prepare<[string], AlbumRow>(
       `SELECT ${ALBUM_COLUMNS} FROM albums a ${COVER_JOIN} WHERE a.id = ?`,
@@ -188,7 +189,7 @@ export function getAlbum(id: string): AlbumWithCover | undefined {
   return row ? toAlbumWithCover(row) : undefined;
 }
 
-export function getAlbumBySlug(slug: string): AlbumWithCover | undefined {
+export function getAlbumBySlug(_ctx: Ctx, slug: string): AlbumWithCover | undefined {
   const row = getDb()
     .prepare<[string], AlbumRow>(
       `SELECT ${ALBUM_COLUMNS} FROM albums a ${COVER_JOIN} WHERE a.slug = ?`,
@@ -197,13 +198,13 @@ export function getAlbumBySlug(slug: string): AlbumWithCover | undefined {
   return row ? toAlbumWithCover(row) : undefined;
 }
 
-export function getPhoto(id: string): Photo | undefined {
+export function getPhoto(_ctx: Ctx, id: string): Photo | undefined {
   const row = getDb().prepare<[string], PhotoRow>(`SELECT * FROM photos WHERE id = ?`).get(id);
   return row ? toPhoto(row) : undefined;
 }
 
 /** Photos of an album, most recently taken first (timeline order). */
-export function listPhotos(albumId: string): Photo[] {
+export function listPhotos(_ctx: Ctx, albumId: string): Photo[] {
   const rows = getDb()
     .prepare<[string], PhotoRow>(
       `SELECT * FROM photos WHERE album_id = ?
@@ -254,7 +255,10 @@ export interface CreateAlbumInput {
 }
 
 /** Create an album with a random opaque id and a derived, deduped slug. */
-export function createAlbum(input: CreateAlbumInput): {
+export function createAlbum(
+  _ctx: Ctx,
+  input: CreateAlbumInput,
+): {
   id: string;
   slug: string;
 } {
@@ -269,7 +273,7 @@ export function createAlbum(input: CreateAlbumInput): {
 }
 
 /** Return the id of the album with `slug`, creating it (with `name`) if absent. */
-export function ensureAlbum(slug: string, name?: string): string {
+export function ensureAlbum(_ctx: Ctx, slug: string, name?: string): string {
   const db = getDb();
   const existing = db
     .prepare<[string], { id: string }>(`SELECT id FROM albums WHERE slug = ?`)
@@ -320,7 +324,7 @@ async function intrinsicDimensions(original: Buffer): Promise<{ width: number; h
  * derivatives, then upsert the row. Replacing reuses the existing random `id`
  * (and slug) so derivative paths and `/media` URLs stay stable.
  */
-export async function ingestPhoto(input: IngestPhotoInput): Promise<IngestResult> {
+export async function ingestPhoto(ctx: Ctx, input: IngestPhotoInput): Promise<IngestResult> {
   if (!input.filename || input.data.length === 0) {
     throw new Error("ingestPhoto: filename and non-empty data are required");
   }
@@ -328,6 +332,7 @@ export async function ingestPhoto(input: IngestPhotoInput): Promise<IngestResult
   const db = getDb();
   const albumSlug = slugify(input.album || DEFAULT_ALBUM_SLUG);
   const albumId = ensureAlbum(
+    ctx,
     albumSlug,
     albumSlug === DEFAULT_ALBUM_SLUG ? DEFAULT_ALBUM_NAME : undefined,
   );
@@ -356,10 +361,10 @@ export async function ingestPhoto(input: IngestPhotoInput): Promise<IngestResult
   await writeFile(`${originalDir}/${input.filename}`, input.data);
 
   const [exif, dims, thumbhash] = await Promise.all([
-    extractExif(input.data),
+    extractExif(ctx, input.data),
     intrinsicDimensions(input.data),
-    computeThumbHash(input.data),
-    generateDerivatives(photoId, input.data),
+    computeThumbHash(ctx, input.data),
+    generateDerivatives(ctx, photoId, input.data),
   ]);
 
   // Title/commentary are user-supplied (preserve on replace when omitted); all
@@ -409,7 +414,7 @@ export async function ingestPhoto(input: IngestPhotoInput): Promise<IngestResult
   return { id: photoId, slug, status };
 }
 
-export async function deletePhoto(photoId: string): Promise<void> {
+export async function deletePhoto(ctx: Ctx, photoId: string): Promise<void> {
   const db = getDb();
   const existing = db
     .prepare<[string], { id: string }>(`SELECT id FROM photos WHERE id = ?`)
