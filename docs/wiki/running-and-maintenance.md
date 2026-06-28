@@ -18,18 +18,38 @@ npm or yarn.
 
 ## Environment variables
 
-| Variable            | Purpose                                                   |
-| ------------------- | --------------------------------------------------------- |
-| `PORT`              | HTTP port (default `3000`).                               |
-| `HOST`              | Bind address (default `0.0.0.0`).                         |
-| `DATA_DIR`          | Root for the database, originals, and derivatives.        |
-| `ADMIN_KEY_ID`      | Admin key id expected in the `X-Key-Id` header.           |
-| `ADMIN_HMAC_SECRET` | Secret used to sign/verify admin requests.                |
-| `NODE_ENV`          | Set to `production` in deployment.                         |
+| Variable             | Purpose                                                   |
+| -------------------- | --------------------------------------------------------- |
+| `PORT`               | HTTP port (default `3000`).                               |
+| `HOST`               | Bind address (default `0.0.0.0`).                         |
+| `DATA_DIR`           | Root for the database, originals, and derivatives.        |
+| `ADMIN_KEY_ID`       | Admin key id expected in the `X-Key-Id` header.           |
+| `ADMIN_HMAC_SECRET`  | Secret used to sign/verify admin requests.                |
+| `NODE_ENV`           | Set to `production` in deployment.                         |
+| `INGEST_CONCURRENCY` | Photos decoded/encoded at once, across all requests (default `1`). |
+| `SHARP_CONCURRENCY`  | libvips threads per sharp operation (default: `min(2, cpu cores)`). |
+| `UV_THREADPOOL_SIZE` | libuv pool size sharp runs on; **boot-time** (default `4` in the image). |
+| `NODE_OPTIONS`       | Node launch flags, e.g. `--max-old-space-size=1024`; **boot-time**. |
 
 `ADMIN_KEY_ID` and `ADMIN_HMAC_SECRET` are **secrets** — provide them via the
 environment (or a Podman secret), never commit them. Until both are set, the admin
 ingest endpoints reject every request with **401**.
+
+### Ingest tuning
+
+The ingest pipeline (decode → derivatives → write) is CPU- and memory-heavy. The
+defaults above are sized for a **2 vCPU / 2 GB** container and are safe to leave
+alone; tune only if you change the container's resources.
+
+- `INGEST_CONCURRENCY` and `SHARP_CONCURRENCY` are read by the app at runtime, so
+  they work from any env source (including a `.env` in dev). Keep
+  `INGEST_CONCURRENCY × SHARP_CONCURRENCY ≤ core count` so ingest never fully
+  starves request serving.
+- `UV_THREADPOOL_SIZE` and `NODE_OPTIONS` are consumed by libuv/V8 **before** app
+  code runs, so they cannot be applied from a `.env` the app loads — set them on
+  the start command or the container env. They ship as defaults in the image
+  (`Containerfile`) and can be overridden per host in the quadlet. See
+  [Self-hosting with Podman Quadlet](./self-hosting-podman-quadlet.md).
 
 `ADMIN_HMAC_SECRET` doubles as the credential for the browser **admin session**
 (used to delete photos): it's the value you type at `/admin/login`, and it signs
