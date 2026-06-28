@@ -3,7 +3,7 @@
 #
 # Usage:
 #   ./scripts/release.sh <major|minor|patch>
-#   make release BUMP=patch
+#   just release patch
 
 set -euo pipefail
 

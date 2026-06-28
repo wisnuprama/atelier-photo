@@ -36,6 +36,7 @@ set -euo pipefail
 echo "Installing system packages…"
 sudo dnf install -y \
   git \
+  just \
   make \
   gcc gcc-c++ \
   python3 \
