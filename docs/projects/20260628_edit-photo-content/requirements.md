@@ -37,7 +37,7 @@ with periodic auto-save.
 - **Clickable links:** the ID and Album cells are links that open the
   corresponding pages in a **new tab** (`target="_blank"`, with
   `rel="noopener noreferrer"`):
-  - ID links to the photo's page.
+  - ID links to the photo's page (full preview version).
   - Album links to the album's page.
 - The page must be keyboard accessible: editable cells are reachable by Tab,
   visible focus is shown, and editing is possible without a mouse.
