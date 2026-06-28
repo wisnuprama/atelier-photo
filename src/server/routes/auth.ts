@@ -14,7 +14,7 @@ import {
   updatePhoto,
 } from "../services/photos.js";
 import { adminLoginPage } from "../views/admin-login.js";
-import { layout } from "../views/layout.js";
+import { adminPhotosPage } from "../views/admin-photos.js";
 
 function safeEqual(a: string, b: string): boolean {
   const ab = Buffer.from(a);
@@ -104,22 +104,13 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
 
   // --- Admin photo table (session-protected) ------------------------------
 
-  // Render the photo table page. Phase 4 replaces this placeholder body with
-  // the full table view (adminPhotosPage); the route + auth gate land here.
+  // Render the photo table page (full table view + JSON island for the client).
   app.get("/photos", async (request, reply) => {
     if (!getAdminSession(request)) {
       return reply.redirect("/admin/login?next=/admin/photos");
     }
     const rows = listAllPhotos(ctxFromRequest(request));
-    return reply.type("text/html").send(
-      layout({
-        title: "Admin · Photos",
-        body: `<main class="max-w-[1400px] mx-auto px-5 sm:px-8 py-12">
-        <h1 class="font-serif text-[28px]">Admin · Photos</h1>
-        <p class="mt-4 font-mono text-[11px] label text-stone uppercase">${rows.length} photos</p>
-      </main>`,
-      }),
-    );
+    return reply.type("text/html").send(adminPhotosPage(rows));
   });
 
   // Partial update of a single photo's title/commentary (inline auto-save).

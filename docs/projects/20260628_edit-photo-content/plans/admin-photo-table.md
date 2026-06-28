@@ -19,9 +19,9 @@ is only `[x]` when its code **and** its tests are green.
       `GET /photos/export`, `POST /photos/import` in `src/server/routes/auth.ts`.
   - [x] Tests: new `src/server/routes/auth.test.ts` (critical paths via
         `app.inject`).
-- [ ] **Phase 4 — Table view:** `src/server/views/admin-photos.ts` (table +
+- [x] **Phase 4 — Table view:** `src/server/views/admin-photos.ts` (table +
       mobile cards + JSON island).
-  - [ ] Tests: new `src/server/views/admin-photos.test.ts` (render/escaping).
+  - [x] Tests: new `src/server/views/admin-photos.test.ts` (render/escaping).
 - [ ] **Phase 5 — Client table logic:** `src/client/ts/admin-photos.ts`
       (model, filter, pagination, inline edit, auto-save, export/import);
       register in `main.ts`.
