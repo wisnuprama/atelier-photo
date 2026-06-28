@@ -47,7 +47,7 @@ export function layout(opts: LayoutOptions): string {
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="/css/app.css" />
 </head>
-<body class="bg-paper text-ink font-sans antialiased">
+<body class="bg-paper text-ink font-sans antialiased min-h-svh flex flex-col">
 
 <header id="nav" class="sticky top-0 z-40 bg-paper/90 backdrop-blur-sm border-b border-transparent transition-colors">
   <div class="max-w-[1400px] mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
@@ -72,7 +72,9 @@ export function layout(opts: LayoutOptions): string {
   </div>
 </header>
 
+<div class="flex-1 flex flex-col">
 ${body}
+</div>
 
 <footer class="border-t border-hairline mt-16">
   <div class="max-w-[1400px] mx-auto px-5 sm:px-8 py-6">

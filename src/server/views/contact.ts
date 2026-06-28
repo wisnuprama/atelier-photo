@@ -17,7 +17,7 @@ export function contactPage(opts: ContactPageOptions): string {
       </a>`
     : "";
 
-  return `<main class="min-h-[calc(100svh-4rem)] flex flex-col items-center justify-center text-center px-5 sm:px-8 py-24">
+  return `<main class="flex-1 flex flex-col items-center justify-center text-center px-5 sm:px-8 py-24">
     <h1 class="font-serif text-[34px] sm:text-[46px] leading-[1.05]">${esc(greeting)}</h1>
     ${emailBlock}
   </main>`;
