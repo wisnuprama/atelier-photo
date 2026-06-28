@@ -36,19 +36,26 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     return reply.type("text/html").send(adminLoginPage({ next }));
   });
 
-  app.post("/login", async (request, reply) => {
-    const body = request.body as Record<string, string>;
-    const secret = body.secret?.trim() ?? "";
-    const rawNext = body.next?.trim() ?? "/";
-    const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/";
+  app.post(
+    "/login",
+    // Brute-force guard: cap secret attempts per client IP, well below the
+    // loose global limit. Honored because the rate-limit plugin is registered
+    // in a parent scope (see app.ts).
+    { config: { rateLimit: { max: 3, timeWindow: "5 minutes" } } },
+    async (request, reply) => {
+      const body = request.body as Record<string, string>;
+      const secret = body.secret?.trim() ?? "";
+      const rawNext = body.next?.trim() ?? "/";
+      const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/";
 
-    if (!config.adminHmacSecret || !safeEqual(secret, config.adminHmacSecret)) {
-      return reply.type("text/html").send(adminLoginPage({ error: "Invalid secret", next }));
-    }
+      if (!config.adminHmacSecret || !safeEqual(secret, config.adminHmacSecret)) {
+        return reply.type("text/html").send(adminLoginPage({ error: "Invalid secret", next }));
+      }
 
-    setAdminSession(reply);
-    return reply.redirect(next);
-  });
+      setAdminSession(reply);
+      return reply.redirect(next);
+    },
+  );
 
   app.post("/logout", async (_request, reply) => {
     clearAdminSession(reply);

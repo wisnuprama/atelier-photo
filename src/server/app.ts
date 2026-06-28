@@ -8,6 +8,7 @@ import { migrate } from "./db/migrate.js";
 import { adminRoutes } from "./routes/admin.js";
 import { apiRoutes } from "./routes/api.js";
 import { authRoutes } from "./routes/auth.js";
+import { registerRateLimit } from "./plugins/rate-limit.js";
 import { mediaRoutes } from "./routes/media.js";
 import { pageRoutes } from "./routes/pages.js";
 import { layout } from "./views/layout.js";
@@ -25,6 +26,9 @@ export async function buildApp(): Promise<FastifyInstance> {
   mkdirSync(publicDir, { recursive: true });
   await app.register(fastifyStatic, { root: publicDir, prefix: "/" });
   await app.register(fastifyCookie);
+
+  // Register before routes so per-route `config.rateLimit` overrides apply.
+  await registerRateLimit(app);
 
   await app.register(pageRoutes);
   await app.register(mediaRoutes);
