@@ -1,8 +1,10 @@
 import type { FastifyInstance } from "fastify";
+import { config } from "../config.js";
 import { ctxFromRequest } from "../context.js";
 import { getAdminSession } from "../plugins/session.js";
 import { getAlbumBySlug, getPhotoYearRange, listAlbums, listPhotos } from "../services/photos.js";
 import { albumsPage } from "../views/albums.js";
+import { contactPage } from "../views/contact.js";
 import { layout } from "../views/layout.js";
 import { showcasePage } from "../views/showcase.js";
 import { esc } from "../views/util.js";
@@ -14,6 +16,15 @@ export async function pageRoutes(app: FastifyInstance): Promise<void> {
       title: "Still — Wisnu Photography",
       activeNav: "albums",
       body: albumsPage(listAlbums(ctx), getPhotoYearRange(ctx)),
+    });
+    return reply.type("text/html").send(html);
+  });
+
+  app.get("/contact", async (_request, reply) => {
+    const html = layout({
+      title: "Contact — Still",
+      activeNav: "contact",
+      body: contactPage({ email: config.contactEmail, greeting: config.contactGreeting }),
     });
     return reply.type("text/html").send(html);
   });

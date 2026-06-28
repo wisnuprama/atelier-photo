@@ -6,17 +6,17 @@ export interface LayoutOptions {
   /** Pre-rendered, trusted HTML for <main>. */
   body: string;
   /** Which top-nav link reads as current. */
-  activeNav?: "albums" | null;
+  activeNav?: "albums" | "contact" | null;
 }
 
 const NAV_LINKS: ReadonlyArray<{
   href: string;
   label: string;
-  key?: "albums";
+  key?: "albums" | "contact";
 }> = [
   { href: "/", label: "Albums", key: "albums" },
   // { href: "#", label: "About" },
-  { href: "#", label: "Contact" },
+  { href: "/contact", label: "Contact", key: "contact" },
 ];
 
 function desktopNav(active: LayoutOptions["activeNav"]): string {
