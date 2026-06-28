@@ -17,6 +17,9 @@ Personal, minimalist black-and-white photo gallery. A professional-but-personal
   under a `plans/` subfolder, e.g.
   `docs/projects/{YYYYMMDD_name}/plans/{plan}.md`. When a new plan is approved,
   write it there; do not leave plan docs only in `~/.claude/plans`.
+- Plan files must use a short kebab-case slug derived from the document's title,
+  e.g. `unit-tests-vitest.md` or `photo-zoom-swipe-gesture-guard.md`.
+  Never use auto-generated or random filenames.
 
 ## Stack
 
