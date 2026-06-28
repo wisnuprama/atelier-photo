@@ -15,9 +15,9 @@ is only `[x]` when its code **and** its tests are green.
 - [x] **Phase 2 — CSV utility:** `toCsv`/`parseCsv` in
       `src/server/services/csv.ts`.
   - [x] Tests: new `src/server/services/csv.test.ts` (unit, round-trip).
-- [ ] **Phase 3 — Routes:** `GET /photos`, `PATCH /photos/:id`,
+- [x] **Phase 3 — Routes:** `GET /photos`, `PATCH /photos/:id`,
       `GET /photos/export`, `POST /photos/import` in `src/server/routes/auth.ts`.
-  - [ ] Tests: new `src/server/routes/auth.test.ts` (critical paths via
+  - [x] Tests: new `src/server/routes/auth.test.ts` (critical paths via
         `app.inject`).
 - [ ] **Phase 4 — Table view:** `src/server/views/admin-photos.ts` (table +
       mobile cards + JSON island).
