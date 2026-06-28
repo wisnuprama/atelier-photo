@@ -1,5 +1,6 @@
 import { createReadStream, existsSync } from "node:fs";
 import type { FastifyInstance } from "fastify";
+import { ctxFromRequest } from "../context.js";
 import { DERIVATIVE_FORMATS, DERIVATIVE_NAMES, derivativePath } from "../services/derivatives.js";
 import { getPhoto } from "../services/photos.js";
 
@@ -29,7 +30,7 @@ export async function mediaRoutes(app: FastifyInstance): Promise<void> {
         return reply.code(404).send({ error: "unknown variant" });
       }
 
-      const photo = getPhoto(photoId);
+      const photo = getPhoto(ctxFromRequest(request), photoId);
       if (!photo) {
         return reply.code(404).send({ error: "photo not found" });
       }

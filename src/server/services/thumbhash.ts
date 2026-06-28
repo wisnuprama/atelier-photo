@@ -1,5 +1,6 @@
 import sharp from "sharp";
 import { rgbaToThumbHash, thumbHashToRGBA } from "thumbhash";
+import type { Ctx } from "../context.js";
 
 /**
  * Encode an RGBA bitmap into a base64 ThumbHash string for storage.
@@ -21,7 +22,7 @@ export function encodeThumbHash(
  * orientation and downscales to ≤100px on the longest edge (ThumbHash's input
  * limit) before encoding.
  */
-export async function computeThumbHash(original: Buffer): Promise<string> {
+export async function computeThumbHash(_ctx: Ctx, original: Buffer): Promise<string> {
   const { data, info } = await sharp(original)
     .rotate()
     .resize(100, 100, { fit: "inside", withoutEnlargement: true })

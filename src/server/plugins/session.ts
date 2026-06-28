@@ -8,9 +8,7 @@ const SESSION_TTL_MS = 2 * 24 * 60 * 60 * 1000;
 const SESSION_TTL_S = SESSION_TTL_MS / 1000;
 
 function sign(issuedAt: number): string {
-  return createHmac("sha256", config.adminHmacSecret)
-    .update(`admin:${issuedAt}`)
-    .digest("hex");
+  return createHmac("sha256", config.adminHmacSecret).update(`admin:${issuedAt}`).digest("hex");
 }
 
 export function setAdminSession(reply: FastifyReply): void {
