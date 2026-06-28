@@ -45,7 +45,7 @@ function photoRow(photo: Photo, index: number, isAdmin: boolean): string {
   // dvh tracks mobile browser chrome; max-width + mx-auto keep it centered.
   const portraitCap =
     photo.height > photo.width ? ` max-width:calc(85dvh * ${photo.width} / ${photo.height});` : "";
-  return `<figure${adminAttrs}>
+  return `<figure id="photo-${esc(photo.id)}"${adminAttrs}>
     <button class="block w-full mx-auto overflow-hidden bg-hairline relative group"
             style="aspect-ratio:${photo.width}/${photo.height};${portraitCap}"
             data-viewer-open data-index="${index}"
@@ -148,6 +148,8 @@ export function showcasePage(album: AlbumWithCover, photos: Photo[], isAdmin = f
         <span class="font-mono text-[9px] label text-stone uppercase tracking-widest">Admin</span>
         <span class="font-mono text-[9px] label text-stone/40">·</span>
         <span class="font-mono text-[9px] label text-stone/60">Long-press photo to manage</span>
+        <span class="font-mono text-[9px] label text-stone/40">·</span>
+        <a href="/admin/photos" class="font-mono text-[9px] label text-stone hover:text-ink uppercase tracking-widest transition-colors">Manage photos</a>
         <span class="font-mono text-[9px] label text-stone/40 ml-auto">·</span>
         <form method="POST" action="/admin/logout" class="inline">
           <button type="submit" class="font-mono text-[9px] label text-stone hover:text-ink uppercase tracking-widest transition-colors">Sign out</button>

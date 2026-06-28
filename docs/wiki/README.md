@@ -14,8 +14,10 @@ browse the gallery, how to add photographs, and how to run and maintain the app.
      concrete share-sheet recipe (ready-to-paste signing script).
 4. [Admin sign-in](./admin-sign-in.md) — the browser admin session that unlocks
    owner-only controls.
-5. [Deleting photos](./deleting-photos.md) — removing a photo from an album page.
-6. [Running & maintenance](./running-and-maintenance.md) — commands, environment
+5. [Editing photos](./editing-photos.md) — the admin photo table: edit title and
+   commentary inline with auto-save, plus a CSV download/upload for bulk edits.
+6. [Deleting photos](./deleting-photos.md) — removing a photo from an album page.
+7. [Running & maintenance](./running-and-maintenance.md) — commands, environment
    variables, where files live on disk, and resetting the database.
 
 ### Deployment
@@ -37,6 +39,8 @@ browse the gallery, how to add photographs, and how to run and maintain the app.
 - **Visitors** browse albums at `/` and open an album at `/albums/<slug>`.
 - **You (the owner)** add photos by sending HMAC‑signed uploads to `/admin/photos`
   — typically from an iOS Shortcut. See [Adding photos](./adding-photos.md).
+- **To edit a photo's title or commentary**, [sign in](./admin-sign-in.md) and
+  open the [photo table](./editing-photos.md) at `/admin/photos`.
 - **To remove a photo**, [sign in](./admin-sign-in.md) at `/admin/login` and
   [delete it](./deleting-photos.md) from the album page.
 - Photos are the hero: the interface stays out of the way, everything is keyboard

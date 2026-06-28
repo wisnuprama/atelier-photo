@@ -83,6 +83,9 @@ photo. On replace:
 - `title` and `commentary` are updated only if you send them; omit them to keep the
   existing values.
 
+> To fix just the **title or commentary** without re-uploading the file, use the
+> admin [photo table](./editing-photos.md) instead.
+
 ## Photos without EXIF
 
 EXIF is optional. If a file has no embedded metadata (or it can't be read), the
