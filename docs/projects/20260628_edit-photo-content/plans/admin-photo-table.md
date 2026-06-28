@@ -22,10 +22,10 @@ is only `[x]` when its code **and** its tests are green.
 - [x] **Phase 4 — Table view:** `src/server/views/admin-photos.ts` (table +
       mobile cards + JSON island).
   - [x] Tests: new `src/server/views/admin-photos.test.ts` (render/escaping).
-- [ ] **Phase 5 — Client table logic:** `src/client/ts/admin-photos.ts`
+- [x] **Phase 5 — Client table logic:** `src/client/ts/admin-photos.ts`
       (model, filter, pagination, inline edit, auto-save, export/import);
       register in `main.ts`.
-  - [ ] Tests: pure model/filter/pagination helpers unit-tested in
+  - [x] Tests: pure model/filter/pagination helpers unit-tested in
         `src/client/ts/admin-photos.test.ts`.
 - [x] **Phase 6 — Deep-linking:** `#photo-{id}` support in
       `src/client/ts/viewer.ts`; figure ids + "Manage photos" link in
