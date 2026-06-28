@@ -36,9 +36,30 @@ echo "    ${TAG}"
 
 # --- changelog scaffold -----------------------------------------------------
 
-LAST_TAG="$(git describe --tags --abbrev=0 2>/dev/null || echo "")"
-if [[ -n "${LAST_TAG}" ]]; then
-  RANGE="${LAST_TAG}..HEAD"
+# Determine the baseline for the changelog range: everything *after* the
+# previous release. We deliberately avoid `git describe --tags`, which only
+# considers tags reachable from HEAD and silently falls back to an older tag
+# when the latest one is detached — e.g. when a release branch is rebase-merged,
+# its tag is left on the pre-rebase commit (never an ancestor of mainline), so
+# the range bleeds in commits that already shipped in the previous release.
+#
+# Instead, anchor on the most recent "chore: release vX.Y.Z" commit that is
+# actually reachable from HEAD: that commit always lands on the mainline, so the
+# range starts exactly where the last release ended regardless of tag state.
+PREV_RELEASE_COMMIT="$(git log HEAD --grep='^chore: release v[0-9]' \
+  --format='%H' --max-count=1 2>/dev/null || true)"
+if [[ -n "${PREV_RELEASE_COMMIT}" ]]; then
+  BASE_REF="${PREV_RELEASE_COMMIT}"
+  LAST_TAG="$(git log -1 --format='%s' "${PREV_RELEASE_COMMIT}" \
+    | sed -E 's/^chore: release (v[0-9][^ ]*).*$/\1/')"
+else
+  # No prior release commit (e.g. the very first release, or pre-script history):
+  # fall back to the latest reachable tag.
+  LAST_TAG="$(git describe --tags --abbrev=0 2>/dev/null || echo "")"
+  BASE_REF="${LAST_TAG}"
+fi
+if [[ -n "${BASE_REF}" ]]; then
+  RANGE="${BASE_REF}..HEAD"
 else
   RANGE="HEAD"
 fi

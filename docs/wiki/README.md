@@ -29,6 +29,8 @@ browse the gallery, how to add photographs, and how to run and maintain the app.
 
 - [Admin ingestion — multipart parsing & HMAC](./admin-ingestion-hmac.md) — why the
   ingest route buffers the body and uses `busboy` rather than `@fastify/multipart`.
+- [Releasing a new version](./releasing.md) — `scripts/release.sh`: version bump,
+  changelog generation, tagging, and the container build + push.
 
 ## Quick orientation
 
