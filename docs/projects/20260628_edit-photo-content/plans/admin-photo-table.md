@@ -9,9 +9,9 @@ is only `[x]` when its code **and** its tests are green.
 
 - [x] **Phase 0 — Deps & scaffolding:** add `jszip` (+ types) to `package.json`;
       confirm ESM import.
-- [ ] **Phase 1 — Server data layer:** `listAllPhotos`, `updatePhoto`,
+- [x] **Phase 1 — Server data layer:** `listAllPhotos`, `updatePhoto`,
       `normalizePhotoFields` in `src/server/services/photos.ts`.
-  - [ ] Tests: extend `src/server/services/photos.test.ts`.
+  - [x] Tests: extend `src/server/services/photos.test.ts`.
 - [ ] **Phase 2 — CSV utility:** `toCsv`/`parseCsv` in
       `src/server/services/csv.ts`.
   - [ ] Tests: new `src/server/services/csv.test.ts` (unit, round-trip).

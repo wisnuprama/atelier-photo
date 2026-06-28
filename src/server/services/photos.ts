@@ -56,6 +56,21 @@ export interface Photo {
   iso: string | null;
 }
 
+/** A photo row enriched with its album's slug/name, for the admin table. */
+export interface PhotoTableRow {
+  id: string;
+  albumSlug: string;
+  albumName: string;
+  title: string | null;
+  commentary: string | null;
+  cameraBody: string | null;
+  lens: string | null;
+  focalLength: string | null;
+  aperture: string | null;
+  shutter: string | null;
+  iso: string | null;
+}
+
 /* ------------------------------------------------------------------ *
  *  Row shapes returned by better-sqlite3
  * ------------------------------------------------------------------ */
@@ -85,6 +100,20 @@ interface PhotoRow {
   width: number;
   height: number;
   thumbhash: string | null;
+  camera_body: string | null;
+  lens: string | null;
+  focal_length: string | null;
+  aperture: string | null;
+  shutter: string | null;
+  iso: string | null;
+}
+
+interface PhotoTableRowSql {
+  id: string;
+  album_slug: string;
+  album_name: string;
+  title: string | null;
+  commentary: string | null;
   camera_body: string | null;
   lens: string | null;
   focal_length: string | null;
@@ -212,6 +241,104 @@ export function listPhotos(_ctx: Ctx, albumId: string): Photo[] {
     )
     .all(albumId);
   return rows.map(toPhoto);
+}
+
+/** Every photo with its album slug/name, newest first — drives the admin table. */
+export function listAllPhotos(_ctx: Ctx): PhotoTableRow[] {
+  const rows = getDb()
+    .prepare<[], PhotoTableRowSql>(
+      `SELECT p.id, a.slug AS album_slug, a.name AS album_name,
+              p.title, p.commentary, p.camera_body, p.lens, p.focal_length,
+              p.aperture, p.shutter, p.iso
+       FROM photos p
+       JOIN albums a ON a.id = p.album_id
+       ORDER BY p.created_at DESC, p.id ASC`,
+    )
+    .all();
+  return rows.map((row) => ({
+    id: row.id,
+    albumSlug: row.album_slug,
+    albumName: row.album_name,
+    title: row.title,
+    commentary: row.commentary,
+    cameraBody: row.camera_body,
+    lens: row.lens,
+    focalLength: row.focal_length,
+    aperture: row.aperture,
+    shutter: row.shutter,
+    iso: row.iso,
+  }));
+}
+
+/* ------------------------------------------------------------------ *
+ *  Editing (title / commentary)
+ * ------------------------------------------------------------------ */
+
+export interface PhotoFieldsInput {
+  title?: string | null;
+  commentary?: string | null;
+}
+
+/**
+ * Validate and sanitize title/commentary for partial updates (PATCH + CSV
+ * import). Only keys present in `input` are normalized:
+ * - `title`: trimmed; empty after trimming throws a 400-tagged Error.
+ * - `commentary`: trimmed; empty becomes `null`.
+ */
+export function normalizePhotoFields(input: PhotoFieldsInput): PhotoFieldsInput {
+  const out: PhotoFieldsInput = {};
+  if ("title" in input) {
+    const title = (input.title ?? "").trim();
+    if (title === "") {
+      const err = new Error("Title must not be empty") as Error & { statusCode: number };
+      err.statusCode = 400;
+      throw err;
+    }
+    out.title = title;
+  }
+  if ("commentary" in input) {
+    const commentary = (input.commentary ?? "").trim();
+    out.commentary = commentary === "" ? null : commentary;
+  }
+  return out;
+}
+
+/**
+ * Partial-update a photo's title/commentary. Builds the SET clause only from
+ * supplied (normalized) fields; throws a 404-tagged Error when the row is
+ * absent. Returns the updated Photo.
+ */
+export function updatePhoto(ctx: Ctx, id: string, fields: PhotoFieldsInput): Photo {
+  const normalized = normalizePhotoFields(fields);
+  const db = getDb();
+
+  const existing = db
+    .prepare<[string], { id: string }>(`SELECT id FROM photos WHERE id = ?`)
+    .get(id);
+  if (!existing) {
+    const err = new Error("Photo not found") as Error & { statusCode: number };
+    err.statusCode = 404;
+    throw err;
+  }
+
+  const assignments: string[] = [];
+  const values: (string | null)[] = [];
+  if ("title" in normalized) {
+    assignments.push("title = ?");
+    values.push(normalized.title ?? null);
+  }
+  if ("commentary" in normalized) {
+    assignments.push("commentary = ?");
+    values.push(normalized.commentary ?? null);
+  }
+
+  if (assignments.length > 0) {
+    values.push(id);
+    db.prepare(`UPDATE photos SET ${assignments.join(", ")} WHERE id = ?`).run(...values);
+  }
+
+  // getPhoto returns the row we just confirmed exists.
+  return getPhoto(ctx, id)!;
 }
 
 /* ------------------------------------------------------------------ *
