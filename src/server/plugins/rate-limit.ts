@@ -1,5 +1,6 @@
 import fastifyRateLimit from "@fastify/rate-limit";
 import type { FastifyInstance, FastifyRequest } from "fastify";
+import { getAdminSession } from "./session.js";
 
 /**
  * The site runs behind Cloudflare, so `request.ip` is the edge IP — every
@@ -27,5 +28,10 @@ export async function registerRateLimit(app: FastifyInstance): Promise<void> {
     max: 1000,
     timeWindow: "1 minute",
     keyGenerator: clientIp,
+    // Authenticated admins bypass all rate limiting (global and per-route). The
+    // cookie is parsed by @fastify/cookie, registered before this plugin, so
+    // request.cookies is populated when allowList runs. Login itself is
+    // unauthenticated, so its brute-force limit still applies.
+    allowList: (request) => getAdminSession(request),
   });
 }
