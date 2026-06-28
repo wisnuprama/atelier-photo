@@ -28,7 +28,7 @@ function tableRow(row: PhotoTableRow, index: number): string {
   return `<tr data-row data-photo-id="${esc(row.id)}"
       class="block sm:table-row border-b border-hairline py-4 sm:py-0 align-top">
     <td data-cell="num"
-        class="block sm:table-cell sm:py-3 sm:pr-3 font-mono text-[11px] text-stone tabular-nums">
+        class="block sm:table-cell sm:py-3 sm:pr-3 sm:align-middle font-mono text-[11px] text-stone tabular-nums">
       ${mobileLabel("#")}<span data-rownum>${index + 1}</span>
     </td>
     <td data-cell="id" class="block sm:table-cell sm:py-3 sm:pr-3 sm:align-middle">
@@ -37,12 +37,17 @@ function tableRow(row: PhotoTableRow, index: number): string {
          class="font-mono text-[11px] text-stone hover:text-ink underline decoration-hairline underline-offset-2 transition-colors">
         ${esc(row.id)}
       </a>
+      <span class="block font-mono text-[10px] text-stone/70 mt-1">${esc(row.filename)}</span>
     </td>
     <td data-cell="image" class="block sm:table-cell sm:py-3 sm:pr-3 sm:align-middle">
       ${mobileLabel("Image")}
-      <img src="${mediaUrl(row.id, "thumb")}" loading="lazy" decoding="async"
-           alt="${row.title ? esc(row.title) : "Photograph"}"
-           class="w-20 h-20 object-cover bg-hairline" />
+      <a href="${esc(photoHref)}" target="_blank" rel="noopener noreferrer"
+         aria-label="Open photo ${esc(row.id)} in viewer"
+         class="inline-block focus:outline-none focus:ring-2 focus:ring-ink">
+        <img src="${mediaUrl(row.id, "thumb")}" loading="lazy" decoding="async"
+             alt="${row.title ? esc(row.title) : "Photograph"}"
+             class="w-20 h-20 object-cover bg-hairline hover:opacity-90 transition-opacity cursor-pointer" />
+      </a>
     </td>
     <td data-cell="album" class="block sm:table-cell sm:py-3 sm:pr-3 sm:align-middle">
       ${mobileLabel("Album")}

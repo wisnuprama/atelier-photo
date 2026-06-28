@@ -30,6 +30,7 @@ describe("toRowModel", () => {
   it("maps a server row and coerces null title/commentary to empty strings", () => {
     const src: PhotoTableRow = {
       id: "a1",
+      filename: "a1.jpg",
       albumSlug: "s",
       albumName: "Album",
       title: null,

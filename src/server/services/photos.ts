@@ -59,6 +59,7 @@ export interface Photo {
 /** A photo row enriched with its album's slug/name, for the admin table. */
 export interface PhotoTableRow {
   id: string;
+  filename: string;
   albumSlug: string;
   albumName: string;
   title: string | null;
@@ -110,6 +111,7 @@ interface PhotoRow {
 
 interface PhotoTableRowSql {
   id: string;
+  filename: string;
   album_slug: string;
   album_name: string;
   title: string | null;
@@ -247,7 +249,7 @@ export function listPhotos(_ctx: Ctx, albumId: string): Photo[] {
 export function listAllPhotos(_ctx: Ctx): PhotoTableRow[] {
   const rows = getDb()
     .prepare<[], PhotoTableRowSql>(
-      `SELECT p.id, a.slug AS album_slug, a.name AS album_name,
+      `SELECT p.id, p.filename, a.slug AS album_slug, a.name AS album_name,
               p.title, p.commentary, p.camera_body, p.lens, p.focal_length,
               p.aperture, p.shutter, p.iso
        FROM photos p
@@ -257,6 +259,7 @@ export function listAllPhotos(_ctx: Ctx): PhotoTableRow[] {
     .all();
   return rows.map((row) => ({
     id: row.id,
+    filename: row.filename,
     albumSlug: row.album_slug,
     albumName: row.album_name,
     title: row.title,

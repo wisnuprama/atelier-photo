@@ -5,6 +5,7 @@ import { adminPhotosPage } from "./admin-photos.js";
 function row(overrides: Partial<PhotoTableRow> = {}): PhotoTableRow {
   return {
     id: "a1b2",
+    filename: "a1b2.jpg",
     albumSlug: "mountains",
     albumName: "Mountains",
     title: "Summer",
