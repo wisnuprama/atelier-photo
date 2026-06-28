@@ -4,6 +4,30 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [0.5.0] - 2026-06-28
+
+### Added
+
+- Improve perf and resource management during photo upload ([`8b01269`])
+- Add allowList for admin session ([`1f5eae3`])
+- Add rate limit ([`f6b8f99`])
+- Add contact page ([`29627fd`])
+
+### Changed
+
+-
+### Fixed
+
+- Make footer visible if the content not long ([`95522c4`])
+
+<!-- 0.5.0 commit links -->
+
+[`8b01269`]: https://github.com/wisnuprama/atelier-photo/commit/8b01269
+[`1f5eae3`]: https://github.com/wisnuprama/atelier-photo/commit/1f5eae3
+[`f6b8f99`]: https://github.com/wisnuprama/atelier-photo/commit/f6b8f99
+[`29627fd`]: https://github.com/wisnuprama/atelier-photo/commit/29627fd
+[`95522c4`]: https://github.com/wisnuprama/atelier-photo/commit/95522c4
+
 ## [0.4.0] - 2026-06-28
 
 ### Added
