@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { config } from "../config.js";
+import { ctxFromRequest } from "../context.js";
 import { clearAdminSession, getAdminSession, setAdminSession } from "../plugins/session.js";
 import { deletePhoto } from "../services/photos.js";
 import { adminLoginPage } from "../views/admin-login.js";
@@ -59,7 +60,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       return reply.code(401).send({ error: "Unauthorized" });
     }
     try {
-      await deletePhoto(request.params.photoId);
+      await deletePhoto(ctxFromRequest(request), request.params.photoId);
       return reply.code(204).send();
     } catch (err: unknown) {
       const code =

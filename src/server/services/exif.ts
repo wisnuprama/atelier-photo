@@ -1,4 +1,5 @@
 import exifr from "exifr";
+import type { Ctx } from "../context.js";
 
 /**
  * EXIF fields pulled at ingest, formatted to the same display strings the
@@ -77,7 +78,7 @@ function takenAt(value: unknown): string | null {
  * Extract and format EXIF metadata from an original image buffer. Returns all
  * nulls when the image carries no EXIF or parsing fails — ingest continues.
  */
-export async function extractExif(original: Buffer): Promise<PhotoExif> {
+export async function extractExif(_ctx: Ctx, original: Buffer): Promise<PhotoExif> {
   let data: Record<string, unknown> | undefined;
   try {
     data = (await exifr.parse(original)) as Record<string, unknown> | undefined;

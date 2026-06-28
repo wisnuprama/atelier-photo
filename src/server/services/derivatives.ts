@@ -1,6 +1,8 @@
 import { mkdir, rename, writeFile } from "node:fs/promises";
+import path from "node:path";
 import sharp, { type Sharp } from "sharp";
 import { paths } from "../config.js";
+import type { Ctx } from "../context.js";
 
 /**
  * Resized derivatives generated from each original at ingest. The timeline
@@ -38,7 +40,7 @@ export const DERIVATIVE_FORMATS: readonly DerivativeFormat[] = [
 
 /** Absolute path where a given photo's derivative variant/format is stored. */
 export function derivativePath(photoId: string, variant: string, ext: string): string {
-  return `${paths.derivatives}/${photoId}/${variant}.${ext}`;
+  return path.join(paths.derivatives, photoId, `${variant}.${ext}`);
 }
 
 /**
@@ -48,9 +50,19 @@ export function derivativePath(photoId: string, variant: string, ext: string): s
  * orientation (`.rotate()`), resize to fit `maxEdge` (never enlarging), encode,
  * and write atomically (temp file + rename) so a crashed ingest can't leave a
  * half-written file that `existsSync` would treat as valid.
+ *
+ * TODO: optimize the performance
  */
-export async function generateDerivatives(photoId: string, original: Buffer): Promise<void> {
-  await mkdir(`${paths.derivatives}/${photoId}`, { recursive: true });
+export async function generateDerivatives(
+  ctx: Ctx,
+  photoId: string,
+  original: Buffer,
+): Promise<void> {
+  ctx.log.info({ photoId }, "generateDerivatives: started");
+
+  const dirPath = path.join(paths.derivatives, photoId);
+  await mkdir(dirPath, { recursive: true });
+  ctx.log.info({ photoId, dir: dirPath }, "generateDerivatives: created directory");
 
   for (const spec of DERIVATIVES) {
     for (const format of DERIVATIVE_FORMATS) {
@@ -63,6 +75,17 @@ export async function generateDerivatives(photoId: string, original: Buffer): Pr
       const tmpPath = `${finalPath}.tmp`;
       await writeFile(tmpPath, buffer);
       await rename(tmpPath, finalPath);
+
+      ctx.log.info(
+        {
+          photoId,
+          variant: spec.name,
+          format: format.ext,
+          maxEdge: spec.maxEdge,
+          bytes: buffer.length,
+        },
+        "generateDerivatives: wrote derivative",
+      );
     }
   }
 }

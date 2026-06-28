@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import { ctxFromRequest } from "../context.js";
 import { getAdminSession } from "../plugins/session.js";
 import { getAlbumBySlug, getPhotoYearRange, listAlbums, listPhotos } from "../services/photos.js";
 import { albumsPage } from "../views/albums.js";
@@ -7,17 +8,19 @@ import { showcasePage } from "../views/showcase.js";
 import { esc } from "../views/util.js";
 
 export async function pageRoutes(app: FastifyInstance): Promise<void> {
-  app.get("/", async (_request, reply) => {
+  app.get("/", async (request, reply) => {
+    const ctx = ctxFromRequest(request);
     const html = layout({
       title: "Still — Wisnu Photography",
       activeNav: "albums",
-      body: albumsPage(listAlbums(), getPhotoYearRange()),
+      body: albumsPage(listAlbums(ctx), getPhotoYearRange(ctx)),
     });
     return reply.type("text/html").send(html);
   });
 
   app.get<{ Params: { slug: string } }>("/albums/:slug", async (request, reply) => {
-    const album = getAlbumBySlug(request.params.slug);
+    const ctx = ctxFromRequest(request);
+    const album = getAlbumBySlug(ctx, request.params.slug);
     if (!album) {
       const html = layout({
         title: "Not found — Still",
@@ -30,7 +33,7 @@ export async function pageRoutes(app: FastifyInstance): Promise<void> {
       return reply.code(404).type("text/html").send(html);
     }
 
-    const photos = listPhotos(album.id);
+    const photos = listPhotos(ctx, album.id);
     const isAdmin = getAdminSession(request);
     const html = layout({
       title: `${esc(album.name)} — Still`,
