@@ -12,9 +12,9 @@ is only `[x]` when its code **and** its tests are green.
 - [x] **Phase 1 — Server data layer:** `listAllPhotos`, `updatePhoto`,
       `normalizePhotoFields` in `src/server/services/photos.ts`.
   - [x] Tests: extend `src/server/services/photos.test.ts`.
-- [ ] **Phase 2 — CSV utility:** `toCsv`/`parseCsv` in
+- [x] **Phase 2 — CSV utility:** `toCsv`/`parseCsv` in
       `src/server/services/csv.ts`.
-  - [ ] Tests: new `src/server/services/csv.test.ts` (unit, round-trip).
+  - [x] Tests: new `src/server/services/csv.test.ts` (unit, round-trip).
 - [ ] **Phase 3 — Routes:** `GET /photos`, `PATCH /photos/:id`,
       `GET /photos/export`, `POST /photos/import` in `src/server/routes/auth.ts`.
   - [ ] Tests: new `src/server/routes/auth.test.ts` (critical paths via
