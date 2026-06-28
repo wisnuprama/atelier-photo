@@ -39,9 +39,15 @@ function photoRow(photo: Photo, index: number, isAdmin: boolean): string {
   const adminAttrs = isAdmin
     ? ` data-admin-photo data-photo-id="${esc(photo.id)}" class="photo-row select-none" data-year="${yearOf(photo)}"`
     : ` class="photo-row" data-year="${yearOf(photo)}"`;
+  // Tall portraits would otherwise exceed the viewport (you can't see the whole
+  // photo at once). Cap their height to a fraction of the viewport and let the
+  // aspect-ratio derive the width; landscapes are short enough to never hit it.
+  // dvh tracks mobile browser chrome; max-width + mx-auto keep it centered.
+  const portraitCap =
+    photo.height > photo.width ? ` max-width:calc(85dvh * ${photo.width} / ${photo.height});` : "";
   return `<figure${adminAttrs}>
-    <button class="block w-full overflow-hidden bg-hairline relative group"
-            style="aspect-ratio:${photo.width}/${photo.height}"
+    <button class="block w-full mx-auto overflow-hidden bg-hairline relative group"
+            style="aspect-ratio:${photo.width}/${photo.height};${portraitCap}"
             data-viewer-open data-index="${index}"
             aria-label="View ${alt} full screen">
       <div class="thumbhash absolute inset-0"${thumbAttr}></div>
@@ -150,7 +156,7 @@ export function showcasePage(album: AlbumWithCover, photos: Photo[], isAdmin = f
     : "";
 
   return `<main id="showcaseView">
-  <section class="max-w-[1200px] mx-auto px-5 sm:px-8 pt-12 sm:pt-16 pb-8 sm:pb-10">
+  <section class="lg:max-w-[780px] xl:max-w-[900px] mx-auto px-5 sm:px-8 pt-12 sm:pt-16 pb-8 sm:pb-10">
     <a href="/" class="inline-flex items-center gap-2 -ml-[16px] font-mono text-[10px] label text-stone hover:text-ink uppercase transition-colors">
       ${icon("arrow-left", { class: "w-3.5 h-3.5" })} Albums
     </a>
@@ -160,7 +166,7 @@ export function showcasePage(album: AlbumWithCover, photos: Photo[], isAdmin = f
   </section>
   ${adminStrip}
 
-  <div class="max-w-[1200px] mx-auto px-2 sm:px-4 pb-32 relative">
+  <div class="lg:max-w-[780px] xl:max-w-[900px] mx-auto px-2 sm:px-4 pb-32 relative">
     <div id="photoStream" class="flex flex-col gap-3 sm:gap-5">
       ${stream}
     </div>
