@@ -46,12 +46,12 @@ export function derivativePath(photoId: string, variant: string, ext: string): s
 /**
  * Generate every size × format derivative for an original buffer.
  *
- * For each {@link DerivativeSpec} × {@link DerivativeFormat}: honor EXIF
- * orientation (`.rotate()`), resize to fit `maxEdge` (never enlarging), encode,
- * and write atomically (temp file + rename) so a crashed ingest can't leave a
- * half-written file that `existsSync` would treat as valid.
- *
- * TODO: optimize the performance
+ * The original is decoded exactly once: it is EXIF-rotated and downscaled to the
+ * largest spec into a raw bitmap, and every size × {@link DerivativeFormat} is
+ * then derived from that already-oriented intermediate (smaller sizes resize
+ * down from it). Each variant is written atomically (temp file + rename) so a
+ * crashed ingest can't leave a half-written file that `existsSync` would treat
+ * as valid.
  */
 export async function generateDerivatives(
   ctx: Ctx,
@@ -64,12 +64,28 @@ export async function generateDerivatives(
   await mkdir(dirPath, { recursive: true });
   ctx.log.info({ photoId, dir: dirPath }, "generateDerivatives: created directory");
 
-  for (const spec of DERIVATIVES) {
+  // Largest first so every smaller size resizes down from the intermediate.
+  const specs = DERIVATIVES.toSorted((a, b) => b.maxEdge - a.maxEdge);
+  const largestEdge = Math.max(...specs.map((s) => s.maxEdge));
+
+  // The single full decode of the original. Orientation is baked in here, so no
+  // step below may `.rotate()` again. `withoutEnlargement` keeps the largest
+  // derivative from upscaling a small original.
+  const { data, info } = await sharp(original)
+    .rotate()
+    .resize(largestEdge, largestEdge, { fit: "inside", withoutEnlargement: true })
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const raw = { width: info.width, height: info.height, channels: info.channels };
+
+  for (const spec of specs) {
+    const sized = sharp(data, { raw }).resize(spec.maxEdge, spec.maxEdge, {
+      fit: "inside",
+      withoutEnlargement: true,
+    });
     for (const format of DERIVATIVE_FORMATS) {
-      const pipeline = sharp(original)
-        .rotate()
-        .resize(spec.maxEdge, spec.maxEdge, { fit: "inside", withoutEnlargement: true });
-      const buffer = await format.encode(pipeline).toBuffer();
+      // Clone per format so the resized bitmap is shared, not re-resized.
+      const buffer = await format.encode(sized.clone()).toBuffer();
 
       const finalPath = derivativePath(photoId, spec.name, format.ext);
       const tmpPath = `${finalPath}.tmp`;

@@ -24,7 +24,13 @@ FROM node:24-slim AS runtime
 ENV NODE_ENV=production \
     PORT=3000 \
     HOST=0.0.0.0 \
-    DATA_DIR=/app/data
+    DATA_DIR=/app/data \
+    # Ingest tuning for a 2 vCPU / 2 GB container. UV_THREADPOOL_SIZE bounds the
+    # libuv pool sharp runs on; NODE_OPTIONS caps the V8 heap, leaving headroom
+    # for libvips' off-heap memory. Both must be set before node starts, so they
+    # live here rather than in app code. See docs/projects/20260628_*.
+    UV_THREADPOOL_SIZE=4 \
+    NODE_OPTIONS=--max-old-space-size=1024
 WORKDIR /app
 
 # Non-root runtime user.

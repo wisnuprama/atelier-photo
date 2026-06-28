@@ -17,6 +17,17 @@ Volume=atelier-photo-data:/app/data
 EnvironmentFile=%h/.config/atelier-photo/atelier-photo.env
 Environment=NODE_ENV=production
 
+# Ingest tuning (defaults are baked into the image; override here per host).
+# App-runtime knobs — read by config.ts:
+#   Environment=INGEST_CONCURRENCY=1   # photos decoded/encoded at once
+#   Environment=SHARP_CONCURRENCY=2    # libvips threads per op
+# Boot-time knobs — consumed by libuv/V8 before app code, so they MUST be env
+# (cannot come from a .env the app loads):
+#   Environment=UV_THREADPOOL_SIZE=4
+#   Environment=NODE_OPTIONS=--max-old-space-size=1024
+# Cap container memory to match the heap budget:
+#   Memory=2G
+
 [Service]
 Restart=always
 TimeoutStartSec=30

@@ -1,11 +1,19 @@
 import { Readable } from "node:stream";
 import busboy from "busboy";
 import type { FastifyInstance, FastifyRequest } from "fastify";
+import { config } from "../config.js";
 import { ctxFromRequest } from "../context.js";
 import { verifyHmac } from "../plugins/hmac-auth.js";
+import { createLimiter } from "../services/concurrency.js";
 import { createAlbum, ingestPhoto, type IngestResult } from "../services/photos.js";
 
 const MAX_BODY = 60 * 1024 * 1024; // 60 MB per request
+
+// Process-wide cap on photos decoding/encoding at once. Holds across concurrent
+// requests, not just within one, so a burst can't stack libvips working sets
+// past the container's memory. Configured via config.ingestConcurrency
+// (INGEST_CONCURRENCY env).
+const ingestLimit = createLimiter(config.ingestConcurrency);
 
 interface ParsedMultipart {
   fields: Record<string, string>;
@@ -113,21 +121,23 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     }
 
     const ctx = ctxFromRequest(request);
-    const photos: IngestResult[] = [];
-    let created = 0;
-    let replaced = 0;
-    for (const file of files) {
-      const result = await ingestPhoto(ctx, {
-        album: fields.album,
-        filename: file.filename,
-        title: fields.title,
-        commentary: fields.commentary,
-        data: file.data,
-      });
-      photos.push(result);
-      if (result.status === "created") created++;
-      else replaced++;
-    }
+    // Dispatch all files through the shared limiter; it caps how many actually
+    // run at once. Promise.all preserves input order in `photos`.
+    const photos: IngestResult[] = await Promise.all(
+      files.map((file) =>
+        ingestLimit(() =>
+          ingestPhoto(ctx, {
+            album: fields.album,
+            filename: file.filename,
+            title: fields.title,
+            commentary: fields.commentary,
+            data: file.data,
+          }),
+        ),
+      ),
+    );
+    const created = photos.filter((p) => p.status === "created").length;
+    const replaced = photos.length - created;
 
     return reply.code(200).send({ status: "ok", created, replaced, photos });
   });
