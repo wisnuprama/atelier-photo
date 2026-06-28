@@ -441,8 +441,12 @@ export async function deletePhoto(ctx: Ctx, photoId: string): Promise<void> {
 
   yearRangeCache = null;
 
+  const removeDir = (dir: string) =>
+    rm(dir, { recursive: true, force: true }).catch((err: unknown) => {
+      ctx.log.error({ err, dir, photoId }, "deletePhoto: failed to remove directory");
+    });
   await Promise.all([
-    rm(`${paths.originals}/${photoId}`, { recursive: true, force: true }).catch(() => {}),
-    rm(`${paths.derivatives}/${photoId}`, { recursive: true, force: true }).catch(() => {}),
+    removeDir(`${paths.originals}/${photoId}`),
+    removeDir(`${paths.derivatives}/${photoId}`),
   ]);
 }
