@@ -17,6 +17,17 @@ const EDGE_BOTTOM = 24; // iOS home-indicator zone
 
 const byId = (id: string): HTMLElement | null => document.getElementById(id);
 
+/**
+ * Resolve a `#photo-<id>` location hash to its index within `ids` (the photo
+ * ids in viewer order). Returns null for a missing or unrecognized hash.
+ */
+export function hashToIndex(hash: string, ids: string[]): number | null {
+  const match = /^#photo-(.+)$/.exec(hash);
+  if (!match) return null;
+  const idx = ids.indexOf(match[1]!);
+  return idx >= 0 ? idx : null;
+}
+
 function readPhotos(): ViewerPhoto[] {
   const tag = document.getElementById("viewer-data");
   if (!tag?.textContent) return [];
@@ -264,6 +275,16 @@ export function initViewer(): void {
     btn.addEventListener("click", toggleExif);
   }
   lightbox.setAttribute("tabindex", "-1");
+
+  // ----- deep-link: open the viewer on #photo-<id> -----
+  const figureIds: string[] = [];
+  for (const fig of document.querySelectorAll<HTMLElement>("figure[id^='photo-']")) {
+    const openBtn = fig.querySelector<HTMLElement>("[data-viewer-open]");
+    if (!openBtn?.dataset.index) continue;
+    figureIds[Number(openBtn.dataset.index)] = fig.id.slice("photo-".length);
+  }
+  const hashIndex = hashToIndex(location.hash, figureIds);
+  if (hashIndex !== null) openViewer(hashIndex, null);
 
   // ----- keyboard -----
   document.addEventListener("keydown", (e) => {

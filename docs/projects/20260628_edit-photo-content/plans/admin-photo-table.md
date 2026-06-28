@@ -27,10 +27,10 @@ is only `[x]` when its code **and** its tests are green.
       register in `main.ts`.
   - [ ] Tests: pure model/filter/pagination helpers unit-tested in
         `src/client/ts/admin-photos.test.ts`.
-- [ ] **Phase 6 — Deep-linking:** `#photo-{id}` support in
+- [x] **Phase 6 — Deep-linking:** `#photo-{id}` support in
       `src/client/ts/viewer.ts`; figure ids + "Manage photos" link in
       `src/server/views/showcase.ts`.
-  - [ ] Tests: hash→index resolver helper unit-tested.
+  - [x] Tests: hash→index resolver helper unit-tested.
 - [ ] **Phase 7 — Verify:** `pnpm typecheck && pnpm lint && pnpm test` green +
       manual end-to-end checks.
 
