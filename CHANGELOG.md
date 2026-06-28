@@ -4,6 +4,26 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [0.4.0] - 2026-06-28
+
+### Added
+
+- Log derivative generation and deletion cleanup failures ([`b965aaa`])
+
+### Changed
+
+- Thread request Ctx through services for dependency injection ([`e3f10e1`])
+
+### Fixed
+
+- Prevent path traversal via uploaded filename ([`45b2ec4`])
+
+<!-- 0.4.0 commit links -->
+
+[`b965aaa`]: https://github.com/wisnuprama/atelier-photo/commit/b965aaa
+[`e3f10e1`]: https://github.com/wisnuprama/atelier-photo/commit/e3f10e1
+[`45b2ec4`]: https://github.com/wisnuprama/atelier-photo/commit/45b2ec4
+
 ## [0.3.0] - 2026-06-27
 
 ### Added
