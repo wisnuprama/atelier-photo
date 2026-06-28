@@ -44,9 +44,12 @@ pages exposes a **Logout** link for this). It clears the cookie and redirects to
 
 ## What a session unlocks
 
+- [Editing photos](./editing-photos.md) — the admin photo table at
+  `/admin/photos`, for editing title/commentary inline and bulk CSV edits.
 - [Deleting photos](./deleting-photos.md) from an album page.
 
-There's no UI yet for deleting **albums**, moving a photo between albums, or
-editing a photo's title/commentary. To change a photo's metadata, re-upload it
-with the same filename to the same album — see
-[Replacing a photo](./adding-photos.md#replacing-a-photo).
+There's no UI yet for deleting **albums** or moving a photo between albums. (You
+can still change a photo's title/commentary by re-uploading it with the same
+filename to the same album — see
+[Replacing a photo](./adding-photos.md#replacing-a-photo) — but the
+[photo table](./editing-photos.md) is the easier way.)
