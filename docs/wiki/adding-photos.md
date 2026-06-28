@@ -25,6 +25,11 @@ returns **401**.
 > variables and are never committed. See
 > [Running & maintenance](./running-and-maintenance.md).
 
+> **Uploading vs. deleting.** This HMAC header auth is for the **ingest** routes
+> (`POST /admin/albums`, `POST /admin/photos`). Removing a photo uses a separate
+> **browser session** instead — see [Admin sign-in](./admin-sign-in.md) and
+> [Deleting photos](./deleting-photos.md).
+
 ## The workflow
 
 1. **(Once per album)** Create a named album — or skip this and let uploads land in

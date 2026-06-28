@@ -31,6 +31,11 @@ npm or yarn.
 environment (or a Podman secret), never commit them. Until both are set, the admin
 ingest endpoints reject every request with **401**.
 
+`ADMIN_HMAC_SECRET` doubles as the credential for the browser **admin session**
+(used to delete photos): it's the value you type at `/admin/login`, and it signs
+the `admin_session` cookie. `NODE_ENV=production` additionally marks that cookie
+`Secure`. See [Admin sign-in](./admin-sign-in.md).
+
 ## Where files live
 
 Everything persistent lives under `DATA_DIR` (the Podman volume in production):
