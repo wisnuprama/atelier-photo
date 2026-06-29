@@ -108,6 +108,16 @@ body {
   animation: swipeBounce 1.4s ease-in-out infinite;
 }
 
+/* Admin long-press menu (touch): iOS Safari otherwise pops its native callout
+   sheet (Save Image / Copy / Share) on long-press of an image, hijacking the
+   gesture before our custom menu's timer fires. `select-none` only sets
+   `user-select`; the callout needs `-webkit-touch-callout: none`. Apply to the
+   figure and everything inside it (the button + img). */
+[data-admin-photo],
+[data-admin-photo] * {
+  -webkit-touch-callout: none;
+}
+
 /* Visible keyboard focus everywhere */
 :focus-visible {
   outline: 1.5px solid #0a0a0a;
