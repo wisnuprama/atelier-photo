@@ -4,6 +4,22 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [0.7.2] - 2026-08-11
+
+### Added
+
+-
+### Changed
+
+-
+### Fixed
+
+- Ship derivative backfill tool in the production image (#21) ([`5bd96dd`])
+
+<!-- 0.7.2 commit links -->
+
+[`5bd96dd`]: https://github.com/wisnuprama/atelier-photo/commit/5bd96dd
+
 ## [0.7.1] - 2026-08-11
 
 ### Added
