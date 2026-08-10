@@ -1,10 +1,11 @@
 # Admin sign-in
 
-Uploading photos is done with signed API requests (see
-[Adding photos](./adding-photos.md)). Some owner actions — like
-[deleting a photo](./deleting-photos.md) — are done from the browser instead, and
-those need an **admin session**. You sign in once, and the session turns on the
-extra controls on the gallery pages.
+Owner actions in the browser — [creating albums and uploading
+photos](./uploading-from-the-browser.md), [editing](./editing-photos.md), and
+[deleting](./deleting-photos.md) — need an **admin session**. You sign in once,
+and the session turns on the extra controls on the gallery pages. (Scripted
+uploads use signed API requests instead — see
+[Adding photos](./adding-photos.md).)
 
 This browser session is separate from the HMAC header auth used for ingest. Your
 upload scripts and iOS Shortcut keep working unchanged; nothing here touches them.
@@ -44,6 +45,9 @@ pages exposes a **Logout** link for this). It clears the cookie and redirects to
 
 ## What a session unlocks
 
+- [Creating albums & uploading photos](./uploading-from-the-browser.md) — the
+  **New album** dialog on the album list and the drag-and-drop
+  **Upload photos** dialog on album pages.
 - [Editing photos](./editing-photos.md) — the admin photo table at
   `/admin/photos`, for editing title/commentary inline and bulk CSV edits.
 - [Deleting photos](./deleting-photos.md) from an album page.

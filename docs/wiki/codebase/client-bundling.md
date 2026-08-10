@@ -3,10 +3,13 @@
 - Single esbuild entry: `scripts/esbuild.js:9` —
   `entryPoints: ["src/client/ts/main.ts"]`, `bundle: true`, `format: "esm"`,
   target es2022, `outfile: "public/js/app.js"`, minified unless `--watch`.
-- `src/client/ts/main.ts:9-17` — `init()` calls each module's `initX()`
+- `src/client/ts/main.ts:11-21` — `init()` calls each module's `initX()`
   guard-style; every module early-returns if its DOM anchor is absent (e.g.
-  `admin.ts:16` `if (figures.length === 0) return;`). **New client modules get
-  added here.**
+  `upload.ts` returns unless `#uploadModal` exists, so admin modules are inert
+  on public pages). **New client modules get added here.**
+- Shared overlay helper: `modal.ts` `createModal(root)` — used by
+  `album-create.ts` and `upload.ts` (see
+  [album-detail-page.md](album-detail-page.md)).
 - Views include exactly one script tag:
   `<script type="module" src="/js/app.js"></script>` at
   `src/server/views/layout.ts:87`. Per-page data goes in JSON islands via

@@ -37,5 +37,6 @@ A delete is processed safely and atomically:
 
 File cleanup is best-effort: if a file can't be removed it's logged as a warning,
 but the database delete still stands (so the photo is gone from the gallery and
-won't reappear). There is **no undo** — re-add the photo through the ingest API if
-you delete one by mistake.
+won't reappear). There is **no undo** — if you delete one by mistake, re-add it
+via the [browser upload dialog](./uploading-from-the-browser.md) or the
+[ingest API](./adding-photos.md).

@@ -1,10 +1,15 @@
 # Adding photos
 
-Photographs are added through the **admin ingest API**. There is no upload web
-page; instead you send signed HTTP requests — usually from an **iOS Shortcut**, but
-`curl` works too. Each upload is processed once: EXIF is read, derivatives in all
-three formats are generated, a ThumbHash placeholder is computed, and the row is
-saved.
+This page covers the **admin ingest API**: signed HTTP requests, usually sent
+from an **iOS Shortcut** (a Node script or `curl` works too). Each upload is
+processed once: EXIF is read, derivatives in all three formats are generated, a
+ThumbHash placeholder is computed, and the row is saved.
+
+> Prefer to skip the API? While signed in you can also create albums and
+> drag-and-drop photos **directly in the browser** — see
+> [Creating albums & uploading from the browser](./uploading-from-the-browser.md).
+> Both doors feed the same pipeline, so everything on this page about
+> processing and replacing applies there too.
 
 ## Authentication (HMAC)
 
@@ -25,10 +30,11 @@ returns **401**.
 > variables and are never committed. See
 > [Running & maintenance](./running-and-maintenance.md).
 
-> **Uploading vs. deleting.** This HMAC header auth is for the **ingest** routes
-> (`POST /admin/albums`, `POST /admin/photos`). Removing a photo uses a separate
-> **browser session** instead — see [Admin sign-in](./admin-sign-in.md) and
-> [Deleting photos](./deleting-photos.md).
+> **Two auth mechanisms.** This HMAC header auth is for the **API ingest**
+> routes (`POST /admin/albums`, `POST /admin/photos`). Browser actions —
+> [uploading from a page](./uploading-from-the-browser.md),
+> [editing](./editing-photos.md), [deleting](./deleting-photos.md) — use a
+> separate **session cookie** instead; see [Admin sign-in](./admin-sign-in.md).
 
 ## The workflow
 

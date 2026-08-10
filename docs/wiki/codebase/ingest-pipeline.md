@@ -31,11 +31,16 @@
 
 ## Concurrency
 
-`createLimiter(max): Limiter` — `services/concurrency.ts:13`; used
-process-wide in `routes/admin.ts:16`
-(`createLimiter(config.ingestConcurrency)`, default 1) and applied at
-`admin.ts:126-138`. **Reuse this limiter** for any new upload path — parallel
-routes with their own limiter each get their own cap, defeating the purpose.
+`createLimiter(max): Limiter` — `services/concurrency.ts:13`. The shared
+process-wide instance lives in `services/ingest-limiter.ts:8`:
+`export const ingestLimit = createLimiter(config.ingestConcurrency)`
+(default 1). Both ingestion routes wrap `ingestPhoto` in it — HMAC
+`routes/admin.ts:90` and session `routes/auth.ts` (`/photos/upload`).
+**Import `ingestLimit` from `ingest-limiter.ts`** for any new upload path —
+parallel routes with their own limiter each get their own cap, defeating the
+purpose. (Because the limiter is module-level, any test whose imports reach
+`auth.ts`/`admin.ts` must mock `config` with an `ingestConcurrency` value —
+see [testing.md](testing.md).)
 
 ## File locations
 
