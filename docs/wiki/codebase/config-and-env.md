@@ -73,6 +73,7 @@ config.ts  ──────────────► paths.{db,originals,der
       ├─► plugins/hmac-auth.ts   config.adminKeyId / adminHmacSecret
       ├─► plugins/session.ts     config.adminHmacSecret / isProduction
       ├─► services/ingest-limiter.ts   createLimiter(config.ingestConcurrency)
+      ├─► tools/backfill-derivatives.ts   ingestLimit + sharp.concurrency (own process — applies both itself)
       └─► views (contact page)   config.contactEmail / contactGreeting
 ```
 
