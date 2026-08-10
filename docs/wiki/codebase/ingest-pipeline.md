@@ -19,9 +19,12 @@
 ## Supporting functions
 
 - `generateDerivatives(ctx, photoId, original: Buffer): Promise<void>` —
-  `services/derivatives.ts:56`. Sizes `thumb` (800px) / `full` (2400px) ×
-  formats avif/webp/jpeg (`DERIVATIVES` `:17`, `DERIVATIVE_FORMATS` `:35`).
+  `services/derivatives.ts`. Sizes `thumb` (800px) / `medium` (1600px, album
+  stream via srcset) / `full` (2400px, lightbox only) × formats avif/webp/jpeg
+  (`DERIVATIVES`, `DERIVATIVE_FORMATS`).
   Single decode → raw bitmap → per-format encode, atomic temp+rename.
+  Photos ingested before a size existed: run `pnpm derivatives:backfill`
+  (`scripts/backfill-derivatives.ts`; idempotent, `--force` regenerates all).
 - `derivativePath(photoId, variant, ext): string` — `derivatives.ts:42` →
   `data/derivatives/{id}/{variant}.{ext}`.
 - `extractExif(_ctx, original: Buffer): Promise<PhotoExif>` —

@@ -52,7 +52,10 @@ function photoRow(photo: Photo, index: number, isAdmin: boolean): string {
             aria-label="View ${alt} full screen">
       <div class="thumbhash absolute inset-0"${thumbAttr}></div>
       <img class="photo-img absolute inset-0 w-full h-full object-cover"
-           data-src="${mediaUrl(photo.id, "full")}" alt="${alt}" />
+           data-src="${mediaUrl(photo.id, "medium")}"
+           data-srcset="${mediaUrl(photo.id, "thumb")} 800w, ${mediaUrl(photo.id, "medium")} 1600w"
+           sizes="(min-width: 1280px) 900px, (min-width: 1024px) 780px, 100vw"
+           decoding="async" alt="${alt}" />
     </button>
   </figure>`;
 }

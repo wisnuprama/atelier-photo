@@ -22,6 +22,7 @@
     "fmt": "oxfmt src scripts",
     "fmt:check": "oxfmt --check src scripts",
     "db:migrate": "tsx --env-file-if-exists=.env src/server/db/migrate.ts",
+    "derivatives:backfill": "tsx --env-file-if-exists=.env scripts/backfill-derivatives.ts",
     "db:seed": "tsx --env-file-if-exists=.env src/server/db/seed.ts",
     "prepare": "husky || true"
   },

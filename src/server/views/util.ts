@@ -17,6 +17,6 @@ export function jsonScript(data: unknown): string {
 }
 
 /** URL for a photo's served derivative variant (e.g. "thumb", "full"). */
-export function mediaUrl(photoId: string, variant: "thumb" | "full"): string {
+export function mediaUrl(photoId: string, variant: "thumb" | "medium" | "full"): string {
   return `/media/${encodeURIComponent(photoId)}/${variant}`;
 }
