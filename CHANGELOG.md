@@ -4,6 +4,28 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [0.7.1] - 2026-08-11
+
+### Added
+
+- Upload modal uploads up to 3 files concurrently (#16) ([`60bb46a`])
+- Upload modal uploads up to 3 files concurrently ([`9db459c`])
+
+### Changed
+
+- Cut browser memory on the album photo stream ([`a416d1a`])
+
+### Fixed
+
+- Resolve Dependabot security alerts for fast-uri, find-my-way, shell-quote (#20) ([`b1e9b7f`])
+
+<!-- 0.7.1 commit links -->
+
+[`60bb46a`]: https://github.com/wisnuprama/atelier-photo/commit/60bb46a
+[`9db459c`]: https://github.com/wisnuprama/atelier-photo/commit/9db459c
+[`a416d1a`]: https://github.com/wisnuprama/atelier-photo/commit/a416d1a
+[`b1e9b7f`]: https://github.com/wisnuprama/atelier-photo/commit/b1e9b7f
+
 ## [0.7.0] - 2026-08-11
 
 ### Added
