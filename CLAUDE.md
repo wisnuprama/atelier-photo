@@ -7,6 +7,10 @@ Personal, minimalist black-and-white photo gallery. A professional-but-personal
 
 - Requirements: `docs/projects/20260621_bootstrap/REQUIREMENTS.md`
 - Design prototype: `docs/projects/20260621_bootstrap/DESIGN.html`
+- Codebase wiki for AI agents: `docs/wiki/codebase/README.md` — small
+  per-topic pages (directory layout, auth mechanisms, DAO/ingest APIs, styling
+  recipes, test patterns). Read the relevant page before exploring from
+  scratch.
 
 **Rule — plan & design docs:**
 
