@@ -64,11 +64,35 @@ Everything persistent lives under `DATA_DIR` (the Podman volume in production):
 data/
   gallery.db                         # SQLite database (+ -wal / -shm)
   originals/<photoId>/<filename>     # the uploaded original, untouched
-  derivatives/<photoId>/<variant>.<ext>   # thumb|full × avif|webp|jpeg
+  derivatives/<photoId>/<variant>.<ext>   # thumb|medium|full × avif|webp|jpeg
 ```
 
 Because paths are keyed on the photo's stable `id`, re‑uploading a photo overwrites
 its originals and derivatives in place.
+
+## Backfilling derivatives
+
+Derivatives (`thumb`/`medium`/`full` × avif/webp/jpeg) are generated only at
+ingest. After adding a size/format (e.g. `medium`), changing encoder quality,
+or recovering lost files, regenerate them from the stored originals. The tool
+compiles into `dist/` with the normal build, so it works inside the container:
+
+```bash
+podman exec -it <container> node dist/server/tools/backfill-derivatives.js
+```
+
+- By default only photos **missing** any size × format file are regenerated —
+  idempotent, safe to re-run. Pass `--force` to regenerate everything (e.g.
+  after an encoder-quality change, where every file exists but is stale).
+- Safe against a **live server**: the DB is only read, and each derivative is
+  written atomically (temp + rename), so requests never see a partial file.
+- Photos are processed one at a time, but the script is a separate process —
+  the server's `INGEST_CONCURRENCY` cap does not cover it, so its sharp work
+  competes with live uploads. Prefer a quiet window on small containers.
+- Missing originals are reported per photo and the process exits non-zero.
+
+In development: `pnpm derivatives:backfill` (add `-- --force` to regenerate
+everything).
 
 ## Resetting the database
 
