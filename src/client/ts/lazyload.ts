@@ -6,6 +6,13 @@
 function load(img: HTMLImageElement): void {
   const src = img.dataset.src;
   if (!src) return;
+  // srcset must be in place before src so the browser's first fetch already
+  // picks the right candidate for the layout width and DPR.
+  const srcset = img.dataset.srcset;
+  if (srcset) {
+    img.srcset = srcset;
+    delete img.dataset.srcset;
+  }
   img.src = src;
   delete img.dataset.src;
   if (img.complete) {

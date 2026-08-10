@@ -15,6 +15,13 @@
   (`:73`); viewer payload via
   `<script type="application/json" id="viewer-data">` using `jsonScript()`
   (see [client-bundling.md](client-bundling.md)).
+- Stream `<img>`s carry `data-src` (`medium`) + `data-srcset`
+  (`thumb 800w, medium 1600w`) — applied by `client/ts/lazyload.ts`; the
+  lightbox alone uses the `full` (2400px) variant via the viewer payload.
+  `.photo-row` figures have `content-visibility: auto` (`client/css/app.css`)
+  so offscreen rows aren't rendered and their decoded bitmaps can be
+  discarded — keep browser memory in mind before serving bigger variants in
+  the stream.
 
 ## Long-press admin menu — `src/client/ts/admin.ts` (`initAdmin()`, `:14`)
 

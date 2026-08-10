@@ -54,6 +54,20 @@ body {
   opacity: 1;
 }
 
+/* Skip rendering offscreen photos so the browser can discard their decoded
+   bitmaps (the dominant memory cost on long streams). The intrinsic-size
+   fallback only matters before a row's first render — `auto` remembers the
+   real size afterwards, keeping the scrollbar stable. */
+.photo-row {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
+}
+/* Album cards size themselves via their own aspect-ratio, so no intrinsic-size
+   fallback is needed. */
+.album {
+  content-visibility: auto;
+}
+
 /* Album hover overlay */
 .album-overlay {
   opacity: 0;

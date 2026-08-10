@@ -5,8 +5,9 @@ import { paths } from "../config.js";
 import type { Ctx } from "../context.js";
 
 /**
- * Resized derivatives generated from each original at ingest. The timeline
- * serves `full`; the album grid serves `thumb`.
+ * Resized derivatives generated from each original at ingest. The album grid
+ * serves `thumb`, the photo stream serves `medium` (via srcset), and the
+ * fullscreen lightbox serves `full`.
  */
 export interface DerivativeSpec {
   readonly name: string;
@@ -16,6 +17,7 @@ export interface DerivativeSpec {
 
 export const DERIVATIVES: readonly DerivativeSpec[] = [
   { name: "thumb", maxEdge: 800 },
+  { name: "medium", maxEdge: 1600 },
   { name: "full", maxEdge: 2400 },
 ] as const;
 
