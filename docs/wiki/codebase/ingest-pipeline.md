@@ -24,7 +24,10 @@
   (`DERIVATIVES`, `DERIVATIVE_FORMATS`).
   Single decode → raw bitmap → per-format encode, atomic temp+rename.
   Photos ingested before a size existed: run `pnpm derivatives:backfill`
-  (`scripts/backfill-derivatives.ts`; idempotent, `--force` regenerates all).
+  (`src/server/tools/backfill-derivatives.ts`; idempotent, `--force`
+  regenerates all). It compiles into `dist/`, so in production:
+  `node dist/server/tools/backfill-derivatives.js` inside the container — see
+  [running-and-maintenance.md](../running-and-maintenance.md).
 - `derivativePath(photoId, variant, ext): string` — `derivatives.ts:42` →
   `data/derivatives/{id}/{variant}.{ext}`.
 - `extractExif(_ctx, original: Buffer): Promise<PhotoExif>` —

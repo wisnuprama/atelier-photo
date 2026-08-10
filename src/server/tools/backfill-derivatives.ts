@@ -4,22 +4,28 @@
  * file, regenerates the full derivative set from the stored original. Writes
  * are atomic (temp file + rename), so re-running is always safe.
  *
+ * Lives under src/ (not scripts/) so it compiles into dist/ and ships in the
+ * container image, where scripts/ and tsx do not exist.
+ *
  * Usage:
- *   pnpm derivatives:backfill            # only photos with missing files
- *   pnpm derivatives:backfill --force    # regenerate everything
+ *   pnpm derivatives:backfill            # dev: only photos with missing files
+ *   pnpm derivatives:backfill --force    # dev: regenerate everything
+ *
+ * In production (Podman):
+ *   podman exec -it <container> node dist/server/tools/backfill-derivatives.js
  */
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { paths } from "../src/server/config.js";
-import { consoleCtx } from "../src/server/context.js";
-import { closeDb, getDb } from "../src/server/db/index.js";
+import { paths } from "../config.js";
+import { consoleCtx } from "../context.js";
+import { closeDb, getDb } from "../db/index.js";
 import {
   DERIVATIVE_FORMATS,
   DERIVATIVES,
   derivativePath,
   generateDerivatives,
-} from "../src/server/services/derivatives.js";
+} from "../services/derivatives.js";
 
 const force = process.argv.includes("--force");
 
