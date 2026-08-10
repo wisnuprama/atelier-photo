@@ -20,7 +20,7 @@ Consumers:
   (default limits).
 - **Session scope** (`routes/auth.ts:140`) — browser
   `POST /admin/photos/upload` with `{ files: 1 }` (one file per request; the
-  client uploads sequentially — see
+  client uploads through a small concurrent pool, max 3 in flight — see
   [album-detail-page.md](album-detail-page.md)).
 
 Note busboy's `files` limit **silently drops** extra file parts rather than

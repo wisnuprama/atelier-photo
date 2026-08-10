@@ -51,12 +51,14 @@ Client: `src/client/ts/upload.ts` (`initUpload()`):
 - Pure, node-testable helpers exported: `ACCEPTED_TYPES`, `MAX_FILE_BYTES`
   (60 MB), `fileError(file)`, `formatBytes(n)` — files failing `fileError`
   are shown with a red status and **never sent**.
-- Uploads run **sequentially**, one `XMLHttpRequest` per file to
-  `POST /admin/photos/upload` (`FormData` with `album` + `file`;
-  `withCredentials`; `upload.onprogress` drives a per-row percent + 2px bar).
+- Uploads run through a **worker pool of `MAX_CONCURRENT_UPLOADS` (3)** —
+  one `XMLHttpRequest` per file to `POST /admin/photos/upload` (`FormData`
+  with `album` + `file`; `withCredentials`; `upload.onprogress` drives a
+  per-row percent + 2px bar), up to 3 in flight at once so network transfer
+  overlaps server-side ingest.
   Statuses: `Queued` → `Uploading N%` → `Created ✓` / `Replaced ✓` / error.
-- While the queue drains the modal is locked (`setLocked(true)`) — Escape,
-  scrim, and Done are ignored; new drops extend the running queue.
+- While uploads are in flight the modal is locked (`setLocked(true)`) —
+  Escape, scrim, and Done are ignored; new drops extend the running queue.
 - Closing after ≥1 success calls `location.reload()` so the SSR page picks up
   the new photos/thumbhashes/year rail.
 
