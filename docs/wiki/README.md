@@ -29,6 +29,9 @@ browse the gallery, how to add photographs, and how to run and maintain the app.
 
 ### Developer notes
 
+- [Codebase wiki](./codebase/README.md) — small per-topic pages on how the code
+  is structured (routes, auth, DAO, ingest, client bundling, styling, tests);
+  written for AI agents and developers.
 - [Admin ingestion — multipart parsing & HMAC](./admin-ingestion-hmac.md) — why the
   ingest route buffers the body and uses `busboy` rather than `@fastify/multipart`.
 - [Releasing a new version](./releasing.md) — `scripts/release.sh`: version bump,
