@@ -5,9 +5,10 @@ need instead of exploring from scratch. For the user-facing guide, see the
 [main wiki index](../README.md).
 
 > Generated 2026-08-10 at v0.6.1 (commit `57366e9`); updated 2026-08-11 for
-> the browser album-creation + photo-upload feature (PR #14). Line numbers are
-> accurate as of that update and may drift — treat them as starting points and
-> verify with grep before editing.
+> the browser album-creation + photo-upload feature (PR #14), then again
+> 2026-08-11 to add the build/deploy page. Line numbers are accurate as of
+> that update and may drift — treat them as starting points and verify with
+> grep before editing.
 
 ## Pages
 
@@ -22,3 +23,5 @@ need instead of exploring from scratch. For the user-facing guide, see the
 - [client-bundling.md](client-bundling.md) — esbuild entry, init pattern, JSON islands
 - [styling.md](styling.md) — Tailwind tokens and copy-paste UI recipes
 - [testing.md](testing.md) — vitest setup, route/service test harness patterns, gaps
+- [build-and-deploy.md](build-and-deploy.md) — `pnpm build`, Containerfile stages, multi-arch image build/push, Quadlet deployment
+- [config-and-env.md](config-and-env.md) — every env var and hardcoded tunable that controls the app (config.ts, boot-time knobs, rate limits, upload caps)
