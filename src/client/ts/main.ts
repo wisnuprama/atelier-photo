@@ -1,9 +1,11 @@
 import { initAdmin } from "./admin.js";
 import { initAdminPhotos } from "./admin-photos.js";
+import { initAlbumCreate } from "./album-create.js";
 import { initLazyLoad } from "./lazyload.js";
 import { initNav } from "./nav.js";
 import { initShowcase } from "./showcase.js";
 import { applyThumbHashes } from "./thumbhash.js";
+import { initUpload } from "./upload.js";
 import { initViewer } from "./viewer.js";
 
 function init(): void {
@@ -14,6 +16,8 @@ function init(): void {
   initViewer();
   initAdmin();
   initAdminPhotos();
+  initAlbumCreate();
+  initUpload();
 }
 
 if (document.readyState === "loading") {

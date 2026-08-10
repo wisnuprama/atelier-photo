@@ -6,7 +6,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import JSZip from "jszip";
 
 vi.mock("../config.js", () => ({
-  config: { adminKeyId: "k", adminHmacSecret: "s", isProduction: false, dataDir: "/tmp/t" },
+  config: {
+    adminKeyId: "k",
+    adminHmacSecret: "s",
+    isProduction: false,
+    dataDir: "/tmp/t",
+    ingestConcurrency: 1,
+  },
   paths: {
     db: ":memory:",
     originals: "/tmp/atelier-auth-test/originals",

@@ -134,6 +134,32 @@ function lightbox(): string {
 </div>`;
 }
 
+/** Centered overlay dialog for uploading photos into `album` (admin only). */
+function uploadModal(album: AlbumWithCover): string {
+  return `<div id="uploadModal" data-album-slug="${esc(album.slug)}" class="hidden fixed inset-0 z-[100]"
+       role="dialog" aria-modal="true" aria-labelledby="uploadTitle" tabindex="-1">
+  <div class="absolute inset-0 bg-ink/30" data-modal-close></div>
+  <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(92vw,560px)] max-h-[85dvh] overflow-y-auto bg-paper border border-hairline p-8">
+    <h2 id="uploadTitle" class="font-serif text-[24px]">Upload photos</h2>
+    <p class="font-mono text-[10px] label text-stone uppercase mt-1.5">${esc(album.name)}</p>
+    <div id="uploadDropzone" role="button" tabindex="0" aria-label="Choose photos to upload"
+         class="mt-6 border border-dashed border-stone/50 px-6 py-10 text-center cursor-pointer transition-colors">
+      ${icon("upload", { size: 20, class: "inline-block text-stone" })}
+      <p class="font-mono text-[10px] label text-stone uppercase mt-3">Drag photos here or click to browse</p>
+      <p class="font-mono text-[9px] label text-stone/60 uppercase mt-2">Multiple files · JPEG PNG WEBP AVIF TIFF GIF · 60 MB max</p>
+      <input id="uploadInput" type="file" multiple class="sr-only"
+             accept="image/jpeg,image/png,image/webp,image/avif,image/tiff,image/gif" />
+    </div>
+    <ul id="uploadList" class="mt-5 flex flex-col" aria-live="polite"></ul>
+    <div class="flex items-center justify-between mt-6">
+      <span id="uploadCounter" class="font-mono text-[9px] label text-stone uppercase"></span>
+      <button type="button" id="uploadDone" data-modal-close
+              class="font-mono text-[11px] label uppercase bg-ink text-paper px-5 py-2.5 hover:bg-stone transition-colors disabled:bg-hairline disabled:text-stone disabled:cursor-not-allowed">Done</button>
+    </div>
+  </div>
+</div>`;
+}
+
 export function showcasePage(album: AlbumWithCover, photos: Photo[], isAdmin = false): string {
   const stream = photos.length
     ? photos.map((p, i) => photoRow(p, i, isAdmin)).join("\n")
@@ -148,6 +174,8 @@ export function showcasePage(album: AlbumWithCover, photos: Photo[], isAdmin = f
         <span class="font-mono text-[9px] label text-stone uppercase tracking-widest">Admin</span>
         <span class="font-mono text-[9px] label text-stone/40">·</span>
         <span class="font-mono text-[9px] label text-stone/60">Long-press photo to manage</span>
+        <span class="font-mono text-[9px] label text-stone/40">·</span>
+        <button type="button" data-upload-open class="font-mono text-[9px] label text-stone hover:text-ink uppercase tracking-widest transition-colors">Upload photos</button>
         <span class="font-mono text-[9px] label text-stone/40">·</span>
         <a href="/admin/photos" class="font-mono text-[9px] label text-stone hover:text-ink uppercase tracking-widest transition-colors">Manage photos</a>
         <span class="font-mono text-[9px] label text-stone/40 ml-auto">·</span>
@@ -182,6 +210,7 @@ export function showcasePage(album: AlbumWithCover, photos: Photo[], isAdmin = f
 </main>
 
 ${lightbox()}
+${isAdmin ? uploadModal(album) : ""}
 
 <script type="application/json" id="viewer-data">${jsonScript(viewerData(photos))}</script>`;
 }

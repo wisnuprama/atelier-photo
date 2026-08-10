@@ -1,19 +1,20 @@
 # Album detail page (`/albums/:slug`)
 
-- Route: `src/server/routes/pages.ts:32-54` →
+- Route: `src/server/routes/pages.ts:33-56` →
   `showcasePage(album, photos, isAdmin)`.
 - View: `src/server/views/showcase.ts` —
-  `showcasePage(album, photos, isAdmin = false)` (`:137`).
-- Admin strip (`:146-158`): renders when `isAdmin` — "Long-press photo to
-  manage", link to `/admin/photos`, and a `POST /admin/logout` form. Natural
-  insertion point for new admin actions on this page.
+  `showcasePage(album, photos, isAdmin = false)` (`:163`).
+- Admin strip (`:172-186`): renders when `isAdmin` — "Long-press photo to
+  manage", an **Upload photos** button (`data-upload-open`), link to
+  `/admin/photos`, and a `POST /admin/logout` form. Natural insertion point
+  for new admin actions on this page.
 - `photoRow(photo, index, isAdmin)` (`:36`) adds
   `data-admin-photo data-photo-id="…" class="photo-row select-none"` when
   admin (`:39-41`).
-- Photo stream container: `#photoStream` (`:172`); lightbox markup from
-  `lightbox()` (`:73`); viewer payload via
-  `<script type="application/json" id="viewer-data">` (`:186`) using
-  `jsonScript()` (see [client-bundling.md](client-bundling.md)).
+- Photo stream container: `#photoStream`; lightbox markup from `lightbox()`
+  (`:73`); viewer payload via
+  `<script type="application/json" id="viewer-data">` using `jsonScript()`
+  (see [client-bundling.md](client-bundling.md)).
 
 ## Long-press admin menu — `src/client/ts/admin.ts` (`initAdmin()`, `:14`)
 
@@ -37,11 +38,35 @@ const res = await fetch(`/admin/photos/${encodeURIComponent(photoId)}`, {
 `[data-admin-photo], [data-admin-photo] * { -webkit-touch-callout: none; }` in
 `src/client/css/app.css`.
 
+## Upload modal (admin, PR #14)
+
+When `isAdmin`, `uploadModal(album)` (`showcase.ts:138-161`) renders
+`#uploadModal` (with `data-album-slug`) after the lightbox: dropzone
+`#uploadDropzone` (drag-and-drop + hidden `<input type="file" multiple>`
+picker, accepted types `image/{jpeg,png,webp,avif,tiff,gif}`), per-file status
+list `#uploadList`, counter `#uploadCounter`, Done button `#uploadDone`.
+
+Client: `src/client/ts/upload.ts` (`initUpload()`):
+
+- Pure, node-testable helpers exported: `ACCEPTED_TYPES`, `MAX_FILE_BYTES`
+  (60 MB), `fileError(file)`, `formatBytes(n)` — files failing `fileError`
+  are shown with a red status and **never sent**.
+- Uploads run **sequentially**, one `XMLHttpRequest` per file to
+  `POST /admin/photos/upload` (`FormData` with `album` + `file`;
+  `withCredentials`; `upload.onprogress` drives a per-row percent + 2px bar).
+  Statuses: `Queued` → `Uploading N%` → `Created ✓` / `Replaced ✓` / error.
+- While the queue drains the modal is locked (`setLocked(true)`) — Escape,
+  scrim, and Done are ignored; new drops extend the running queue.
+- Closing after ≥1 success calls `location.reload()` so the SSR page picks up
+  the new photos/thumbhashes/year rail.
+
 ## Modal/dialog patterns
 
-**There is no drag-and-drop and no reusable modal/dialog component.** The only
-"modal" is the lightbox (`showcase.ts:73`, driven by `viewer.ts`:
-`classList.remove("hidden")` + `document.body.style.overflow = "hidden"` +
-focus save/restore at `viewer.ts:227-243`, Escape at `:290-292`). New modals
-should follow the lightbox / `buildMenu` patterns; styling recipes in
-[styling.md](styling.md).
+Reusable overlay helper: `src/client/ts/modal.ts` —
+`createModal(root): { open, close, isOpen, setLocked }`. Follows the lightbox
+conventions (`hidden` class toggle, `document.body.style.overflow` lock,
+focus save/restore, Escape, Tab focus trap) and wires `[data-modal-close]`
+clicks (scrim included). Used by the upload modal here and the create-album
+modal on the album list page ([album-list-page.md](album-list-page.md)); the
+lightbox itself (`viewer.ts`) predates it and remains standalone. Styling
+recipes in [styling.md](styling.md).

@@ -7,8 +7,12 @@ import { ctxFromRequest } from "../context.js";
 import { clearAdminSession, getAdminSession, setAdminSession } from "../plugins/session.js";
 import { headerMatches, parseCsv, toCsv } from "../services/csv.js";
 import { derivativePath } from "../services/derivatives.js";
+import { ingestLimit } from "../services/ingest-limiter.js";
+import { MAX_UPLOAD_BYTES, parseMultipart } from "../services/multipart.js";
 import {
+  createAlbum,
   deletePhoto,
+  ingestPhoto,
   listAllPhotos,
   type PhotoFieldsInput,
   updatePhoto,
@@ -57,6 +61,16 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     },
   );
 
+  // Buffer raw multipart bodies for the browser upload route; parsers are
+  // scoped per plugin, so this cannot interfere with the HMAC scope's parser.
+  app.addContentTypeParser(
+    "multipart/form-data",
+    { parseAs: "buffer", bodyLimit: MAX_UPLOAD_BYTES },
+    (_req, body, done) => {
+      done(null, body);
+    },
+  );
+
   app.get("/login", async (request, reply) => {
     if (getAdminSession(request)) return reply.redirect("/");
     const next = (request.query as Record<string, string>).next ?? "/";
@@ -99,6 +113,61 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     } catch (err: unknown) {
       if (errStatus(err) === 404) return reply.code(404).send({ error: "Photo not found" });
       throw err;
+    }
+  });
+
+  // Create an album from the browser UI. `/admin/albums` (no suffix) belongs
+  // to the HMAC scope, hence the verb-suffixed path.
+  app.post<{ Body: { name?: string; description?: string } }>(
+    "/albums/create",
+    async (request, reply) => {
+      if (!getAdminSession(request)) {
+        return reply.code(401).send({ error: "Unauthorized" });
+      }
+      const name = (request.body?.name ?? "").trim();
+      if (!name) {
+        return reply.code(400).send({ error: "Missing name" });
+      }
+      const description = request.body?.description?.trim() || undefined;
+      const album = createAlbum(ctxFromRequest(request), { name, description });
+      return reply.code(201).send(album);
+    },
+  );
+
+  // Ingest a single photo from the browser upload modal. One file per request:
+  // the client uploads sequentially so each request stays small and gets its
+  // own progress + retry, while ingestLimit still caps decode/encode work.
+  app.post("/photos/upload", async (request, reply) => {
+    if (!getAdminSession(request)) {
+      return reply.code(401).send({ error: "Unauthorized" });
+    }
+    const contentType = request.headers["content-type"] ?? "";
+    if (!contentType.includes("multipart/form-data") || !Buffer.isBuffer(request.body)) {
+      return reply.code(415).send({ error: "expected multipart/form-data" });
+    }
+
+    const { fields, files } = await parseMultipart(request.headers, request.body, { files: 1 });
+    const album = fields.album?.trim();
+    if (!album) {
+      return reply.code(400).send({ error: "Missing album field" });
+    }
+    const file = files.length === 1 ? files[0] : undefined;
+    if (!file) {
+      return reply.code(400).send({ error: "Expected exactly one file part" });
+    }
+
+    try {
+      const result = await ingestLimit(() =>
+        ingestPhoto(ctxFromRequest(request), {
+          album,
+          filename: file.filename,
+          data: file.data,
+        }),
+      );
+      return reply.code(200).send(result);
+    } catch (err: unknown) {
+      request.log.warn({ err }, "photos/upload: ingest failed");
+      return reply.code(400).send({ error: "Could not process image" });
     }
   });
 

@@ -1,47 +1,9 @@
-import { Readable } from "node:stream";
-import busboy from "busboy";
-import type { FastifyInstance, FastifyRequest } from "fastify";
-import { config } from "../config.js";
+import type { FastifyInstance } from "fastify";
 import { ctxFromRequest } from "../context.js";
 import { verifyHmac } from "../plugins/hmac-auth.js";
-import { createLimiter } from "../services/concurrency.js";
+import { ingestLimit } from "../services/ingest-limiter.js";
+import { MAX_UPLOAD_BYTES, parseMultipart } from "../services/multipart.js";
 import { createAlbum, ingestPhoto, type IngestResult } from "../services/photos.js";
-
-const MAX_BODY = 60 * 1024 * 1024; // 60 MB per request
-
-// Process-wide cap on photos decoding/encoding at once. Holds across concurrent
-// requests, not just within one, so a burst can't stack libvips working sets
-// past the container's memory. Configured via config.ingestConcurrency
-// (INGEST_CONCURRENCY env).
-const ingestLimit = createLimiter(config.ingestConcurrency);
-
-interface ParsedMultipart {
-  fields: Record<string, string>;
-  files: Array<{ filename: string; data: Buffer }>;
-}
-
-/** Parse a buffered multipart/form-data body with busboy. */
-function parseMultipart(headers: FastifyRequest["headers"], raw: Buffer): Promise<ParsedMultipart> {
-  return new Promise((resolve, reject) => {
-    const bb = busboy({ headers, limits: { fileSize: MAX_BODY, files: 50 } });
-    const fields: Record<string, string> = {};
-    const files: ParsedMultipart["files"] = [];
-
-    bb.on("field", (name, value) => {
-      fields[name] = value;
-    });
-    bb.on("file", (_name, stream, info) => {
-      const chunks: Buffer[] = [];
-      stream.on("data", (c: Buffer) => chunks.push(c));
-      stream.on("end", () => files.push({ filename: info.filename, data: Buffer.concat(chunks) }));
-      stream.on("error", reject);
-    });
-    bb.on("close", () => resolve({ fields, files }));
-    bb.on("error", reject);
-
-    Readable.from(raw).pipe(bb);
-  });
-}
 
 /**
  * Admin ingestion — HMAC-protected, mounted under /admin.
@@ -77,7 +39,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
   // consume early without breaking it — so we own the parsing here).
   app.addContentTypeParser(
     "multipart/form-data",
-    { parseAs: "buffer", bodyLimit: MAX_BODY },
+    { parseAs: "buffer", bodyLimit: MAX_UPLOAD_BYTES },
     (_req, body, done) => {
       done(null, body);
     },
