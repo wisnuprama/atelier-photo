@@ -12,7 +12,8 @@ export type IconName =
   | "chevron-up"
   | "chevron-down"
   | "x"
-  | "info";
+  | "info"
+  | "upload";
 
 interface IconOptions {
   /** CSS classes applied to the <svg>. */

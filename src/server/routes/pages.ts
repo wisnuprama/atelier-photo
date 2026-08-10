@@ -12,10 +12,11 @@ import { esc } from "../views/util.js";
 export async function pageRoutes(app: FastifyInstance): Promise<void> {
   app.get("/", async (request, reply) => {
     const ctx = ctxFromRequest(request);
+    const isAdmin = getAdminSession(request);
     const html = layout({
       title: "Still — Wisnu Photography",
       activeNav: "albums",
-      body: albumsPage(listAlbums(ctx), getPhotoYearRange(ctx)),
+      body: albumsPage(listAlbums(ctx), getPhotoYearRange(ctx), isAdmin),
     });
     return reply.type("text/html").send(html);
   });
