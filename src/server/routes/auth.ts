@@ -135,8 +135,9 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
   );
 
   // Ingest a single photo from the browser upload modal. One file per request:
-  // the client uploads sequentially so each request stays small and gets its
-  // own progress + retry, while ingestLimit still caps decode/encode work.
+  // the client uploads a few files concurrently (small fixed pool) so each
+  // request stays small and gets its own progress + retry, while ingestLimit
+  // still caps decode/encode work across the concurrent requests.
   app.post("/photos/upload", async (request, reply) => {
     if (!getAdminSession(request)) {
       return reply.code(401).send({ error: "Unauthorized" });

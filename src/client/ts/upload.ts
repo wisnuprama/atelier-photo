@@ -13,6 +13,14 @@ export const ACCEPTED_TYPES: ReadonlySet<string> = new Set([
 /** Mirrors the server's MAX_UPLOAD_BYTES request ceiling. */
 export const MAX_FILE_BYTES = 60 * 1024 * 1024;
 
+/**
+ * Upload at most this many files at once. Kept small: each in-flight request
+ * buffers its full body (up to 60 MB) in server memory, and the server's
+ * ingest limiter serializes the heavy image work anyway — the win here is
+ * overlapping network transfer with ingest, not flooding the server.
+ */
+export const MAX_CONCURRENT_UPLOADS = 3;
+
 /** Reason a file cannot be uploaded, or null when it is acceptable. */
 export function fileError(file: { type: string; size: number }): string | null {
   if (!ACCEPTED_TYPES.has(file.type)) return "Unsupported type";
@@ -132,36 +140,48 @@ export function initUpload(): void {
     queue.push({ file, status, bar });
   }
 
-  async function drain(): Promise<void> {
-    if (running) return;
-    setBusy(true);
-    // New drops during the loop extend `queue`; keep going until it is empty.
-    for (let row = queue.shift(); row; row = queue.shift()) {
-      const { file, status, bar } = row;
-      const track = bar?.parentElement;
-      track?.classList.remove("hidden");
-      status.textContent = "Uploading 0%";
-      try {
-        const result = await uploadFile(albumSlug!, file, (pct) => {
-          status.textContent = `Uploading ${pct}%`;
-          if (bar) bar.style.width = `${pct}%`;
-        });
-        status.textContent = result.status === "replaced" ? "Replaced ✓" : "Created ✓";
-        succeeded++;
-      } catch (err) {
-        status.textContent = err instanceof Error ? err.message : "Failed";
-        status.classList.replace("text-stone", "text-red-600");
-      }
-      track?.classList.add("hidden");
-      updateCounter();
+  async function uploadRow(row: UploadRow): Promise<void> {
+    const { file, status, bar } = row;
+    const track = bar?.parentElement;
+    track?.classList.remove("hidden");
+    status.textContent = "Uploading 0%";
+    try {
+      const result = await uploadFile(albumSlug!, file, (pct) => {
+        status.textContent = `Uploading ${pct}%`;
+        if (bar) bar.style.width = `${pct}%`;
+      });
+      status.textContent = result.status === "replaced" ? "Replaced ✓" : "Created ✓";
+      succeeded++;
+    } catch (err) {
+      status.textContent = err instanceof Error ? err.message : "Failed";
+      status.classList.replace("text-stone", "text-red-600");
     }
-    setBusy(false);
+    track?.classList.add("hidden");
+    updateCounter();
+  }
+
+  let active = 0;
+
+  // Worker pool: start queued uploads until MAX_CONCURRENT_UPLOADS are in
+  // flight; each settled upload calls back in to start the next. New drops
+  // while uploads run just extend `queue` and are picked up here.
+  function pump(): void {
+    while (active < MAX_CONCURRENT_UPLOADS && queue.length > 0) {
+      if (!running) setBusy(true);
+      active++;
+      const row = queue.shift()!;
+      void uploadRow(row).finally(() => {
+        active--;
+        if (active === 0 && queue.length === 0) setBusy(false);
+        else pump();
+      });
+    }
   }
 
   function enqueue(files: FileList | null): void {
     if (!files || files.length === 0) return;
     for (const file of files) addRow(file);
-    void drain();
+    pump();
   }
 
   for (const btn of document.querySelectorAll<HTMLElement>("[data-upload-open]")) {
