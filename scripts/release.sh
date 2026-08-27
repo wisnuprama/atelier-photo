@@ -190,6 +190,30 @@ git commit -m "chore: release ${TAG}"
 git tag -a "${TAG}" -m "Release ${TAG}"
 echo "==> Committed and tagged ${TAG}"
 
+# --- github release ---------------------------------------------------------
+
+if command -v gh &>/dev/null; then
+  if ! gh auth status &>/dev/null; then
+    echo "==> GitHub CLI is installed but not authenticated." >&2
+    echo "==> To create a GitHub release, run: gh auth login" >&2
+    echo "==> Then re-run: git push && git push origin ${TAG}" >&2
+    exit 1
+  fi
+
+  # Extract changelog entry for this version (from "## [VERSION]" to next "## [")
+  RELEASE_NOTES="$(awk "/^## \[${NEW_VERSION}\]/,/^## \[/{if (/^## \[/ && !/^## \[${NEW_VERSION}\]/) exit; print}" "${CHANGELOG}" | sed '$ d')"
+
+  echo "==> Creating GitHub release for ${TAG}"
+  gh release create "${TAG}" \
+    --title "Release ${TAG}" \
+    --notes "${RELEASE_NOTES}" \
+    --verify-tag
+else
+  echo "==> GitHub CLI not found; skipping release creation." >&2
+  echo "==> To create a release manually, run:" >&2
+  echo "    gh release create ${TAG} --verify-tag" >&2
+fi
+
 # --- container build + push -------------------------------------------------
 
 ./scripts/build-container.sh "${TAG}"
@@ -200,3 +224,5 @@ echo "==> Committed and tagged ${TAG}"
 echo ""
 echo "==> Released ${TAG}. Push the commit and tag with:"
 echo "    git push && git push origin ${TAG}"
+echo ""
+echo "==> GitHub release will be created automatically when the tag is pushed."
