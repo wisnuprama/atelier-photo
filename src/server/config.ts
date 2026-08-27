@@ -10,6 +10,8 @@ export interface Config {
   readonly isProduction: boolean;
   readonly contactEmail: string;
   readonly contactGreeting: string;
+  /** Umami Cloud website ID (UMAMI_WEBSITE_ID). Analytics script is omitted when unset. */
+  readonly umamiWebsiteId: string;
   /** Max photos decoded/encoded at once across all requests (INGEST_CONCURRENCY). */
   readonly ingestConcurrency: number;
   /** libvips threads per sharp operation (SHARP_CONCURRENCY). */
@@ -33,6 +35,7 @@ export const config: Config = {
   isProduction: process.env.NODE_ENV === "production",
   contactEmail: (process.env.CONTACT_EMAIL ?? "").trim(),
   contactGreeting: (process.env.CONTACT_GREETING ?? "").trim() || "Get in Touch",
+  umamiWebsiteId: (process.env.UMAMI_WEBSITE_ID ?? "").trim(),
   // Defaults sized for a 2 vCPU / 2 GB container; tune via env (e.g. the quadlet
   // EnvironmentFile in prod). See docs/projects/20260628_upload-ingest-optimization.
   ingestConcurrency: posInt(process.env.INGEST_CONCURRENCY, 1),

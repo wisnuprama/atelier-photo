@@ -1,3 +1,4 @@
+import { config } from "../config.js";
 import { icon } from "./icons.js";
 import { esc } from "./util.js";
 
@@ -34,6 +35,12 @@ function mobileNav(): string {
   ).join("");
 }
 
+/** Umami Cloud tracking snippet, omitted entirely when UMAMI_WEBSITE_ID is unset. */
+function analyticsScript(): string {
+  if (!config.umamiWebsiteId) return "";
+  return `<script defer src="https://cloud.umami.is/script.js" data-website-id="${esc(config.umamiWebsiteId)}"></script>`;
+}
+
 export function layout(opts: LayoutOptions): string {
   const { title, body, activeNav = null } = opts;
   return `<!DOCTYPE html>
@@ -46,6 +53,7 @@ export function layout(opts: LayoutOptions): string {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="/css/app.css" />
+${analyticsScript()}
 </head>
 <body class="bg-paper text-ink font-sans antialiased min-h-svh flex flex-col">
 
