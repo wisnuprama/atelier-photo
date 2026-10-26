@@ -4,19 +4,7 @@ exports[`showcasePage (viewer extraction regression) > renders the same markup a
 "<main id="showcaseView">
   <section class="lg:max-w-[780px] xl:max-w-[900px] mx-auto px-5 sm:px-8 pt-12 sm:pt-16 pb-8 sm:pb-10">
     <a href="/" class="inline-flex items-center gap-2 -ml-[16px] font-mono text-[10px] label text-stone hover:text-ink uppercase transition-colors">
-      <!-- @license lucide-static v1.61.0 - ISC -->
-<svg
-  class="lucide lucide-arrow-left"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
+      <svg width="24" height="24" aria-hidden="true" focusable="false" class="lucide lucide-arrow-left w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="m12 19-7-7 7-7" />
   <path d="M19 12H5" />
 </svg> Albums
@@ -91,19 +79,7 @@ exports[`showcasePage (viewer extraction regression) > renders the same markup a
       </div>
 
       <div id="swipeHint" class="lg:hidden pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-2 bg-paper/85 backdrop-blur-sm px-5 py-4 rounded-2xl shadow-sm opacity-0 transition-opacity duration-500">
-        <!-- @license lucide-static v1.61.0 - ISC -->
-<svg
-  class="lucide lucide-chevrons-up-down"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
+        <svg width="24" height="24" aria-hidden="true" focusable="false" class="lucide lucide-chevrons-up-down w-6 h-6 text-ink swipe-bounce" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="m7 15 5 5 5-5" />
   <path d="m7 9 5-5 5 5" />
 </svg>
@@ -112,19 +88,7 @@ exports[`showcasePage (viewer extraction regression) > renders the same markup a
 
       <div class="absolute inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 px-5 pt-8 pb-[max(14px,env(safe-area-inset-bottom))] bg-gradient-to-t from-paper via-paper/85 to-transparent">
         <button data-viewer-close class="p-1.5 text-ink/70 hover:text-ink transition-colors" aria-label="Close viewer">
-          <!-- @license lucide-static v1.61.0 - ISC -->
-<svg
-  class="lucide lucide-x"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
+          <svg width="24" height="24" aria-hidden="true" focusable="false" class="lucide lucide-x w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M18 6 6 18" />
   <path d="m6 6 12 12" />
 </svg>
@@ -132,56 +96,20 @@ exports[`showcasePage (viewer extraction regression) > renders the same markup a
 
         <div class="flex items-center gap-5">
           <button data-viewer-prev class="p-1.5 text-stone hover:text-ink transition-colors" aria-label="Previous photo">
-            <!-- @license lucide-static v1.61.0 - ISC -->
-<svg
-  class="lucide lucide-chevron-up"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
+            <svg width="24" height="24" aria-hidden="true" focusable="false" class="lucide lucide-chevron-up w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="m18 15-6-6-6 6" />
 </svg>
           </button>
           <span id="lightboxCount" class="font-mono text-[10px] label text-stone min-w-[58px] text-center"></span>
           <button data-viewer-next class="p-1.5 text-stone hover:text-ink transition-colors" aria-label="Next photo">
-            <!-- @license lucide-static v1.61.0 - ISC -->
-<svg
-  class="lucide lucide-chevron-down"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
+            <svg width="24" height="24" aria-hidden="true" focusable="false" class="lucide lucide-chevron-down w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="m6 9 6 6 6-6" />
 </svg>
           </button>
         </div>
 
         <button data-exif-toggle class="lg:hidden p-1.5 text-ink/70 hover:text-ink transition-colors" aria-label="Show photo info">
-          <!-- @license lucide-static v1.61.0 - ISC -->
-<svg
-  class="lucide lucide-info"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
+          <svg width="24" height="24" aria-hidden="true" focusable="false" class="lucide lucide-info w-[22px] h-[22px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <circle cx="12" cy="12" r="10" />
   <path d="M12 16v-4" />
   <path d="M12 8h.01" />
@@ -202,19 +130,7 @@ exports[`showcasePage (viewer extraction regression) > renders the same markup a
       <div class="flex items-center justify-between mb-5 lg:hidden">
         <span class="font-mono text-[9px] label text-stone uppercase">Photo Info</span>
         <button data-exif-toggle class="p-1 text-stone hover:text-ink transition-colors" aria-label="Hide info">
-          <!-- @license lucide-static v1.61.0 - ISC -->
-<svg
-  class="lucide lucide-chevron-down"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
+          <svg width="24" height="24" aria-hidden="true" focusable="false" class="lucide lucide-chevron-down w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="m6 9 6 6 6-6" />
 </svg>
         </button>
@@ -239,19 +155,7 @@ exports[`showcasePage (viewer extraction regression) > renders the same markup a
     <p class="font-mono text-[10px] label text-stone uppercase mt-1.5">A &amp; B</p>
     <div id="uploadDropzone" role="button" tabindex="0" aria-label="Choose photos to upload"
          class="mt-6 border border-dashed border-stone/50 px-6 py-10 text-center cursor-pointer transition-colors">
-      <!-- @license lucide-static v1.61.0 - ISC -->
-<svg
-  class="lucide lucide-upload"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
+      <svg width="20" height="20" aria-hidden="true" focusable="false" class="lucide lucide-upload inline-block text-stone" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M12 3v12" />
   <path d="m17 8-5-5-5 5" />
   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -277,19 +181,7 @@ exports[`showcasePage (viewer extraction regression) > renders the same markup a
 "<main id="showcaseView">
   <section class="lg:max-w-[780px] xl:max-w-[900px] mx-auto px-5 sm:px-8 pt-12 sm:pt-16 pb-8 sm:pb-10">
     <a href="/" class="inline-flex items-center gap-2 -ml-[16px] font-mono text-[10px] label text-stone hover:text-ink uppercase transition-colors">
-      <!-- @license lucide-static v1.61.0 - ISC -->
-<svg
-  class="lucide lucide-arrow-left"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
+      <svg width="24" height="24" aria-hidden="true" focusable="false" class="lucide lucide-arrow-left w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="m12 19-7-7 7-7" />
   <path d="M19 12H5" />
 </svg> Albums
@@ -322,19 +214,7 @@ exports[`showcasePage (viewer extraction regression) > renders the same markup a
       </div>
 
       <div id="swipeHint" class="lg:hidden pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-2 bg-paper/85 backdrop-blur-sm px-5 py-4 rounded-2xl shadow-sm opacity-0 transition-opacity duration-500">
-        <!-- @license lucide-static v1.61.0 - ISC -->
-<svg
-  class="lucide lucide-chevrons-up-down"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
+        <svg width="24" height="24" aria-hidden="true" focusable="false" class="lucide lucide-chevrons-up-down w-6 h-6 text-ink swipe-bounce" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="m7 15 5 5 5-5" />
   <path d="m7 9 5-5 5 5" />
 </svg>
@@ -343,19 +223,7 @@ exports[`showcasePage (viewer extraction regression) > renders the same markup a
 
       <div class="absolute inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 px-5 pt-8 pb-[max(14px,env(safe-area-inset-bottom))] bg-gradient-to-t from-paper via-paper/85 to-transparent">
         <button data-viewer-close class="p-1.5 text-ink/70 hover:text-ink transition-colors" aria-label="Close viewer">
-          <!-- @license lucide-static v1.61.0 - ISC -->
-<svg
-  class="lucide lucide-x"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
+          <svg width="24" height="24" aria-hidden="true" focusable="false" class="lucide lucide-x w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M18 6 6 18" />
   <path d="m6 6 12 12" />
 </svg>
@@ -363,56 +231,20 @@ exports[`showcasePage (viewer extraction regression) > renders the same markup a
 
         <div class="flex items-center gap-5">
           <button data-viewer-prev class="p-1.5 text-stone hover:text-ink transition-colors" aria-label="Previous photo">
-            <!-- @license lucide-static v1.61.0 - ISC -->
-<svg
-  class="lucide lucide-chevron-up"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
+            <svg width="24" height="24" aria-hidden="true" focusable="false" class="lucide lucide-chevron-up w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="m18 15-6-6-6 6" />
 </svg>
           </button>
           <span id="lightboxCount" class="font-mono text-[10px] label text-stone min-w-[58px] text-center"></span>
           <button data-viewer-next class="p-1.5 text-stone hover:text-ink transition-colors" aria-label="Next photo">
-            <!-- @license lucide-static v1.61.0 - ISC -->
-<svg
-  class="lucide lucide-chevron-down"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
+            <svg width="24" height="24" aria-hidden="true" focusable="false" class="lucide lucide-chevron-down w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="m6 9 6 6 6-6" />
 </svg>
           </button>
         </div>
 
         <button data-exif-toggle class="lg:hidden p-1.5 text-ink/70 hover:text-ink transition-colors" aria-label="Show photo info">
-          <!-- @license lucide-static v1.61.0 - ISC -->
-<svg
-  class="lucide lucide-info"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
+          <svg width="24" height="24" aria-hidden="true" focusable="false" class="lucide lucide-info w-[22px] h-[22px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <circle cx="12" cy="12" r="10" />
   <path d="M12 16v-4" />
   <path d="M12 8h.01" />
@@ -433,19 +265,7 @@ exports[`showcasePage (viewer extraction regression) > renders the same markup a
       <div class="flex items-center justify-between mb-5 lg:hidden">
         <span class="font-mono text-[9px] label text-stone uppercase">Photo Info</span>
         <button data-exif-toggle class="p-1 text-stone hover:text-ink transition-colors" aria-label="Hide info">
-          <!-- @license lucide-static v1.61.0 - ISC -->
-<svg
-  class="lucide lucide-chevron-down"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
+          <svg width="24" height="24" aria-hidden="true" focusable="false" class="lucide lucide-chevron-down w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="m6 9 6 6 6-6" />
 </svg>
         </button>
@@ -471,19 +291,7 @@ exports[`showcasePage (viewer extraction regression) > renders the same markup a
 "<main id="showcaseView">
   <section class="lg:max-w-[780px] xl:max-w-[900px] mx-auto px-5 sm:px-8 pt-12 sm:pt-16 pb-8 sm:pb-10">
     <a href="/" class="inline-flex items-center gap-2 -ml-[16px] font-mono text-[10px] label text-stone hover:text-ink uppercase transition-colors">
-      <!-- @license lucide-static v1.61.0 - ISC -->
-<svg
-  class="lucide lucide-arrow-left"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
+      <svg width="24" height="24" aria-hidden="true" focusable="false" class="lucide lucide-arrow-left w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="m12 19-7-7 7-7" />
   <path d="M19 12H5" />
 </svg> Albums
@@ -545,19 +353,7 @@ exports[`showcasePage (viewer extraction regression) > renders the same markup a
       </div>
 
       <div id="swipeHint" class="lg:hidden pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-2 bg-paper/85 backdrop-blur-sm px-5 py-4 rounded-2xl shadow-sm opacity-0 transition-opacity duration-500">
-        <!-- @license lucide-static v1.61.0 - ISC -->
-<svg
-  class="lucide lucide-chevrons-up-down"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
+        <svg width="24" height="24" aria-hidden="true" focusable="false" class="lucide lucide-chevrons-up-down w-6 h-6 text-ink swipe-bounce" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="m7 15 5 5 5-5" />
   <path d="m7 9 5-5 5 5" />
 </svg>
@@ -566,19 +362,7 @@ exports[`showcasePage (viewer extraction regression) > renders the same markup a
 
       <div class="absolute inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 px-5 pt-8 pb-[max(14px,env(safe-area-inset-bottom))] bg-gradient-to-t from-paper via-paper/85 to-transparent">
         <button data-viewer-close class="p-1.5 text-ink/70 hover:text-ink transition-colors" aria-label="Close viewer">
-          <!-- @license lucide-static v1.61.0 - ISC -->
-<svg
-  class="lucide lucide-x"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
+          <svg width="24" height="24" aria-hidden="true" focusable="false" class="lucide lucide-x w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M18 6 6 18" />
   <path d="m6 6 12 12" />
 </svg>
@@ -586,56 +370,20 @@ exports[`showcasePage (viewer extraction regression) > renders the same markup a
 
         <div class="flex items-center gap-5">
           <button data-viewer-prev class="p-1.5 text-stone hover:text-ink transition-colors" aria-label="Previous photo">
-            <!-- @license lucide-static v1.61.0 - ISC -->
-<svg
-  class="lucide lucide-chevron-up"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
+            <svg width="24" height="24" aria-hidden="true" focusable="false" class="lucide lucide-chevron-up w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="m18 15-6-6-6 6" />
 </svg>
           </button>
           <span id="lightboxCount" class="font-mono text-[10px] label text-stone min-w-[58px] text-center"></span>
           <button data-viewer-next class="p-1.5 text-stone hover:text-ink transition-colors" aria-label="Next photo">
-            <!-- @license lucide-static v1.61.0 - ISC -->
-<svg
-  class="lucide lucide-chevron-down"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
+            <svg width="24" height="24" aria-hidden="true" focusable="false" class="lucide lucide-chevron-down w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="m6 9 6 6 6-6" />
 </svg>
           </button>
         </div>
 
         <button data-exif-toggle class="lg:hidden p-1.5 text-ink/70 hover:text-ink transition-colors" aria-label="Show photo info">
-          <!-- @license lucide-static v1.61.0 - ISC -->
-<svg
-  class="lucide lucide-info"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
+          <svg width="24" height="24" aria-hidden="true" focusable="false" class="lucide lucide-info w-[22px] h-[22px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <circle cx="12" cy="12" r="10" />
   <path d="M12 16v-4" />
   <path d="M12 8h.01" />
@@ -656,19 +404,7 @@ exports[`showcasePage (viewer extraction regression) > renders the same markup a
       <div class="flex items-center justify-between mb-5 lg:hidden">
         <span class="font-mono text-[9px] label text-stone uppercase">Photo Info</span>
         <button data-exif-toggle class="p-1 text-stone hover:text-ink transition-colors" aria-label="Hide info">
-          <!-- @license lucide-static v1.61.0 - ISC -->
-<svg
-  class="lucide lucide-chevron-down"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
+          <svg width="24" height="24" aria-hidden="true" focusable="false" class="lucide lucide-chevron-down w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="m6 9 6 6 6-6" />
 </svg>
         </button>
