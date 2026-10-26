@@ -210,7 +210,7 @@ if command -v gh &>/dev/null; then
   fi
 
   # Extract changelog entry for this version (from "## [VERSION]" to next "## [")
-  RELEASE_NOTES="$(awk "/^## \[${NEW_VERSION}\]/,/^## \[/{if (/^## \[/ && !/^## \[${NEW_VERSION}\]/) exit; print}" "${CHANGELOG}" | sed '$ d')"
+  RELEASE_NOTES="$(awk -v v="## [${NEW_VERSION}]" 'index($0, v) == 1 {f=1; next} /^## \[/ {f=0} f' "${CHANGELOG}")"
 
   echo "==> Creating GitHub release for ${TAG}"
   gh release create "${TAG}" \
