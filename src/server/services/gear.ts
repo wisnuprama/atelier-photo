@@ -63,7 +63,7 @@ function itemsBranch(kind: GearKind): string {
   return `SELECT '${kind}' AS kind, ${col} AS name, COUNT(*) AS photo_count,
          MIN(taken_at) AS first_taken, MAX(taken_at) AS last_taken,
          (SELECT p.id FROM photos p WHERE p.${col} = ph.${col}
-            ORDER BY p.taken_at DESC, p.created_at DESC LIMIT 1) AS sample_id
+            ORDER BY p.taken_at DESC, p.created_at DESC, p.id ASC LIMIT 1) AS sample_id
     FROM photos ph
    WHERE ${col} IS NOT NULL AND trim(${col}) <> ''
    GROUP BY ${col}`;
@@ -109,10 +109,16 @@ function toGearItem(row: GearRow): GearItem {
 /**
  * Every camera body and lens found in photos, most recently used first
  * (undated last), then by photo count, then by name. Flat list; the view
- * groups it into active/inactive × camera/lens.
+ * groups it into active/inactive × camera/lens. Names longer than
+ * GEAR_NAME_MAX are left out: they could not be toggled, and gear search
+ * ignores them too.
  */
 export function listGear(_ctx: Ctx): GearItem[] {
-  return getDb().prepare<[], GearRow>(LIST_GEAR_SQL).all().map(toGearItem);
+  return getDb()
+    .prepare<[], GearRow>(LIST_GEAR_SQL)
+    .all()
+    .filter((row) => row.name.length <= GEAR_NAME_MAX)
+    .map(toGearItem);
 }
 
 function httpError(message: string, statusCode: number): Error {

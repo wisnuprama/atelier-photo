@@ -25,7 +25,7 @@ Public page listing every camera body and lens found in the photos, split into
 | `GEAR_COLUMN` | `{ camera: "camera_body", lens: "lens" }` — the only source of column names in gear SQL; never interpolate request data |
 | `isGearKind(v)` | type guard for request bodies / query params |
 | `GEAR_NAME_MAX` | 200 (shared with gear search) |
-| `listGear(ctx) => GearItem[]` | one statement (`LIST_GEAR_SQL`, `:72`). Flat list ordered by last use (`last_taken DESC`, undated last), then photo count, then name. Sample photo = latest by `taken_at DESC, created_at DESC` (not `COVER_JOIN`). Years via `getUTCFullYear()`, same as `getPhotoYearRange` |
+| `listGear(ctx) => GearItem[]` | one statement (`LIST_GEAR_SQL`, `:72`). Flat list ordered by last use (`last_taken DESC`, undated last), then photo count, then name. Sample photo = latest by `taken_at DESC, created_at DESC, id ASC` (not `COVER_JOIN`). Names longer than `GEAR_NAME_MAX` are filtered out (they could not be toggled, and gear search ignores them). Years via `getUTCFullYear()`, same as `getPhotoYearRange` |
 | `setGearActive(ctx, kind, name, active)` | 400-tagged Error for blank/over-long name; 404-tagged when no photo has that value **for that kind**; upsert otherwise. Name stored untrimmed |
 
 ## Routes
