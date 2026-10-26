@@ -1,7 +1,7 @@
 # Ingest pipeline
 
 `ingestPhoto(ctx, { album?, filename, title?, commentary?, data: Buffer })` —
-`src/server/services/photos.ts:457-552`:
+`src/server/services/photos.ts:463-558`:
 
 1. Rejects empty `data` and any filename with path components (basename check,
    `:464-467`).

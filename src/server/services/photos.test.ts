@@ -36,7 +36,9 @@ import { migrate } from "../db/migrate.js";
 import {
   createAlbum,
   deletePhoto,
+  ensureAlbum,
   ingestPhoto,
+  listAlbums,
   listAllPhotos,
   normalizePhotoFields,
   updatePhoto,
@@ -258,5 +260,83 @@ describe("updatePhoto + listAllPhotos", () => {
       albumName: "Test Album",
       title: "Second",
     });
+  });
+});
+
+// Use the datetime('now') format (YYYY-MM-DD HH:MM:SS), not toISOString():
+// 'T' sorts after ' ', so mixed formats would sort wrongly.
+function setAlbumCreatedAt(id: string, ts: string): void {
+  getDb().prepare(`UPDATE albums SET created_at = ? WHERE id = ?`).run(ts, id);
+}
+const albumSlugs = () => listAlbums(consoleCtx).map((a) => a.slug);
+
+describe("listAlbums ordering", () => {
+  beforeEach(() => {
+    closeDb();
+    migrate();
+  });
+
+  afterEach(() => {
+    closeDb();
+  });
+
+  it("pins Discover first, then orders newest first", () => {
+    const discoverId = ensureAlbum(consoleCtx, "discover", "Discover");
+    setAlbumCreatedAt(discoverId, "2020-01-01 00:00:00");
+    const a = createAlbum(consoleCtx, { name: "A" });
+    setAlbumCreatedAt(a.id, "2024-01-01 00:00:00");
+    const b = createAlbum(consoleCtx, { name: "B" });
+    setAlbumCreatedAt(b.id, "2025-01-01 00:00:00");
+
+    expect(albumSlugs()).toEqual(["discover", "b", "a"]);
+  });
+
+  it("puts the later insert first when created_at is the same second", () => {
+    const a = createAlbum(consoleCtx, { name: "A" });
+    const b = createAlbum(consoleCtx, { name: "B" });
+    setAlbumCreatedAt(a.id, "2025-06-01 12:00:00");
+    setAlbumCreatedAt(b.id, "2025-06-01 12:00:00");
+
+    expect(albumSlugs()).toEqual(["b", "a"]);
+  });
+
+  it("orders newest first when there is no Discover album", () => {
+    const a = createAlbum(consoleCtx, { name: "A" });
+    setAlbumCreatedAt(a.id, "2025-01-01 00:00:00");
+    const b = createAlbum(consoleCtx, { name: "B" });
+    setAlbumCreatedAt(b.id, "2023-01-01 00:00:00");
+    const c = createAlbum(consoleCtx, { name: "C" });
+    setAlbumCreatedAt(c.id, "2024-01-01 00:00:00");
+
+    expect(albumSlugs()).toEqual(["a", "c", "b"]);
+  });
+
+  it("ignores position for order but still stores it", () => {
+    const a = createAlbum(consoleCtx, { name: "A" });
+    setAlbumCreatedAt(a.id, "2024-01-01 00:00:00");
+    const b = createAlbum(consoleCtx, { name: "B" });
+    setAlbumCreatedAt(b.id, "2025-01-01 00:00:00");
+
+    const positions = getDb()
+      .prepare<[], { slug: string; position: number }>(
+        `SELECT slug, position FROM albums ORDER BY position ASC`,
+      )
+      .all();
+    expect(positions).toEqual([
+      { slug: "a", position: 0 },
+      { slug: "b", position: 1 },
+    ]);
+    // Position order would be a, b; created_at order puts b first.
+    expect(albumSlugs()).toEqual(["b", "a"]);
+  });
+
+  it("pins a Discover album made with createAlbum", () => {
+    const discover = createAlbum(consoleCtx, { name: "Discover" });
+    expect(discover.slug).toBe("discover");
+    setAlbumCreatedAt(discover.id, "2020-01-01 00:00:00");
+    const a = createAlbum(consoleCtx, { name: "A" });
+    setAlbumCreatedAt(a.id, "2025-01-01 00:00:00");
+
+    expect(albumSlugs()).toEqual(["discover", "a"]);
   });
 });
