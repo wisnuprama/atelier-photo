@@ -303,11 +303,9 @@ export function searchPhotos(_ctx: Ctx, filters: SearchFilters): SearchPhoto[] {
        ORDER BY p.taken_at DESC, p.created_at DESC, p.id ASC`,
     )
     .all(...params);
-  return rows.map((row) => ({
-    ...toPhoto(row),
-    albumSlug: row.album_slug,
-    albumName: row.album_name,
-  }));
+  return rows.map((row) =>
+    Object.assign(toPhoto(row), { albumSlug: row.album_slug, albumName: row.album_name }),
+  );
 }
 
 /** Every photo with its album slug/name, newest first — drives the admin table. */
