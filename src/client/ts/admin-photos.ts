@@ -120,11 +120,52 @@ export function markError(row: RowModel, message: string): RowModel {
   return row;
 }
 
-/** Pure: label + HTTP method for a row's cover button. */
-export function coverAction(row: RowModel): { label: string; method: "POST" | "DELETE" } {
-  return row.coverState === "pinned"
-    ? { label: "Reset to auto", method: "DELETE" }
-    : { label: "Set as cover", method: "POST" };
+export interface CoverAction {
+  /** Visible button text. */
+  label: string;
+  /**
+   * Accessible name: starts with the visible `label` (WCAG 2.5.3 Label in
+   * Name) and adds the album for context. The server view
+   * (`coverControls`) renders the same string, HTML-escaped.
+   */
+  ariaLabel: string;
+  method: "POST" | "DELETE";
+}
+
+/** Pure: visible label, accessible name and HTTP method for a row's cover button. */
+export function coverAction(row: Pick<RowModel, "coverState" | "albumName">): CoverAction {
+  const label = row.coverState === "pinned" ? "Reset to auto" : "Set as cover";
+  return {
+    label,
+    ariaLabel: `${label}: ${row.albumName}`,
+    method: row.coverState === "pinned" ? "DELETE" : "POST",
+  };
+}
+
+/** Pure: the message announced (and shown by the button) when a cover request fails. */
+export function coverFailureMessage(
+  albumName: string,
+  failure: { status: number; error?: string } | "network",
+): string {
+  const detail =
+    failure === "network" ? "network error" : (failure.error ?? `HTTP ${failure.status}`);
+  return `Cover failed for ${albumName}: ${detail}`;
+}
+
+/**
+ * Pure: claim the per-album cover lock. Returns `false` (and changes nothing)
+ * while another cover request for that album is in flight, so two rapid
+ * toggles can't race and leave the UI out of step with the database.
+ */
+export function beginCoverRequest(inFlight: Set<string>, albumSlug: string): boolean {
+  if (inFlight.has(albumSlug)) return false;
+  inFlight.add(albumSlug);
+  return true;
+}
+
+/** Pure: release the per-album cover lock taken by `beginCoverRequest`. */
+export function endCoverRequest(inFlight: Set<string>, albumSlug: string): void {
+  inFlight.delete(albumSlug);
 }
 
 /**
@@ -262,15 +303,10 @@ export function initAdminPhotos(): void {
     }
     const btn = tr.querySelector<HTMLButtonElement>("[data-cover-action]");
     if (btn) {
-      const { label, method } = coverAction(m);
+      const { label, ariaLabel, method } = coverAction(m);
       btn.textContent = label;
       btn.dataset.coverMethod = method;
-      btn.setAttribute(
-        "aria-label",
-        method === "DELETE"
-          ? `Reset cover of ${m.albumName} to automatic`
-          : `Set photo ${m.id} as cover of ${m.albumName}`,
-      );
+      btn.setAttribute("aria-label", ariaLabel);
     }
   }
 
@@ -381,12 +417,42 @@ export function initAdminPhotos(): void {
   }
 
   // --- album cover --------------------------------------------------------
+  // Cover results and failures are announced through `#photos-cover-status`;
+  // failures are also shown in the row's `[data-cover-error]`. The cover path
+  // never writes `[data-error]` — that span belongs to `reflect()`.
   const coverStatusEl = document.getElementById("photos-cover-status");
+  const coverInFlight = new Set<string>();
 
-  async function toggleCover(m: RowModel, btn: HTMLButtonElement): Promise<void> {
+  function announceCover(text: string): void {
+    if (!coverStatusEl) return;
+    // Clear first so a repeat of the same message is announced again.
+    coverStatusEl.textContent = "";
+    window.setTimeout(() => {
+      coverStatusEl.textContent = text;
+    }, 50);
+  }
+
+  function showCoverError(m: RowModel, text: string | null): void {
+    const el = trById.get(m.id)?.querySelector<HTMLElement>("[data-cover-error]");
+    if (!el) return;
+    el.textContent = text ?? "";
+    el.classList.toggle("hidden", !text);
+  }
+
+  /** Disable every cover button of an album while one of its requests is in flight. */
+  function setAlbumCoverBusy(albumSlug: string, busy: boolean): void {
+    for (const other of models) {
+      if (other.albumSlug !== albumSlug) continue;
+      const btn = trById.get(other.id)?.querySelector<HTMLButtonElement>("[data-cover-action]");
+      if (btn) btn.disabled = busy;
+    }
+  }
+
+  async function toggleCover(m: RowModel): Promise<void> {
+    if (!beginCoverRequest(coverInFlight, m.albumSlug)) return;
     const { method } = coverAction(m);
-    const err = trById.get(m.id)?.querySelector<HTMLElement>("[data-error]") ?? null;
-    btn.disabled = true;
+    setAlbumCoverBusy(m.albumSlug, true);
+    showCoverError(m, null);
     try {
       // No body and no Content-Type: Fastify rejects an empty JSON body.
       const res = await fetch(`/admin/photos/${encodeURIComponent(m.id)}/cover`, {
@@ -397,35 +463,30 @@ export function initAdminPhotos(): void {
         const result = (await res.json()) as AlbumCoverResult;
         applyAlbumCover(models, m.albumSlug, result);
         for (const other of models) if (other.albumSlug === m.albumSlug) reflectCover(other);
-        if (err && !m.invalid && m.state !== "error") {
-          err.textContent = "";
-          err.classList.add("hidden");
-        }
-        if (coverStatusEl) {
-          coverStatusEl.textContent = result.pinned
+        announceCover(
+          result.pinned
             ? `Cover set for ${m.albumName}`
-            : `Cover of ${m.albumName} reset to automatic`;
-        }
+            : `Cover of ${m.albumName} reset to automatic`,
+        );
       } else {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
-        if (err) {
-          err.textContent = data.error ?? `Cover failed (${res.status})`;
-          err.classList.remove("hidden");
-        }
+        const msg = coverFailureMessage(m.albumName, { status: res.status, error: data.error });
+        showCoverError(m, msg);
+        announceCover(msg);
       }
     } catch {
-      if (err) {
-        err.textContent = "Cover failed — network error";
-        err.classList.remove("hidden");
-      }
+      const msg = coverFailureMessage(m.albumName, "network");
+      showCoverError(m, msg);
+      announceCover(msg);
     } finally {
-      btn.disabled = false;
+      endCoverRequest(coverInFlight, m.albumSlug);
+      setAlbumCoverBusy(m.albumSlug, false);
     }
   }
 
   for (const m of models) {
     const btn = trById.get(m.id)?.querySelector<HTMLButtonElement>("[data-cover-action]");
-    btn?.addEventListener("click", () => void toggleCover(m, btn));
+    btn?.addEventListener("click", () => void toggleCover(m));
   }
 
   // --- filter + pagination ------------------------------------------------
