@@ -70,6 +70,12 @@ export interface PhotoTableRow {
   aperture: string | null;
   shutter: string | null;
   iso: string | null;
+  /**
+   * Whether this photo is its album's cover: `"pinned"` when
+   * `albums.cover_photo_id` points at it, `"auto"` when no cover is pinned and
+   * it is the automatic cover, otherwise `null`.
+   */
+  coverState: "pinned" | "auto" | null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -122,6 +128,7 @@ interface PhotoTableRowSql {
   aperture: string | null;
   shutter: string | null;
   iso: string | null;
+  cover_state: "pinned" | "auto" | null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -135,11 +142,19 @@ const ALBUM_COLUMNS = `
   cp.thumbhash AS cover_thumbhash
 `;
 
+/**
+ * Id of an album's automatic cover: its most recently taken photo. Ties on
+ * `taken_at` fall back to the latest upload, then the lowest id, so the result
+ * is deterministic. Shared by `COVER_JOIN` (the `/` card) and `listAllPhotos`
+ * (the admin `"auto"` marker) so the two can never disagree. Uses its own
+ * alias (`ac`) so it never shadows an outer `p`.
+ */
+const autoCoverSql = (albumIdExpr: string) =>
+  `(SELECT ac.id FROM photos ac WHERE ac.album_id = ${albumIdExpr}
+    ORDER BY ac.taken_at DESC, ac.created_at DESC, ac.id ASC LIMIT 1)`;
+
 const COVER_JOIN = `
-  LEFT JOIN photos cp ON cp.id = COALESCE(
-    a.cover_photo_id,
-    (SELECT p.id FROM photos p WHERE p.album_id = a.id ORDER BY p.taken_at DESC LIMIT 1)
-  )
+  LEFT JOIN photos cp ON cp.id = COALESCE(a.cover_photo_id, ${autoCoverSql("a.id")})
 `;
 
 function toAlbumWithCover(row: AlbumRow): AlbumWithCover {
@@ -257,7 +272,12 @@ export function listAllPhotos(_ctx: Ctx): PhotoTableRow[] {
     .prepare<[], PhotoTableRowSql>(
       `SELECT p.id, p.filename, a.slug AS album_slug, a.name AS album_name,
               p.title, p.commentary, p.camera_body, p.lens, p.focal_length,
-              p.aperture, p.shutter, p.iso
+              p.aperture, p.shutter, p.iso,
+              CASE
+                WHEN a.cover_photo_id = p.id THEN 'pinned'
+                WHEN a.cover_photo_id IS NULL AND p.id = ${autoCoverSql("a.id")} THEN 'auto'
+                ELSE NULL
+              END AS cover_state
        FROM photos p
        JOIN albums a ON a.id = p.album_id
        ORDER BY p.created_at DESC, p.id ASC`,
@@ -276,6 +296,7 @@ export function listAllPhotos(_ctx: Ctx): PhotoTableRow[] {
     aperture: row.aperture,
     shutter: row.shutter,
     iso: row.iso,
+    coverState: row.cover_state,
   }));
 }
 
@@ -348,6 +369,61 @@ export function updatePhoto(ctx: Ctx, id: string, fields: PhotoFieldsInput): Pho
 
   // getPhoto returns the row we just confirmed exists.
   return getPhoto(ctx, id)!;
+}
+
+/* ------------------------------------------------------------------ *
+ *  Album cover
+ * ------------------------------------------------------------------ */
+
+export interface AlbumCoverResult {
+  albumId: string;
+  /** Effective cover shown on `/` (pinned or automatic); null for an empty album. */
+  coverPhotoId: string | null;
+  /** True when albums.cover_photo_id is set. */
+  pinned: boolean;
+}
+
+/** Album id of `photoId`; throws a 404-tagged Error when the photo is absent. */
+function albumIdOfPhoto(photoId: string): string {
+  const row = getDb()
+    .prepare<[string], { album_id: string }>(`SELECT album_id FROM photos WHERE id = ?`)
+    .get(photoId);
+  if (!row) {
+    const err = new Error("Photo not found") as Error & { statusCode: number };
+    err.statusCode = 404;
+    throw err;
+  }
+  return row.album_id;
+}
+
+function albumCoverResult(ctx: Ctx, albumId: string): AlbumCoverResult {
+  // The album exists: it was just resolved from one of its photos.
+  const album = getAlbum(ctx, albumId)!;
+  return {
+    albumId,
+    coverPhotoId: album.cover?.id ?? null,
+    pinned: album.coverPhotoId !== null,
+  };
+}
+
+/**
+ * Pin `photoId` as the cover of the album it belongs to. The album is always
+ * derived from the photo, so a photo can never cover another album.
+ */
+export function setAlbumCover(ctx: Ctx, photoId: string): AlbumCoverResult {
+  const albumId = albumIdOfPhoto(photoId);
+  getDb().prepare(`UPDATE albums SET cover_photo_id = ? WHERE id = ?`).run(photoId, albumId);
+  return albumCoverResult(ctx, albumId);
+}
+
+/**
+ * Clear the pinned cover of the album `photoId` belongs to, so the album falls
+ * back to its automatic cover. Unconditional and idempotent.
+ */
+export function resetAlbumCover(ctx: Ctx, photoId: string): AlbumCoverResult {
+  const albumId = albumIdOfPhoto(photoId);
+  getDb().prepare(`UPDATE albums SET cover_photo_id = NULL WHERE id = ?`).run(albumId);
+  return albumCoverResult(ctx, albumId);
 }
 
 /* ------------------------------------------------------------------ *
