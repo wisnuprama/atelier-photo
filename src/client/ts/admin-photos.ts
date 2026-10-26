@@ -157,6 +157,57 @@ function readModels(island: HTMLElement): RowModel[] {
   }
 }
 
+/** One per-row outcome from `POST /admin/photos/import`. */
+export interface ImportRowResult {
+  id: string;
+  status: string;
+  message?: string;
+}
+
+/** Response body of `POST /admin/photos/import` (success or error). */
+export interface ImportResponse {
+  results?: ImportRowResult[];
+  error?: string;
+}
+
+/**
+ * One piece of the import summary: a bare text node, or an element with a
+ * tag, optional class, and text content. Never HTML — the renderer assigns
+ * `text` via `textContent`, so server strings cannot inject markup.
+ */
+export type SummaryPart =
+  | string
+  | { tag: "span" | "strong" | "div"; className?: string; text: string };
+
+/** Describe the import summary for a response. `httpStatus` is used when the body has no error. */
+export function importSummary(
+  data: ImportResponse | null,
+  ok: boolean,
+  httpStatus: number,
+): SummaryPart[] {
+  if (!ok || !data?.results) {
+    return [
+      {
+        tag: "span",
+        className: "text-red-600",
+        text: `Import failed: ${data?.error ?? `HTTP ${httpStatus}`}`,
+      },
+    ];
+  }
+  const counts = { updated: 0, not_found: 0, error: 0 } as Record<string, number>;
+  for (const r of data.results) counts[r.status] = (counts[r.status] ?? 0) + 1;
+  const failed = data.results.filter((r) => r.status !== "updated");
+  return [
+    { tag: "strong", text: `${counts.updated} updated` },
+    ` · ${counts.not_found} not found · ${counts.error} error`,
+    ...failed.map((r): SummaryPart => ({
+      tag: "div",
+      className: "text-stone mt-1",
+      text: `${r.id}: ${r.status}${r.message ? ` — ${r.message}` : ""}`,
+    })),
+  ];
+}
+
 export function initAdminPhotos(): void {
   const island = document.getElementById("photos-data");
   if (!island) return;
@@ -420,9 +471,17 @@ export function initAdminPhotos(): void {
   });
 
   // --- upload (CSV bulk import) -------------------------------------------
-  function renderSummary(html: string): void {
+  function renderSummary(parts: SummaryPart[]): void {
     if (!summaryEl) return;
-    summaryEl.innerHTML = html;
+    summaryEl.replaceChildren(
+      ...parts.map((p) => {
+        if (typeof p === "string") return document.createTextNode(p);
+        const el = document.createElement(p.tag);
+        if (p.className) el.className = p.className;
+        el.textContent = p.text;
+        return el;
+      }),
+    );
     summaryEl.classList.remove("hidden");
   }
 
@@ -470,32 +529,19 @@ export function initAdminPhotos(): void {
         credentials: "include",
         body: JSON.stringify({ csv }),
       });
-      const data = (await res.json().catch(() => null)) as {
-        results?: Array<{ id: string; status: string; message?: string }>;
-        error?: string;
-      } | null;
+      const data = (await res.json().catch(() => null)) as ImportResponse | null;
       uploadInput.value = "";
-      if (!res.ok || !data?.results) {
-        renderSummary(
-          `<span class="text-red-600">Import failed: ${data?.error ?? `HTTP ${res.status}`}</span>`,
-        );
-        return;
-      }
-      const counts = { updated: 0, not_found: 0, error: 0 } as Record<string, number>;
-      for (const r of data.results) counts[r.status] = (counts[r.status] ?? 0) + 1;
-      const failed = data.results.filter((r) => r.status !== "updated");
-      const lines = [
-        `<strong>${counts.updated} updated</strong> · ${counts.not_found} not found · ${counts.error} error`,
-        ...failed.map(
-          (r) =>
-            `<div class="text-stone mt-1">${r.id}: ${r.status}${r.message ? ` — ${r.message}` : ""}</div>`,
-        ),
-      ];
-      renderSummary(lines.join(""));
-      if (counts.updated) await refreshFromServer();
+      renderSummary(importSummary(data, res.ok, res.status));
+      if (res.ok && data?.results?.some((r) => r.status === "updated")) await refreshFromServer();
     } catch {
       uploadInput.value = "";
-      renderSummary(`<span class="text-red-600">Import failed — could not read the file.</span>`);
+      renderSummary([
+        {
+          tag: "span",
+          className: "text-red-600",
+          text: "Import failed — could not read the file.",
+        },
+      ]);
     }
   });
 

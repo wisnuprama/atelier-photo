@@ -6,6 +6,7 @@ import {
   coverAction,
   dirtyRows,
   filterRows,
+  importSummary,
   markError,
   markSaved,
   markSaving,
@@ -218,5 +219,58 @@ describe("dirtyRows", () => {
       row({ id: "invalid", state: "dirty", invalid: true }),
     ];
     expect(dirtyRows(rows).map((r) => r.id)).toEqual(["dirty", "error"]);
+  });
+});
+
+describe("importSummary", () => {
+  const XSS = "<img src=x onerror=alert(1)>";
+
+  it("summarises counts and lists non-updated rows", () => {
+    const parts = importSummary(
+      {
+        results: [
+          { id: "a", status: "updated" },
+          { id: "b", status: "not_found" },
+          { id: "c", status: "error", message: "bad title" },
+        ],
+      },
+      true,
+      200,
+    );
+    expect(parts).toEqual([
+      { tag: "strong", text: "1 updated" },
+      " · 1 not found · 1 error",
+      { tag: "div", className: "text-stone mt-1", text: "b: not_found" },
+      { tag: "div", className: "text-stone mt-1", text: "c: error — bad title" },
+    ]);
+  });
+
+  it("falls back to the HTTP status when the body has no error", () => {
+    expect(importSummary(null, false, 500)).toEqual([
+      { tag: "span", className: "text-red-600", text: "Import failed: HTTP 500" },
+    ]);
+  });
+
+  it("keeps a malicious server error as plain text", () => {
+    expect(importSummary({ error: XSS }, false, 400)).toEqual([
+      { tag: "span", className: "text-red-600", text: `Import failed: ${XSS}` },
+    ]);
+  });
+
+  it("keeps a malicious row id and message as plain text", () => {
+    const parts = importSummary(
+      { results: [{ id: XSS, status: "error", message: XSS }] },
+      true,
+      200,
+    );
+    expect(parts.at(-1)).toEqual({
+      tag: "div",
+      className: "text-stone mt-1",
+      text: `${XSS}: error — ${XSS}`,
+    });
+    // Only the fixed tags are emitted; the payload never becomes an element.
+    for (const p of parts) {
+      if (typeof p !== "string") expect(["span", "strong", "div"]).toContain(p.tag);
+    }
   });
 });
