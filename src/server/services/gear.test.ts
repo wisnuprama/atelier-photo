@@ -182,14 +182,17 @@ describe("listGear", () => {
     const names = ["17mm F4 DG DN | Contemporary 023", "Objektiv Größe 50mm", "sony a7", "SONY A7"];
     for (const lens of names) insertPhoto({ lens });
     const listed = listGear(consoleCtx).map((i) => i.name);
-    expect([...listed].sort()).toEqual([...names].sort());
+    expect(listed.toSorted()).toEqual(names.toSorted());
 
     setGearActive(consoleCtx, "lens", "17mm F4 DG DN | Contemporary 023", false);
     setGearActive(consoleCtx, "lens", "Objektiv Größe 50mm", false);
     const inactive = listGear(consoleCtx)
       .filter((i) => !i.active)
       .map((i) => i.name);
-    expect(inactive.sort()).toEqual(["17mm F4 DG DN | Contemporary 023", "Objektiv Größe 50mm"]);
+    expect(inactive.toSorted()).toEqual([
+      "17mm F4 DG DN | Contemporary 023",
+      "Objektiv Größe 50mm",
+    ]);
     expect(listGear(consoleCtx).find((i) => i.name === "sony a7")?.active).toBe(true);
   });
 
