@@ -1,0 +1,691 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`showcasePage (viewer extraction regression) > renders the same markup as before the move > admin 1`] = `
+"<main id="showcaseView">
+  <section class="lg:max-w-[780px] xl:max-w-[900px] mx-auto px-5 sm:px-8 pt-12 sm:pt-16 pb-8 sm:pb-10">
+    <a href="/" class="inline-flex items-center gap-2 -ml-[16px] font-mono text-[10px] label text-stone hover:text-ink uppercase transition-colors">
+      <!-- @license lucide-static v1.61.0 - ISC -->
+<svg
+  class="lucide lucide-arrow-left"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m12 19-7-7 7-7" />
+  <path d="M19 12H5" />
+</svg> Albums
+    </a>
+    <h2 id="showcaseTitle" class="font-serif text-[32px] sm:text-[44px] leading-tight mt-5">A &amp; B</h2>
+    <p id="showcaseMeta" class="font-mono text-[10px] label text-stone uppercase mt-3">2 Photographs</p>
+    <p id="showcaseDesc" class="font-sans text-[14px] text-stone leading-relaxed mt-5 max-w-xl">Night walks</p>
+  </section>
+  <div class="max-w-[1200px] mx-auto px-5 sm:px-8 pb-2 flex items-center gap-3">
+        <span class="font-mono text-[9px] label text-stone uppercase tracking-widest">Admin</span>
+        <span class="font-mono text-[9px] label text-stone/40">·</span>
+        <span class="font-mono text-[9px] label text-stone/60">Long-press photo to manage</span>
+        <span data-admin-status role="status" aria-live="polite" class="font-mono text-[9px] label text-ink uppercase tracking-widest"></span>
+        <span class="font-mono text-[9px] label text-stone/40">·</span>
+        <button type="button" data-upload-open class="font-mono text-[9px] label text-stone hover:text-ink uppercase tracking-widest transition-colors">Upload photos</button>
+        <span class="font-mono text-[9px] label text-stone/40">·</span>
+        <a href="/admin/photos" class="font-mono text-[9px] label text-stone hover:text-ink uppercase tracking-widest transition-colors">Manage photos</a>
+        <span class="font-mono text-[9px] label text-stone/40 ml-auto">·</span>
+        <form method="POST" action="/admin/logout" class="inline">
+          <button type="submit" class="font-mono text-[9px] label text-stone hover:text-ink uppercase tracking-widest transition-colors">Sign out</button>
+        </form>
+      </div>
+
+  <div class="lg:max-w-[780px] xl:max-w-[900px] mx-auto px-2 sm:px-4 pb-32 relative">
+    <div id="photoStream" class="flex flex-col gap-3 sm:gap-5">
+      <figure id="photo-p1" data-admin-photo data-photo-id="p1" class="photo-row select-none" data-year="2025">
+    <button class="block w-full mx-auto overflow-hidden bg-hairline relative group"
+            style="aspect-ratio:10/20; max-width:calc(85dvh * 10 / 20);"
+            data-viewer-open data-index="0"
+            aria-label="View First full screen">
+      <div class="thumbhash absolute inset-0" data-thumbhash="th"></div>
+      <img class="photo-img absolute inset-0 w-full h-full object-cover"
+           data-src="/media/p1/medium"
+           data-srcset="/media/p1/thumb 800w, /media/p1/medium 1600w"
+           sizes="(min-width: 1280px) 900px, (min-width: 1024px) 780px, 100vw"
+           decoding="async" alt="First" />
+    </button>
+  </figure>
+<figure id="photo-p2" data-admin-photo data-photo-id="p2" class="photo-row select-none" data-year="2025">
+    <button class="block w-full mx-auto overflow-hidden bg-hairline relative group"
+            style="aspect-ratio:10/20; max-width:calc(85dvh * 10 / 20);"
+            data-viewer-open data-index="1"
+            aria-label="View Photograph full screen">
+      <div class="thumbhash absolute inset-0" data-thumbhash="th"></div>
+      <img class="photo-img absolute inset-0 w-full h-full object-cover"
+           data-src="/media/p2/medium"
+           data-srcset="/media/p2/thumb 800w, /media/p2/medium 1600w"
+           sizes="(min-width: 1280px) 900px, (min-width: 1024px) 780px, 100vw"
+           decoding="async" alt="Photograph" />
+    </button>
+  </figure>
+    </div>
+
+    <aside id="yearRail" class="hidden lg:flex flex-col gap-3 fixed right-8 top-1/2 -translate-y-1/2 z-30">
+      <button class="year-btn flex items-center gap-3 justify-end text-stone hover:text-ink"
+        data-year="2025" data-year-jump>
+        <span class="font-mono text-[11px]">2025</span>
+        <span class="tick block h-px w-3 bg-stone"></span>
+      </button>
+    </aside>
+  </div>
+
+  <div id="yearChip" class="lg:hidden hidden fixed right-4 bottom-6 z-30 bg-ink text-paper font-mono text-[11px] px-3 py-1.5 rounded-full shadow-lg"></div>
+</main>
+
+<div id="lightbox" class="hidden fixed inset-0 z-50 bg-paper lightbox overscroll-none" role="dialog" aria-modal="true" aria-label="Photo viewer">
+  <div class="flex h-full flex-row">
+    <div id="imageStage" class="relative flex-1 flex items-center justify-center bg-paper min-h-0 touch-none overflow-hidden px-3 sm:px-8 lg:px-10 pt-16 sm:pt-10 lg:pt-10 pb-24 sm:pb-20 lg:pb-20">
+      <div id="imageFrame" class="relative w-full h-full">
+        <img id="lightboxImgA" src="" alt="" class="absolute inset-0 w-full h-full object-contain" />
+        <img id="lightboxImgB" src="" alt="" class="absolute inset-0 w-full h-full object-contain opacity-0" />
+      </div>
+
+      <div id="swipeHint" class="lg:hidden pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-2 bg-paper/85 backdrop-blur-sm px-5 py-4 rounded-2xl shadow-sm opacity-0 transition-opacity duration-500">
+        <!-- @license lucide-static v1.61.0 - ISC -->
+<svg
+  class="lucide lucide-chevrons-up-down"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m7 15 5 5 5-5" />
+  <path d="m7 9 5-5 5 5" />
+</svg>
+        <span class="font-mono text-[9px] label uppercase text-stone">Swipe to browse</span>
+      </div>
+
+      <div class="absolute inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 px-5 pt-8 pb-[max(14px,env(safe-area-inset-bottom))] bg-gradient-to-t from-paper via-paper/85 to-transparent">
+        <button data-viewer-close class="p-1.5 text-ink/70 hover:text-ink transition-colors" aria-label="Close viewer">
+          <!-- @license lucide-static v1.61.0 - ISC -->
+<svg
+  class="lucide lucide-x"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M18 6 6 18" />
+  <path d="m6 6 12 12" />
+</svg>
+        </button>
+
+        <div class="flex items-center gap-5">
+          <button data-viewer-prev class="p-1.5 text-stone hover:text-ink transition-colors" aria-label="Previous photo">
+            <!-- @license lucide-static v1.61.0 - ISC -->
+<svg
+  class="lucide lucide-chevron-up"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m18 15-6-6-6 6" />
+</svg>
+          </button>
+          <span id="lightboxCount" class="font-mono text-[10px] label text-stone min-w-[58px] text-center"></span>
+          <button data-viewer-next class="p-1.5 text-stone hover:text-ink transition-colors" aria-label="Next photo">
+            <!-- @license lucide-static v1.61.0 - ISC -->
+<svg
+  class="lucide lucide-chevron-down"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m6 9 6 6 6-6" />
+</svg>
+          </button>
+        </div>
+
+        <button data-exif-toggle class="lg:hidden p-1.5 text-ink/70 hover:text-ink transition-colors" aria-label="Show photo info">
+          <!-- @license lucide-static v1.61.0 - ISC -->
+<svg
+  class="lucide lucide-info"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="12" cy="12" r="10" />
+  <path d="M12 16v-4" />
+  <path d="M12 8h.01" />
+</svg>
+        </button>
+        <span class="hidden lg:block w-9" aria-hidden="true"></span>
+      </div>
+    </div>
+
+    <div id="exifScrim" class="lg:hidden hidden fixed inset-0 z-30 bg-ink/30" data-exif-toggle></div>
+
+    <aside id="exifPanel" class="exif-scroll
+        absolute inset-x-0 bottom-0 max-h-[78%] translate-y-full rounded-t-2xl shadow-[0_-8px_30px_rgba(0,0,0,0.12)]
+        lg:static lg:translate-y-0 lg:max-h-none lg:w-[340px] lg:shrink-0 lg:rounded-none lg:shadow-none
+        border-t lg:border-t-0 lg:border-l border-hairline bg-paper overflow-y-auto
+        p-6 sm:p-8 transition-transform duration-300 ease-out z-40">
+
+      <div class="flex items-center justify-between mb-5 lg:hidden">
+        <span class="font-mono text-[9px] label text-stone uppercase">Photo Info</span>
+        <button data-exif-toggle class="p-1 text-stone hover:text-ink transition-colors" aria-label="Hide info">
+          <!-- @license lucide-static v1.61.0 - ISC -->
+<svg
+  class="lucide lucide-chevron-down"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m6 9 6 6 6-6" />
+</svg>
+        </button>
+      </div>
+
+      <h3 id="exifTitle" class="font-serif text-[24px] leading-tight"></h3>
+      <p id="exifDate" class="font-mono text-[10px] label text-stone uppercase mt-2"></p>
+      <p id="exifNote" class="font-sans text-[13.5px] text-stone leading-relaxed mt-6 italic"></p>
+
+      <div class="mt-8 pt-6 border-t border-hairline">
+        <p class="font-mono text-[9px] label text-stone uppercase mb-4">Capture Data</p>
+        <dl id="exifList" class="flex flex-col gap-0"></dl>
+      </div>
+    </aside>
+  </div>
+</div>
+<div id="uploadModal" data-album-slug="tokyo" class="hidden fixed inset-0 z-[100]"
+       role="dialog" aria-modal="true" aria-labelledby="uploadTitle" tabindex="-1">
+  <div class="absolute inset-0 bg-ink/30" data-modal-close></div>
+  <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(92vw,560px)] max-h-[85dvh] overflow-y-auto bg-paper border border-hairline p-8">
+    <h2 id="uploadTitle" class="font-serif text-[24px]">Upload photos</h2>
+    <p class="font-mono text-[10px] label text-stone uppercase mt-1.5">A &amp; B</p>
+    <div id="uploadDropzone" role="button" tabindex="0" aria-label="Choose photos to upload"
+         class="mt-6 border border-dashed border-stone/50 px-6 py-10 text-center cursor-pointer transition-colors">
+      <!-- @license lucide-static v1.61.0 - ISC -->
+<svg
+  class="lucide lucide-upload"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M12 3v12" />
+  <path d="m17 8-5-5-5 5" />
+  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+</svg>
+      <p class="font-mono text-[10px] label text-stone uppercase mt-3">Drag photos here or click to browse</p>
+      <p class="font-mono text-[9px] label text-stone/60 uppercase mt-2">Multiple files · JPEG PNG WEBP AVIF TIFF GIF · 60 MB max</p>
+      <input id="uploadInput" type="file" multiple class="sr-only"
+             accept="image/jpeg,image/png,image/webp,image/avif,image/tiff,image/gif" />
+    </div>
+    <ul id="uploadList" class="mt-5 flex flex-col" aria-live="polite"></ul>
+    <div class="flex items-center justify-between mt-6">
+      <span id="uploadCounter" class="font-mono text-[9px] label text-stone uppercase"></span>
+      <button type="button" id="uploadDone" data-modal-close
+              class="font-mono text-[11px] label uppercase bg-ink text-paper px-5 py-2.5 hover:bg-stone transition-colors disabled:bg-hairline disabled:text-stone disabled:cursor-not-allowed">Done</button>
+    </div>
+  </div>
+</div>
+
+<script type="application/json" id="viewer-data">[{"src":"/media/p1/full","title":"First","commentary":"note \\u003c/script>","date":"January 2, 2025","filename":"p1.jpg","camera":"A7","lens":"FE 35mm","focal":"35mm","aperture":"f/2","shutter":"1/100","iso":"100"},{"src":"/media/p2/full","title":"","commentary":"note \\u003c/script>","date":"January 2, 2025","filename":"p2.jpg","camera":"A7","lens":"FE 35mm","focal":"35mm","aperture":"f/2","shutter":"1/100","iso":"100"}]</script>"
+`;
+
+exports[`showcasePage (viewer extraction regression) > renders the same markup as before the move > empty 1`] = `
+"<main id="showcaseView">
+  <section class="lg:max-w-[780px] xl:max-w-[900px] mx-auto px-5 sm:px-8 pt-12 sm:pt-16 pb-8 sm:pb-10">
+    <a href="/" class="inline-flex items-center gap-2 -ml-[16px] font-mono text-[10px] label text-stone hover:text-ink uppercase transition-colors">
+      <!-- @license lucide-static v1.61.0 - ISC -->
+<svg
+  class="lucide lucide-arrow-left"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m12 19-7-7 7-7" />
+  <path d="M19 12H5" />
+</svg> Albums
+    </a>
+    <h2 id="showcaseTitle" class="font-serif text-[32px] sm:text-[44px] leading-tight mt-5">A &amp; B</h2>
+    <p id="showcaseMeta" class="font-mono text-[10px] label text-stone uppercase mt-3">2 Photographs</p>
+    <p id="showcaseDesc" class="font-sans text-[14px] text-stone leading-relaxed mt-5 max-w-xl">Night walks</p>
+  </section>
+  
+
+  <div class="lg:max-w-[780px] xl:max-w-[900px] mx-auto px-2 sm:px-4 pb-32 relative">
+    <div id="photoStream" class="flex flex-col gap-3 sm:gap-5">
+      <p class="font-mono text-[11px] label text-stone uppercase px-3">No photos in this album yet.</p>
+    </div>
+
+    <aside id="yearRail" class="hidden lg:flex flex-col gap-3 fixed right-8 top-1/2 -translate-y-1/2 z-30">
+      
+    </aside>
+  </div>
+
+  <div id="yearChip" class="lg:hidden hidden fixed right-4 bottom-6 z-30 bg-ink text-paper font-mono text-[11px] px-3 py-1.5 rounded-full shadow-lg"></div>
+</main>
+
+<div id="lightbox" class="hidden fixed inset-0 z-50 bg-paper lightbox overscroll-none" role="dialog" aria-modal="true" aria-label="Photo viewer">
+  <div class="flex h-full flex-row">
+    <div id="imageStage" class="relative flex-1 flex items-center justify-center bg-paper min-h-0 touch-none overflow-hidden px-3 sm:px-8 lg:px-10 pt-16 sm:pt-10 lg:pt-10 pb-24 sm:pb-20 lg:pb-20">
+      <div id="imageFrame" class="relative w-full h-full">
+        <img id="lightboxImgA" src="" alt="" class="absolute inset-0 w-full h-full object-contain" />
+        <img id="lightboxImgB" src="" alt="" class="absolute inset-0 w-full h-full object-contain opacity-0" />
+      </div>
+
+      <div id="swipeHint" class="lg:hidden pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-2 bg-paper/85 backdrop-blur-sm px-5 py-4 rounded-2xl shadow-sm opacity-0 transition-opacity duration-500">
+        <!-- @license lucide-static v1.61.0 - ISC -->
+<svg
+  class="lucide lucide-chevrons-up-down"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m7 15 5 5 5-5" />
+  <path d="m7 9 5-5 5 5" />
+</svg>
+        <span class="font-mono text-[9px] label uppercase text-stone">Swipe to browse</span>
+      </div>
+
+      <div class="absolute inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 px-5 pt-8 pb-[max(14px,env(safe-area-inset-bottom))] bg-gradient-to-t from-paper via-paper/85 to-transparent">
+        <button data-viewer-close class="p-1.5 text-ink/70 hover:text-ink transition-colors" aria-label="Close viewer">
+          <!-- @license lucide-static v1.61.0 - ISC -->
+<svg
+  class="lucide lucide-x"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M18 6 6 18" />
+  <path d="m6 6 12 12" />
+</svg>
+        </button>
+
+        <div class="flex items-center gap-5">
+          <button data-viewer-prev class="p-1.5 text-stone hover:text-ink transition-colors" aria-label="Previous photo">
+            <!-- @license lucide-static v1.61.0 - ISC -->
+<svg
+  class="lucide lucide-chevron-up"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m18 15-6-6-6 6" />
+</svg>
+          </button>
+          <span id="lightboxCount" class="font-mono text-[10px] label text-stone min-w-[58px] text-center"></span>
+          <button data-viewer-next class="p-1.5 text-stone hover:text-ink transition-colors" aria-label="Next photo">
+            <!-- @license lucide-static v1.61.0 - ISC -->
+<svg
+  class="lucide lucide-chevron-down"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m6 9 6 6 6-6" />
+</svg>
+          </button>
+        </div>
+
+        <button data-exif-toggle class="lg:hidden p-1.5 text-ink/70 hover:text-ink transition-colors" aria-label="Show photo info">
+          <!-- @license lucide-static v1.61.0 - ISC -->
+<svg
+  class="lucide lucide-info"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="12" cy="12" r="10" />
+  <path d="M12 16v-4" />
+  <path d="M12 8h.01" />
+</svg>
+        </button>
+        <span class="hidden lg:block w-9" aria-hidden="true"></span>
+      </div>
+    </div>
+
+    <div id="exifScrim" class="lg:hidden hidden fixed inset-0 z-30 bg-ink/30" data-exif-toggle></div>
+
+    <aside id="exifPanel" class="exif-scroll
+        absolute inset-x-0 bottom-0 max-h-[78%] translate-y-full rounded-t-2xl shadow-[0_-8px_30px_rgba(0,0,0,0.12)]
+        lg:static lg:translate-y-0 lg:max-h-none lg:w-[340px] lg:shrink-0 lg:rounded-none lg:shadow-none
+        border-t lg:border-t-0 lg:border-l border-hairline bg-paper overflow-y-auto
+        p-6 sm:p-8 transition-transform duration-300 ease-out z-40">
+
+      <div class="flex items-center justify-between mb-5 lg:hidden">
+        <span class="font-mono text-[9px] label text-stone uppercase">Photo Info</span>
+        <button data-exif-toggle class="p-1 text-stone hover:text-ink transition-colors" aria-label="Hide info">
+          <!-- @license lucide-static v1.61.0 - ISC -->
+<svg
+  class="lucide lucide-chevron-down"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m6 9 6 6 6-6" />
+</svg>
+        </button>
+      </div>
+
+      <h3 id="exifTitle" class="font-serif text-[24px] leading-tight"></h3>
+      <p id="exifDate" class="font-mono text-[10px] label text-stone uppercase mt-2"></p>
+      <p id="exifNote" class="font-sans text-[13.5px] text-stone leading-relaxed mt-6 italic"></p>
+
+      <div class="mt-8 pt-6 border-t border-hairline">
+        <p class="font-mono text-[9px] label text-stone uppercase mb-4">Capture Data</p>
+        <dl id="exifList" class="flex flex-col gap-0"></dl>
+      </div>
+    </aside>
+  </div>
+</div>
+
+
+<script type="application/json" id="viewer-data">[]</script>"
+`;
+
+exports[`showcasePage (viewer extraction regression) > renders the same markup as before the move > visitor 1`] = `
+"<main id="showcaseView">
+  <section class="lg:max-w-[780px] xl:max-w-[900px] mx-auto px-5 sm:px-8 pt-12 sm:pt-16 pb-8 sm:pb-10">
+    <a href="/" class="inline-flex items-center gap-2 -ml-[16px] font-mono text-[10px] label text-stone hover:text-ink uppercase transition-colors">
+      <!-- @license lucide-static v1.61.0 - ISC -->
+<svg
+  class="lucide lucide-arrow-left"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m12 19-7-7 7-7" />
+  <path d="M19 12H5" />
+</svg> Albums
+    </a>
+    <h2 id="showcaseTitle" class="font-serif text-[32px] sm:text-[44px] leading-tight mt-5">A &amp; B</h2>
+    <p id="showcaseMeta" class="font-mono text-[10px] label text-stone uppercase mt-3">2 Photographs</p>
+    <p id="showcaseDesc" class="font-sans text-[14px] text-stone leading-relaxed mt-5 max-w-xl">Night walks</p>
+  </section>
+  
+
+  <div class="lg:max-w-[780px] xl:max-w-[900px] mx-auto px-2 sm:px-4 pb-32 relative">
+    <div id="photoStream" class="flex flex-col gap-3 sm:gap-5">
+      <figure id="photo-p1" class="photo-row" data-year="2025">
+    <button class="block w-full mx-auto overflow-hidden bg-hairline relative group"
+            style="aspect-ratio:10/20; max-width:calc(85dvh * 10 / 20);"
+            data-viewer-open data-index="0"
+            aria-label="View First full screen">
+      <div class="thumbhash absolute inset-0" data-thumbhash="th"></div>
+      <img class="photo-img absolute inset-0 w-full h-full object-cover"
+           data-src="/media/p1/medium"
+           data-srcset="/media/p1/thumb 800w, /media/p1/medium 1600w"
+           sizes="(min-width: 1280px) 900px, (min-width: 1024px) 780px, 100vw"
+           decoding="async" alt="First" />
+    </button>
+  </figure>
+<figure id="photo-p2" class="photo-row" data-year="2025">
+    <button class="block w-full mx-auto overflow-hidden bg-hairline relative group"
+            style="aspect-ratio:10/20; max-width:calc(85dvh * 10 / 20);"
+            data-viewer-open data-index="1"
+            aria-label="View Photograph full screen">
+      <div class="thumbhash absolute inset-0" data-thumbhash="th"></div>
+      <img class="photo-img absolute inset-0 w-full h-full object-cover"
+           data-src="/media/p2/medium"
+           data-srcset="/media/p2/thumb 800w, /media/p2/medium 1600w"
+           sizes="(min-width: 1280px) 900px, (min-width: 1024px) 780px, 100vw"
+           decoding="async" alt="Photograph" />
+    </button>
+  </figure>
+    </div>
+
+    <aside id="yearRail" class="hidden lg:flex flex-col gap-3 fixed right-8 top-1/2 -translate-y-1/2 z-30">
+      <button class="year-btn flex items-center gap-3 justify-end text-stone hover:text-ink"
+        data-year="2025" data-year-jump>
+        <span class="font-mono text-[11px]">2025</span>
+        <span class="tick block h-px w-3 bg-stone"></span>
+      </button>
+    </aside>
+  </div>
+
+  <div id="yearChip" class="lg:hidden hidden fixed right-4 bottom-6 z-30 bg-ink text-paper font-mono text-[11px] px-3 py-1.5 rounded-full shadow-lg"></div>
+</main>
+
+<div id="lightbox" class="hidden fixed inset-0 z-50 bg-paper lightbox overscroll-none" role="dialog" aria-modal="true" aria-label="Photo viewer">
+  <div class="flex h-full flex-row">
+    <div id="imageStage" class="relative flex-1 flex items-center justify-center bg-paper min-h-0 touch-none overflow-hidden px-3 sm:px-8 lg:px-10 pt-16 sm:pt-10 lg:pt-10 pb-24 sm:pb-20 lg:pb-20">
+      <div id="imageFrame" class="relative w-full h-full">
+        <img id="lightboxImgA" src="" alt="" class="absolute inset-0 w-full h-full object-contain" />
+        <img id="lightboxImgB" src="" alt="" class="absolute inset-0 w-full h-full object-contain opacity-0" />
+      </div>
+
+      <div id="swipeHint" class="lg:hidden pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-2 bg-paper/85 backdrop-blur-sm px-5 py-4 rounded-2xl shadow-sm opacity-0 transition-opacity duration-500">
+        <!-- @license lucide-static v1.61.0 - ISC -->
+<svg
+  class="lucide lucide-chevrons-up-down"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m7 15 5 5 5-5" />
+  <path d="m7 9 5-5 5 5" />
+</svg>
+        <span class="font-mono text-[9px] label uppercase text-stone">Swipe to browse</span>
+      </div>
+
+      <div class="absolute inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 px-5 pt-8 pb-[max(14px,env(safe-area-inset-bottom))] bg-gradient-to-t from-paper via-paper/85 to-transparent">
+        <button data-viewer-close class="p-1.5 text-ink/70 hover:text-ink transition-colors" aria-label="Close viewer">
+          <!-- @license lucide-static v1.61.0 - ISC -->
+<svg
+  class="lucide lucide-x"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M18 6 6 18" />
+  <path d="m6 6 12 12" />
+</svg>
+        </button>
+
+        <div class="flex items-center gap-5">
+          <button data-viewer-prev class="p-1.5 text-stone hover:text-ink transition-colors" aria-label="Previous photo">
+            <!-- @license lucide-static v1.61.0 - ISC -->
+<svg
+  class="lucide lucide-chevron-up"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m18 15-6-6-6 6" />
+</svg>
+          </button>
+          <span id="lightboxCount" class="font-mono text-[10px] label text-stone min-w-[58px] text-center"></span>
+          <button data-viewer-next class="p-1.5 text-stone hover:text-ink transition-colors" aria-label="Next photo">
+            <!-- @license lucide-static v1.61.0 - ISC -->
+<svg
+  class="lucide lucide-chevron-down"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m6 9 6 6 6-6" />
+</svg>
+          </button>
+        </div>
+
+        <button data-exif-toggle class="lg:hidden p-1.5 text-ink/70 hover:text-ink transition-colors" aria-label="Show photo info">
+          <!-- @license lucide-static v1.61.0 - ISC -->
+<svg
+  class="lucide lucide-info"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="12" cy="12" r="10" />
+  <path d="M12 16v-4" />
+  <path d="M12 8h.01" />
+</svg>
+        </button>
+        <span class="hidden lg:block w-9" aria-hidden="true"></span>
+      </div>
+    </div>
+
+    <div id="exifScrim" class="lg:hidden hidden fixed inset-0 z-30 bg-ink/30" data-exif-toggle></div>
+
+    <aside id="exifPanel" class="exif-scroll
+        absolute inset-x-0 bottom-0 max-h-[78%] translate-y-full rounded-t-2xl shadow-[0_-8px_30px_rgba(0,0,0,0.12)]
+        lg:static lg:translate-y-0 lg:max-h-none lg:w-[340px] lg:shrink-0 lg:rounded-none lg:shadow-none
+        border-t lg:border-t-0 lg:border-l border-hairline bg-paper overflow-y-auto
+        p-6 sm:p-8 transition-transform duration-300 ease-out z-40">
+
+      <div class="flex items-center justify-between mb-5 lg:hidden">
+        <span class="font-mono text-[9px] label text-stone uppercase">Photo Info</span>
+        <button data-exif-toggle class="p-1 text-stone hover:text-ink transition-colors" aria-label="Hide info">
+          <!-- @license lucide-static v1.61.0 - ISC -->
+<svg
+  class="lucide lucide-chevron-down"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m6 9 6 6 6-6" />
+</svg>
+        </button>
+      </div>
+
+      <h3 id="exifTitle" class="font-serif text-[24px] leading-tight"></h3>
+      <p id="exifDate" class="font-mono text-[10px] label text-stone uppercase mt-2"></p>
+      <p id="exifNote" class="font-sans text-[13.5px] text-stone leading-relaxed mt-6 italic"></p>
+
+      <div class="mt-8 pt-6 border-t border-hairline">
+        <p class="font-mono text-[9px] label text-stone uppercase mb-4">Capture Data</p>
+        <dl id="exifList" class="flex flex-col gap-0"></dl>
+      </div>
+    </aside>
+  </div>
+</div>
+
+
+<script type="application/json" id="viewer-data">[{"src":"/media/p1/full","title":"First","commentary":"note \\u003c/script>","date":"January 2, 2025","filename":"p1.jpg","camera":"A7","lens":"FE 35mm","focal":"35mm","aperture":"f/2","shutter":"1/100","iso":"100"},{"src":"/media/p2/full","title":"","commentary":"note \\u003c/script>","date":"January 2, 2025","filename":"p2.jpg","camera":"A7","lens":"FE 35mm","focal":"35mm","aperture":"f/2","shutter":"1/100","iso":"100"}]</script>"
+`;
