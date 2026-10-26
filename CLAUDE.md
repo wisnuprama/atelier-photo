@@ -27,7 +27,7 @@ Personal, minimalist black-and-white photo gallery. A professional-but-personal
 
 ## Stack
 
-- Node 24 LTS, **TypeScript 6**, **ESM** (`"type": "module"`).
+- Node 24 LTS, **TypeScript 7**, **ESM** (`"type": "module"`).
 - **Fastify** server with **SSR** (HTML rendered server-side via template-literal
   views); vanilla TS for client interactivity. No SPA framework.
 - **better-sqlite3** for the database.

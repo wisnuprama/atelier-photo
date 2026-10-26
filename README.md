@@ -15,7 +15,7 @@ A personal, minimalist black-and-white photo gallery. A quiet, contemporary-gall
 
 | Layer | Technology |
 |---|---|
-| Runtime | Node 24, TypeScript 6, ESM |
+| Runtime | Node 24, TypeScript 7, ESM |
 | Server | Fastify + SSR (template-literal views) |
 | Client | Vanilla TypeScript, no SPA framework |
 | Styling | Tailwind v4 (CSS-first `@theme`) |
