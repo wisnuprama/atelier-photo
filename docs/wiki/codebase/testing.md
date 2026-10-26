@@ -8,13 +8,13 @@ Vitest (`vitest.config.ts`): `include: ["src/**/*.test.ts"]`,
 
 | File | Covers |
 | --- | --- |
-| `src/server/routes/auth.test.ts` | The admin-route template — 401/redirect gates, PATCH, export ZIP, CSV import |
+| `src/server/routes/auth.test.ts` | The admin-route template — 401/redirect gates, PATCH, export ZIP, CSV import, `POST\|DELETE /admin/photos/:id/cover` |
 | `src/server/routes/auth.upload.test.ts` | `POST /admin/albums/create` + `POST /admin/photos/upload` — auth gates, validation, slug dedupe, multipart happy path (`ingestPhoto` stubbed via `importOriginal`), ingest failure |
 | `src/server/routes/api.test.ts` | `GET /api/albums` — response shape (`{ id, slug, name }` per album) and order (Discover first, then newest) |
-| `src/server/services/photos.test.ts` | createAlbum/ingestPhoto/deletePhoto/listAllPhotos/`listAlbums` ordering with mocks (album `created_at` set in `datetime('now')` format, not ISO) |
+| `src/server/services/photos.test.ts` | createAlbum/ingestPhoto/deletePhoto/listAllPhotos/`listAlbums` ordering with mocks (album `created_at` set in `datetime('now')` format, not ISO); `setAlbumCover / resetAlbumCover` (R4 album scoping, R8 delete promotion, `coverState` marking, auto-cover tie-break) |
 | `src/server/services/multipart.test.ts` | `parseMultipart` — field/file round-trip, ordering, `files` limit, empty form (hand-built multipart buffers) |
-| `src/server/views/admin-photos.test.ts` | SSR render + XSS escaping + JSON island |
-| `src/client/ts/admin-photos.test.ts` | Pure model helpers (no DOM) |
+| `src/server/views/admin-photos.test.ts` | SSR render + XSS escaping + JSON island + cover badge/button |
+| `src/client/ts/admin-photos.test.ts` | Pure model helpers (no DOM), incl. `coverAction` / `applyAlbumCover` |
 | `src/client/ts/upload.test.ts` | Pure upload helpers — `fileError`, `formatBytes` |
 | `csv.test.ts`, `derivatives.test.ts`, `concurrency.test.ts`, `viewer.test.ts` | Service/client units |
 

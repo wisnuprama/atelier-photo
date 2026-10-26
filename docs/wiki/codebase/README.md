@@ -6,7 +6,9 @@ need instead of exploring from scratch. For the user-facing guide, see the
 
 > Generated 2026-08-10 at v0.6.1 (commit `57366e9`); updated 2026-08-11 for
 > the browser album-creation + photo-upload feature (PR #14), then again
-> 2026-08-11 to add the build/deploy page. Line numbers are accurate as of
+> 2026-08-11 to add the build/deploy page, and 2026-10-26 for the album
+> cover picker (set/reset cover routes, `autoCoverSql`, long-press menu item,
+> `/admin/photos` cover controls). Line numbers are accurate as of
 > that update and may drift — treat them as starting points and verify with
 > grep before editing.
 

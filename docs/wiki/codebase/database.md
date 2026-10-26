@@ -17,17 +17,34 @@ Single-file repository; `getDb()` singleton from `db/index.ts:9`.
 
 | Function | Line | Signature |
 | --- | --- | --- |
-| `listAlbums` | 210 | `(ctx) => AlbumWithCover[]` (ordered Discover first — `slug = DEFAULT_ALBUM_SLUG` — then `created_at DESC, rowid DESC`; `position` is stored but unused for order) |
-| `getAlbum` | 220 | `(ctx, id) => AlbumWithCover \| undefined` |
-| `getAlbumBySlug` | 229 | `(ctx, slug) => AlbumWithCover \| undefined` |
-| `getPhoto` / `listPhotos` | 238 / 244 | `(ctx, id)` / `(ctx, albumId) => Photo[]` |
-| `listAllPhotos` | 255 | `(ctx) => PhotoTableRow[]` |
-| `normalizePhotoFields` / `updatePhoto` | 297 / 320 | validation (throws statusCode-tagged Errors) + partial update |
-| `slugify` | 358 | `(input: string) => string` (never empty) |
-| `createAlbum` | 394 | `(_ctx, input: CreateAlbumInput) => { id, slug }` — `randomUUID()` id, deduped slug via `uniqueSlug` (`:369`), `nextAlbumPosition` (`:376`) |
-| `ensureAlbum` | 412 | `(_ctx, slug, name?) => string` (get-or-create) |
-| `ingestPhoto` | 463 | `(ctx, input: IngestPhotoInput) => Promise<IngestResult>` — see [ingest-pipeline.md](ingest-pipeline.md) |
-| `deletePhoto` | 560 | `(ctx, photoId) => Promise<void>` (cover promotion + fs cleanup) |
+| `listAlbums` | 225 | `(ctx) => AlbumWithCover[]` (ordered Discover first — `slug = DEFAULT_ALBUM_SLUG` — then `created_at DESC, rowid DESC`; `position` is stored but unused for order) |
+| `getAlbum` | 235 | `(ctx, id) => AlbumWithCover \| undefined` |
+| `getAlbumBySlug` | 244 | `(ctx, slug) => AlbumWithCover \| undefined` |
+| `getPhoto` / `listPhotos` | 253 / 259 | `(ctx, id)` / `(ctx, albumId) => Photo[]` |
+| `listAllPhotos` | 270 | `(ctx) => PhotoTableRow[]` — each row carries `coverState: "pinned" \| "auto" \| null` |
+| `normalizePhotoFields` / `updatePhoto` | 318 / 341 | validation (throws statusCode-tagged Errors) + partial update |
+| `setAlbumCover` / `resetAlbumCover` | 413 / 423 | `(ctx, photoId) => AlbumCoverResult` (`{ albumId, coverPhotoId, pinned }`, `:378`). The album is always resolved from the photo (`albumIdOfPhoto`, `:387`, 404-tagged), so a photo can only cover its own album. Reset is unconditional + idempotent |
+| `slugify` | 434 | `(input: string) => string` (never empty) |
+| `createAlbum` | 470 | `(_ctx, input: CreateAlbumInput) => { id, slug }` — `randomUUID()` id, deduped slug via `uniqueSlug` (`:445`), `nextAlbumPosition` (`:452`) |
+| `ensureAlbum` | 488 | `(_ctx, slug, name?) => string` (get-or-create) |
+| `ingestPhoto` | 539 | `(ctx, input: IngestPhotoInput) => Promise<IngestResult>` — see [ingest-pipeline.md](ingest-pipeline.md) |
+| `deletePhoto` | 636 | `(ctx, photoId) => Promise<void>` (cover promotion + fs cleanup) |
 
-`yearRangeCache` (`:187`) is invalidated at `:556` and `:585` — any new write
-path that changes photo years must invalidate it too.
+`yearRangeCache` (`:202`) is invalidated at `:632` and `:661` — any new write
+path that changes photo years must invalidate it too. (The cover writers do
+not touch years, so they leave it alone.)
+
+## Album cover
+
+- `albums.cover_photo_id` is a plain column (not a foreign key). Writers: the
+  seed script (pins every seeded album), `deletePhoto` (promotes the most
+  recently **uploaded** remaining photo and pins it, or NULL), and
+  `setAlbumCover` / `resetAlbumCover`.
+- Read path: `COVER_JOIN` = `COALESCE(a.cover_photo_id, <auto cover>)`, used by
+  `listAlbums` / `getAlbum` / `getAlbumBySlug` → `AlbumWithCover.cover`.
+- `autoCoverSql(albumIdExpr)` (`:152`) is the single definition of the
+  automatic cover: most recently taken photo, ties broken by
+  `created_at DESC, id ASC`. It is shared by `COVER_JOIN` and by
+  `listAllPhotos` (which marks the `"auto"` row), so the admin marker and the
+  `/` card cannot disagree. It uses its own alias (`ac`), so it can be
+  embedded in queries that already alias `photos p`.
