@@ -30,7 +30,9 @@ export function parseMultipart(
     bb.on("file", (_name, stream, info) => {
       const chunks: Buffer[] = [];
       stream.on("data", (c: Buffer) => chunks.push(c));
-      stream.on("end", () => files.push({ filename: info.filename, data: Buffer.concat(chunks) }));
+      stream.on("end", () =>
+        files.push({ filename: info.filename ?? "", data: Buffer.concat(chunks) }),
+      );
       stream.on("error", reject);
     });
     bb.on("close", () => resolve({ fields, files }));
