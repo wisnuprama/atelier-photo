@@ -8,6 +8,7 @@ import { paths } from "../config.js";
 import { getDb } from "../db/index.js";
 import { generateDerivatives } from "./derivatives.js";
 import { extractExif } from "./exif.js";
+import { SEARCH_KEYS, type SearchFilters } from "./search-filters.js";
 import { computeThumbHash } from "./thumbhash.js";
 
 /** Album that incoming photos default to when no album slug is supplied. */
@@ -264,6 +265,49 @@ export function listPhotos(_ctx: Ctx, albumId: string): Photo[] {
     )
     .all(albumId);
   return rows.map(toPhoto);
+}
+
+/** A gear-search result: a photo plus the album it belongs to. */
+export interface SearchPhoto extends Photo {
+  albumSlug: string;
+  albumName: string;
+}
+
+/** Photo column per search filter key. Constants only — never from input. */
+const SEARCH_COLUMN = { camera: "p.camera_body", lens: "p.lens" } as const satisfies Record<
+  keyof SearchFilters,
+  string
+>;
+
+/**
+ * Photos across all albums whose camera body / lens exactly match the filters
+ * (case-sensitive, AND when both are set), newest taken first (undated last),
+ * ties by upload time then id so the viewer index order is stable. Returns
+ * `[]` without querying when no filter is set.
+ */
+export function searchPhotos(_ctx: Ctx, filters: SearchFilters): SearchPhoto[] {
+  const clauses: string[] = [];
+  const params: string[] = [];
+  for (const key of SEARCH_KEYS) {
+    const value = filters[key];
+    if (value === undefined || value === "") continue;
+    clauses.push(`${SEARCH_COLUMN[key]} = ?`);
+    params.push(value);
+  }
+  if (!clauses.length) return [];
+  const rows = getDb()
+    .prepare<string[], PhotoRow & { album_slug: string; album_name: string }>(
+      `SELECT p.*, a.slug AS album_slug, a.name AS album_name
+       FROM photos p JOIN albums a ON a.id = p.album_id
+       WHERE ${clauses.join(" AND ")}
+       ORDER BY p.taken_at DESC, p.created_at DESC, p.id ASC`,
+    )
+    .all(...params);
+  return rows.map((row) => ({
+    ...toPhoto(row),
+    albumSlug: row.album_slug,
+    albumName: row.album_name,
+  }));
 }
 
 /** Every photo with its album slug/name, newest first — drives the admin table. */
