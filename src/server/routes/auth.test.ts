@@ -304,6 +304,7 @@ describe("admin photo table routes", () => {
     it("POST pins the photo as its album's cover", async () => {
       insertPhoto("p1");
       insertPhoto("p2");
+      // Mirrors the client fetch: no payload, so inject sends no content-type.
       const res = await app.inject({
         method: "POST",
         url: "/admin/photos/p1/cover",
@@ -344,17 +345,6 @@ describe("admin photo table routes", () => {
       expect(res.statusCode).toBe(200);
       expect(res.json()).toEqual({ albumId: "alb", coverPhotoId: "p1", pinned: false });
       expect(coverColumn()).toEqual({ cover_photo_id: null });
-    });
-
-    it("accepts a POST with no body and no content type", async () => {
-      insertPhoto("p1");
-      const res = await app.inject({
-        method: "POST",
-        url: "/admin/photos/p1/cover",
-        headers: { cookie },
-      });
-      // Mirrors the client fetch: no payload, so inject sends no content-type.
-      expect(res.statusCode).toBe(200);
     });
 
     it("the portal renders Reset to auto for the pinned row after a POST", async () => {

@@ -23,14 +23,16 @@ function mobileLabel(text: string): string {
 function coverControls(row: PhotoTableRow): string {
   const pinned = row.coverState === "pinned";
   const badge = row.coverState === "auto" ? "Cover · auto" : "Cover";
-  const label = pinned
-    ? `Reset cover of ${esc(row.albumName)} to automatic`
-    : `Set photo ${esc(row.id)} as cover of ${esc(row.albumName)}`;
+  const text = pinned ? "Reset to auto" : "Set as cover";
+  // Accessible name starts with the visible text (WCAG 2.5.3); must match the
+  // client's `coverAction(row).ariaLabel`, HTML-escaped.
+  const label = `${text}: ${esc(row.albumName)}`;
   return `<div class="mt-2 flex flex-col gap-1">
         <span data-cover-badge class="${row.coverState ? "" : "hidden "}font-mono text-[9px] label uppercase tracking-widest text-ink">${badge}</span>
         <button type="button" data-cover-action data-cover-method="${pinned ? "DELETE" : "POST"}"
                 aria-label="${label}"
-                class="self-start font-mono text-[9px] label uppercase tracking-widest text-stone hover:text-ink underline decoration-hairline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink disabled:opacity-30 transition-colors">${pinned ? "Reset to auto" : "Set as cover"}</button>
+                class="self-start font-mono text-[9px] label uppercase tracking-widest text-stone hover:text-ink underline decoration-hairline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink disabled:opacity-30 transition-colors">${text}</button>
+        <span data-cover-error class="hidden font-mono text-[9px] label text-red-600 uppercase"></span>
       </div>`;
 }
 

@@ -3,9 +3,13 @@ import type { PhotoTableRow } from "../../server/services/photos.js";
 import {
   applyAlbumCover,
   applyEdit,
+  beginCoverRequest,
   coverAction,
+  coverFailureMessage,
   dirtyRows,
+  endCoverRequest,
   filterRows,
+  importSummary,
   markError,
   markSaved,
   markSaving,
@@ -64,14 +68,59 @@ describe("coverAction", () => {
   it("offers a reset (DELETE) on the pinned row", () => {
     expect(coverAction(row({ coverState: "pinned" }))).toEqual({
       label: "Reset to auto",
+      ariaLabel: "Reset to auto: Mountains",
       method: "DELETE",
     });
   });
 
   it("offers set (POST) on auto and non-cover rows", () => {
     for (const coverState of ["auto", null] as const) {
-      expect(coverAction(row({ coverState }))).toEqual({ label: "Set as cover", method: "POST" });
+      expect(coverAction(row({ coverState }))).toEqual({
+        label: "Set as cover",
+        ariaLabel: "Set as cover: Mountains",
+        method: "POST",
+      });
     }
+  });
+
+  it("starts the accessible name with the visible label and omits the photo id", () => {
+    for (const coverState of ["pinned", "auto", null] as const) {
+      const { label, ariaLabel } = coverAction(row({ id: "uuid-123", coverState }));
+      expect(ariaLabel.startsWith(label)).toBe(true);
+      expect(ariaLabel).not.toContain("uuid-123");
+    }
+  });
+});
+
+describe("coverFailureMessage", () => {
+  it("prefers the server's error message", () => {
+    expect(coverFailureMessage("Mountains", { status: 401, error: "Unauthorized" })).toBe(
+      "Cover failed for Mountains: Unauthorized",
+    );
+  });
+
+  it("falls back to the HTTP status", () => {
+    expect(coverFailureMessage("Mountains", { status: 500 })).toBe(
+      "Cover failed for Mountains: HTTP 500",
+    );
+  });
+
+  it("reports a network failure", () => {
+    expect(coverFailureMessage("Mountains", "network")).toBe(
+      "Cover failed for Mountains: network error",
+    );
+  });
+});
+
+describe("beginCoverRequest / endCoverRequest", () => {
+  it("allows one in-flight request per album", () => {
+    const inFlight = new Set<string>();
+    expect(beginCoverRequest(inFlight, "a")).toBe(true);
+    expect(beginCoverRequest(inFlight, "a")).toBe(false);
+    expect(beginCoverRequest(inFlight, "b")).toBe(true);
+    endCoverRequest(inFlight, "a");
+    expect(beginCoverRequest(inFlight, "a")).toBe(true);
+    expect([...inFlight].toSorted()).toEqual(["a", "b"]);
   });
 });
 
@@ -218,5 +267,58 @@ describe("dirtyRows", () => {
       row({ id: "invalid", state: "dirty", invalid: true }),
     ];
     expect(dirtyRows(rows).map((r) => r.id)).toEqual(["dirty", "error"]);
+  });
+});
+
+describe("importSummary", () => {
+  const XSS = "<img src=x onerror=alert(1)>";
+
+  it("summarises counts and lists non-updated rows", () => {
+    const parts = importSummary(
+      {
+        results: [
+          { id: "a", status: "updated" },
+          { id: "b", status: "not_found" },
+          { id: "c", status: "error", message: "bad title" },
+        ],
+      },
+      true,
+      200,
+    );
+    expect(parts).toEqual([
+      { tag: "strong", text: "1 updated" },
+      " · 1 not found · 1 error",
+      { tag: "div", className: "text-stone mt-1", text: "b: not_found" },
+      { tag: "div", className: "text-stone mt-1", text: "c: error — bad title" },
+    ]);
+  });
+
+  it("falls back to the HTTP status when the body has no error", () => {
+    expect(importSummary(null, false, 500)).toEqual([
+      { tag: "span", className: "text-red-600", text: "Import failed: HTTP 500" },
+    ]);
+  });
+
+  it("keeps a malicious server error as plain text", () => {
+    expect(importSummary({ error: XSS }, false, 400)).toEqual([
+      { tag: "span", className: "text-red-600", text: `Import failed: ${XSS}` },
+    ]);
+  });
+
+  it("keeps a malicious row id and message as plain text", () => {
+    const parts = importSummary(
+      { results: [{ id: XSS, status: "error", message: XSS }] },
+      true,
+      200,
+    );
+    expect(parts.at(-1)).toEqual({
+      tag: "div",
+      className: "text-stone mt-1",
+      text: `${XSS}: error — ${XSS}`,
+    });
+    // Only the fixed tags are emitted; the payload never becomes an element.
+    for (const p of parts) {
+      if (typeof p !== "string") expect(["span", "strong", "div"]).toContain(p.tag);
+    }
   });
 });

@@ -6,12 +6,12 @@ function buildMenu(): HTMLElement {
   div.setAttribute("role", "menu");
   // Cover first so the destructive action stays last.
   div.innerHTML = `<button data-menu-cover role="menuitem"
-    class="w-full text-left px-4 py-3 font-mono text-[11px] uppercase tracking-wide text-ink hover:bg-stone/5 focus-visible:outline-none focus-visible:bg-stone/10 transition-colors">
+    class="w-full text-left px-4 py-3 font-mono text-[11px] uppercase tracking-wide text-ink hover:bg-stone/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ink focus-visible:bg-stone/10 transition-colors">
     Set as album cover
   </button>
   <div class="border-t border-hairline my-1" role="separator"></div>
   <button data-menu-delete role="menuitem"
-    class="w-full text-left px-4 py-3 font-mono text-[11px] uppercase tracking-wide text-red-600 hover:bg-stone/5 transition-colors">
+    class="w-full text-left px-4 py-3 font-mono text-[11px] uppercase tracking-wide text-red-600 hover:bg-stone/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ink focus-visible:bg-stone/10 transition-colors">
     Delete photo
   </button>`;
   return div;
