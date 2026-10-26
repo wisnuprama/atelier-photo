@@ -19,6 +19,21 @@ function mobileLabel(text: string): string {
   return `<span class="sm:hidden font-mono text-[9px] label text-stone uppercase tracking-widest mb-1 block">${text}</span>`;
 }
 
+/** Cover badge + set/reset button, rendered under the thumbnail (R2, R5, R6). */
+function coverControls(row: PhotoTableRow): string {
+  const pinned = row.coverState === "pinned";
+  const badge = row.coverState === "auto" ? "Cover · auto" : "Cover";
+  const label = pinned
+    ? `Reset cover of ${esc(row.albumName)} to automatic`
+    : `Set photo ${esc(row.id)} as cover of ${esc(row.albumName)}`;
+  return `<div class="mt-2 flex flex-col gap-1">
+        <span data-cover-badge class="${row.coverState ? "" : "hidden "}font-mono text-[9px] label uppercase tracking-widest text-ink">${badge}</span>
+        <button type="button" data-cover-action data-cover-method="${pinned ? "DELETE" : "POST"}"
+                aria-label="${label}"
+                class="self-start font-mono text-[9px] label uppercase tracking-widest text-stone hover:text-ink underline decoration-hairline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink disabled:opacity-30 transition-colors">${pinned ? "Reset to auto" : "Set as cover"}</button>
+      </div>`;
+}
+
 /** A single photo row — a real table row on >=sm, a stacked card on mobile. */
 function tableRow(row: PhotoTableRow, index: number): string {
   const albumHref = `/albums/${encodeURIComponent(row.albumSlug)}`;
@@ -48,6 +63,7 @@ function tableRow(row: PhotoTableRow, index: number): string {
              alt="${row.title ? esc(row.title) : "Photograph"}"
              class="w-20 h-20 object-cover bg-hairline hover:opacity-90 transition-opacity cursor-pointer" />
       </a>
+      ${coverControls(row)}
     </td>
     <td data-cell="album" class="block sm:table-cell sm:py-3 sm:pr-3 sm:align-middle">
       ${mobileLabel("Album")}
@@ -120,6 +136,7 @@ export function adminPhotosPage(rows: PhotoTableRow[]): string {
   </div>
 
   <div id="photos-import-summary" class="hidden mt-6 border border-hairline bg-paper p-4 font-mono text-[11px] text-stone"></div>
+  <p id="photos-cover-status" class="sr-only" role="status" aria-live="polite"></p>
 
   <div class="mt-8 overflow-x-auto">
     <table class="w-full border-collapse">

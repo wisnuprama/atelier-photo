@@ -4,7 +4,13 @@ function buildMenu(): HTMLElement {
   div.className =
     "hidden fixed z-[200] bg-paper border border-hairline shadow-lg rounded-lg py-1 min-w-[180px]";
   div.setAttribute("role", "menu");
-  div.innerHTML = `<button data-menu-delete role="menuitem"
+  // Cover first so the destructive action stays last.
+  div.innerHTML = `<button data-menu-cover role="menuitem"
+    class="w-full text-left px-4 py-3 font-mono text-[11px] uppercase tracking-wide text-ink hover:bg-stone/5 focus-visible:outline-none focus-visible:bg-stone/10 transition-colors">
+    Set as album cover
+  </button>
+  <div class="border-t border-hairline my-1" role="separator"></div>
+  <button data-menu-delete role="menuitem"
     class="w-full text-left px-4 py-3 font-mono text-[11px] uppercase tracking-wide text-red-600 hover:bg-stone/5 transition-colors">
     Delete photo
   </button>`;
@@ -27,13 +33,28 @@ export function initAdmin(): void {
   function openMenu(photoId: string, x: number, y: number): void {
     longPressActive = true;
     currentPhotoId = photoId;
-    const menuW = 188;
-    const menuH = 52;
-    const left = Math.min(x + 4, window.innerWidth - menuW - 8);
-    const top = Math.min(y + 4, window.innerHeight - menuH - 8);
+    // Show first so the real size can be measured, then clamp on screen.
+    menu.classList.remove("hidden");
+    const w = menu.offsetWidth;
+    const h = menu.offsetHeight;
+    const left = Math.max(8, Math.min(x + 4, window.innerWidth - w - 8));
+    const top = Math.max(8, Math.min(y + 4, window.innerHeight - h - 8));
     menu.style.left = `${left}px`;
     menu.style.top = `${top}px`;
-    menu.classList.remove("hidden");
+  }
+
+  const status = document.querySelector<HTMLElement>("[data-admin-status]");
+  let statusTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** Non-blocking success message in the admin strip; clears after 3 s. */
+  function flashStatus(text: string): void {
+    if (!status) return;
+    status.textContent = text;
+    if (statusTimer !== null) clearTimeout(statusTimer);
+    statusTimer = setTimeout(() => {
+      status.textContent = "";
+      statusTimer = null;
+    }, 3000);
   }
 
   function closeMenu(): void {
@@ -104,6 +125,24 @@ export function initAdmin(): void {
       if (photoId) openMenu(photoId, e.clientX, e.clientY);
     });
   }
+
+  menu.querySelector("[data-menu-cover]")?.addEventListener("click", async () => {
+    const photoId = currentPhotoId;
+    closeMenu();
+    if (!photoId) return;
+
+    try {
+      // No body and no Content-Type: Fastify rejects an empty JSON body.
+      const res = await fetch(`/admin/photos/${encodeURIComponent(photoId)}/cover`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (res.ok) flashStatus("Album cover set");
+      else alert(`Set cover failed (${res.status})`);
+    } catch {
+      alert("Set cover failed — check your connection.");
+    }
+  });
 
   menu.querySelector("[data-menu-delete]")?.addEventListener("click", async () => {
     const photoId = currentPhotoId;
