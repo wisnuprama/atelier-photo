@@ -31,8 +31,8 @@ registered at `admin.ts:40-46` (`multipart/form-data`, `parseAs: "buffer"`,
   (`src/server/plugins/rate-limit.ts:35`).
 
 Guard pattern used in every session route (grep `getAdminSession(request)` in
-`auth.ts` — delete, cover set/reset, albums/create, photos/upload, page, patch,
-export, import):
+`auth.ts` — delete, cover set/reset, gear/active, albums/create, photos/upload,
+page, patch, export, import):
 
 ```ts
 if (!getAdminSession(request)) return reply.code(401).send({ error: "Unauthorized" });
@@ -73,12 +73,23 @@ for an unknown photo. They take **no body**: clients must not send
 with 400 (`FST_ERR_CTP_EMPTY_JSON_BODY`). Three path segments, so no collision
 with `/photos/upload`, `/photos/import` or `/photos/:photoId`.
 
+## Gear toggle route (session)
+
+- `POST /admin/gear/active` (`auth.ts:152`) → `setGearActive`. JSON
+  `{ kind: "camera" | "lens", name: string, active: boolean }` → **204**.
+  401 without a session (checked before the body), 400 for an invalid body or
+  a blank / over-200-char name, 404 for a name no photo carries. The route
+  validates the body itself and catches the 400/404-tagged service errors
+  with `errStatus()` — the global error handler would turn them into an HTML
+  500. See [gear-page.md](gear-page.md).
+
 ## Admin detection in views
 
 Both page routes compute `const isAdmin = getAdminSession(request)` and pass
-it into the view (`src/server/routes/pages.ts` — `/` and `/albums/:slug`). No
+it into the view (`src/server/routes/pages.ts` — `/`, `/gear` and `/albums/:slug`). No
 client-side admin flag exists; client JS keys off SSR-emitted markup
-(`data-admin-photo` attributes, `#albumCreateModal`, `#uploadModal` — see
+(`data-admin-photo` attributes, `#albumCreateModal`, `#uploadModal`,
+`[data-gear-toggle]` — see
 [album-list-page.md](album-list-page.md) and
 [album-detail-page.md](album-detail-page.md)).
 
