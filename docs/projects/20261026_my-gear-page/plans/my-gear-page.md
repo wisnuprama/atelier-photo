@@ -608,7 +608,7 @@ Step 6; the `data-*` hooks are the contract with `client/ts/gear.ts`.
     <p class="font-mono text-[10px] label text-stone uppercase">Cameras &amp; Lenses · 2021—2026</p>
     <h1 class="font-serif text-[34px] sm:text-[46px] leading-[1.05] mt-3">My Gear</h1>
     <p class="font-serif italic text-[19px] sm:text-[22px] leading-snug text-stone mt-4 max-w-xl">
-      The cameras and lenses behind the photographs — what I carry now, and what I have set down.
+      The cameras and lenses behind the photographs.
     </p>
   </section>
 
@@ -820,8 +820,7 @@ Mobile (375 px, admin view; visitors see no strip and no checkboxes):
 │ CAMERAS & LENSES · 2021—2026      │  mono 10 stone (eyebrow)
 │ My Gear                           │  serif 34
 │ The cameras and lenses behind     │  serif italic 19 stone
-│ the photographs — what I carry    │
-│ now, and what I have set down.    │
+│ the photographs.                  │
 │                                   │
 │ ADMIN · Tick “In use” to keep an  │  admin strip (wraps)
 │ item in the bag · MANAGE PHOTOS   │
@@ -887,8 +886,7 @@ Desktop (≥ 1024 px, container capped at 1400 px, admin view):
 │                                                                                    │
 │ CAMERAS & LENSES · 2021—2026                                                       │
 │ My Gear                                                                            │  serif 46
-│ The cameras and lenses behind the photographs — what I carry now,                  │  serif italic 22, max-w-xl
-│ and what I have set down.                                                          │
+│ The cameras and lenses behind the photographs.                                     │  serif italic 22, max-w-xl
 │                                                                                    │
 │ ADMIN · Tick “In use” to keep an item in the bag · MANAGE PHOTOS           SIGN OUT│
 │                                                                                    │
@@ -985,7 +983,7 @@ the card's photo + text block, plus the same zoom.
     form for standalone meaning, it is a one-line change in `gearCard()`.
 12. **Eyebrow and intro copy.** *Default:* eyebrow
     `Cameras & Lenses · <first>—<last>`; intro "The cameras and lenses behind
-    the photographs — what I carry now, and what I have set down." Owner's
+    the photographs." Owner's
     call; both live in `gearPage()`.
 13. **Grid density.** *Default:* 2 / 3 / 4 columns at base / `sm` / `lg`.
     A fifth column at `xl` would make ~250 px cards at 1400 px; not added

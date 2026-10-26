@@ -4,8 +4,7 @@ import { esc, mediaUrl } from "./util.js";
 /* Copy — owner's call; change freely. */
 const SECTION_TITLE = { active: "In the bag", inactive: "Past companions" } as const;
 const KIND_TITLE: Record<GearKind, string> = { camera: "Cameras", lens: "Lenses" };
-const INTRO =
-  "The cameras and lenses behind the photographs — what I carry now, and what I have set down.";
+const INTRO = "The cameras and lenses behind the photographs.";
 const TOGGLE_LABEL = "In use";
 const ADMIN_HINT = "Tick “In use” to keep an item in the bag";
 
