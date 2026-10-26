@@ -4,6 +4,25 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [0.7.5] - 2026-10-26
+
+### Added
+
+- Automate GitHub release creation in release script ([`ebf536d`])
+
+### Changed
+
+-
+
+### Fixed
+
+- Upgrade all dependencies to resolve security advisories ([`7378081`])
+
+<!-- 0.7.5 commit links -->
+
+[`ebf536d`]: https://github.com/wisnuprama/atelier-photo/commit/ebf536d
+[`7378081`]: https://github.com/wisnuprama/atelier-photo/commit/7378081
+
 ## [0.7.4] - 2026-08-27
 
 ### Added
