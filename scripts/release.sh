@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Bump version, update CHANGELOG.md, commit, tag, and build+push the container.
+# Bump version, update CHANGELOG.md, commit, tag, push, create the GitHub
+# release, and build+push the container.
 #
 # Usage:
 #   ./scripts/release.sh <major|minor|patch>
@@ -190,13 +191,21 @@ git commit -m "chore: release ${TAG}"
 git tag -a "${TAG}" -m "Release ${TAG}"
 echo "==> Committed and tagged ${TAG}"
 
+# --- push -------------------------------------------------------------------
+
+# Push before creating the GitHub release: `gh release create --verify-tag`
+# aborts unless the tag already exists on the remote.
+echo "==> Pushing commit and tag ${TAG}"
+git push
+git push origin "${TAG}"
+
 # --- github release ---------------------------------------------------------
 
 if command -v gh &>/dev/null; then
   if ! gh auth status &>/dev/null; then
     echo "==> GitHub CLI is installed but not authenticated." >&2
     echo "==> To create a GitHub release, run: gh auth login" >&2
-    echo "==> Then re-run: git push && git push origin ${TAG}" >&2
+    echo "==> Then run: gh release create ${TAG} --verify-tag" >&2
     exit 1
   fi
 
@@ -222,7 +231,4 @@ fi
 # --- done -------------------------------------------------------------------
 
 echo ""
-echo "==> Released ${TAG}. Push the commit and tag with:"
-echo "    git push && git push origin ${TAG}"
-echo ""
-echo "==> GitHub release will be created automatically when the tag is pushed."
+echo "==> Released ${TAG}."
