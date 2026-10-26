@@ -2,9 +2,11 @@ import type { FastifyInstance } from "fastify";
 import { config } from "../config.js";
 import { ctxFromRequest } from "../context.js";
 import { getAdminSession } from "../plugins/session.js";
+import { listGear } from "../services/gear.js";
 import { getAlbumBySlug, getPhotoYearRange, listAlbums, listPhotos } from "../services/photos.js";
 import { albumsPage } from "../views/albums.js";
 import { contactPage } from "../views/contact.js";
+import { gearPage } from "../views/gear.js";
 import { layout } from "../views/layout.js";
 import { showcasePage } from "../views/showcase.js";
 import { esc } from "../views/util.js";
@@ -17,6 +19,18 @@ export async function pageRoutes(app: FastifyInstance): Promise<void> {
       title: "Still — Wisnu Photography",
       activeNav: "albums",
       body: albumsPage(listAlbums(ctx), getPhotoYearRange(ctx), isAdmin),
+    });
+    return reply.type("text/html").send(html);
+  });
+
+  // Gear is derived from photos on every request (no cache; tiny data set).
+  app.get("/gear", async (request, reply) => {
+    const ctx = ctxFromRequest(request);
+    const isAdmin = getAdminSession(request);
+    const html = layout({
+      title: "My Gear — Still",
+      activeNav: "gear",
+      body: gearPage(listGear(ctx), isAdmin),
     });
     return reply.type("text/html").send(html);
   });

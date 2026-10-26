@@ -8,6 +8,7 @@ import { clearAdminSession, getAdminSession, setAdminSession } from "../plugins/
 import { headerMatches, parseCsv, toCsv } from "../services/csv.js";
 import { derivativePath } from "../services/derivatives.js";
 import { ingestLimit } from "../services/ingest-limiter.js";
+import { isGearKind, setGearActive } from "../services/gear.js";
 import { MAX_UPLOAD_BYTES, parseMultipart } from "../services/multipart.js";
 import {
   createAlbum,
@@ -144,6 +145,31 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       throw err;
     }
   });
+
+  // Mark a gear item (camera body / lens) active or inactive on /gear. The
+  // name travels in the JSON body because EXIF strings contain spaces and `|`.
+  app.post<{ Body: { kind?: unknown; name?: unknown; active?: unknown } }>(
+    "/gear/active",
+    async (request, reply) => {
+      if (!getAdminSession(request)) {
+        return reply.code(401).send({ error: "Unauthorized" });
+      }
+      const { kind, name, active } = request.body ?? {};
+      if (!isGearKind(kind) || typeof name !== "string" || typeof active !== "boolean") {
+        return reply.code(400).send({ error: "Invalid body" });
+      }
+      try {
+        setGearActive(ctxFromRequest(request), kind, name, active);
+        return reply.code(204).send();
+      } catch (err: unknown) {
+        const status = errStatus(err);
+        if (status === 400 || status === 404) {
+          return reply.code(status).send({ error: (err as Error).message });
+        }
+        throw err;
+      }
+    },
+  );
 
   // Create an album from the browser UI. `/admin/albums` (no suffix) belongs
   // to the HMAC scope, hence the verb-suffixed path.

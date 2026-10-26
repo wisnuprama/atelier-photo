@@ -2,20 +2,24 @@ import { config } from "../config.js";
 import { icon } from "./icons.js";
 import { esc } from "./util.js";
 
+/** Top-nav entries that can read as the current page. */
+export type NavKey = "albums" | "gear" | "contact";
+
 export interface LayoutOptions {
   title: string;
   /** Pre-rendered, trusted HTML for <main>. */
   body: string;
   /** Which top-nav link reads as current. */
-  activeNav?: "albums" | "contact" | null;
+  activeNav?: NavKey | null;
 }
 
 const NAV_LINKS: ReadonlyArray<{
   href: string;
   label: string;
-  key?: "albums" | "contact";
+  key?: NavKey;
 }> = [
   { href: "/", label: "Albums", key: "albums" },
+  { href: "/gear", label: "Gear", key: "gear" },
   // { href: "#", label: "About" },
   { href: "/contact", label: "Contact", key: "contact" },
 ];
@@ -28,11 +32,13 @@ function desktopNav(active: LayoutOptions["activeNav"]): string {
   }).join("");
 }
 
-function mobileNav(): string {
-  return NAV_LINKS.map(
-    (l) =>
-      `<a href="${esc(l.href)}" class="text-left ${l.key ? "text-ink" : "text-stone"}">${esc(l.label)}</a>`,
-  ).join("");
+/** Touch menu: same current rule as desktopNav, without hover classes. */
+function mobileNav(active: LayoutOptions["activeNav"]): string {
+  return NAV_LINKS.map((l) => {
+    const current = l.key && l.key === active;
+    const cls = current ? "text-left text-ink" : "text-left text-stone";
+    return `<a href="${esc(l.href)}" class="${cls}"${current ? ' aria-current="page"' : ""}>${esc(l.label)}</a>`;
+  }).join("");
 }
 
 /** Umami Cloud tracking snippet, omitted entirely when UMAMI_WEBSITE_ID is unset. */
@@ -75,7 +81,7 @@ ${analyticsScript()}
 
   <div id="mobileMenu" class="hidden sm:hidden border-t border-hairline bg-paper">
     <nav class="px-5 py-4 flex flex-col gap-4 font-sans text-[13px] label-tight uppercase">
-      ${mobileNav()}
+      ${mobileNav(activeNav)}
     </nav>
   </div>
 </header>
