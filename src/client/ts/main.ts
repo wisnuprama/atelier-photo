@@ -1,6 +1,7 @@
 import { initAdmin } from "./admin.js";
 import { initAdminPhotos } from "./admin-photos.js";
 import { initAlbumCreate } from "./album-create.js";
+import { initGear } from "./gear.js";
 import { initLazyLoad } from "./lazyload.js";
 import { initNav } from "./nav.js";
 import { initShowcase } from "./showcase.js";
@@ -17,6 +18,7 @@ function init(): void {
   initAdmin();
   initAdminPhotos();
   initAlbumCreate();
+  initGear();
   initUpload();
 }
 

@@ -10,6 +10,11 @@ versioned migration system** — just `CREATE TABLE IF NOT EXISTS`.
 - `photos(id TEXT PK, album_id → albums(id) ON DELETE CASCADE, slug, filename, title, commentary, taken_at, width, height, thumbhash, camera_body, lens, focal_length, aperture, shutter, iso, created_at)`
   + `UNIQUE(album_id, filename)` (the upsert key)
   + `UNIQUE INDEX idx_photos_album_slug` + `idx_photos_album_taken`
+  + `idx_photos_camera (camera_body)` + `idx_photos_lens (lens)` — shared by
+  `/gear` grouping and `/search` exact match. Do not redefine them with other
+  columns (`IF NOT EXISTS` checks the name only); a change needs a new name.
+- `gear(kind TEXT CHECK IN ('camera','lens'), name TEXT, active INTEGER DEFAULT 1 CHECK IN (0,1), PK (kind, name))`
+  — owner's active flag only; items are derived from `photos`. No row ⇒ active.
 
 ## DAO — `src/server/services/photos.ts`
 
@@ -48,3 +53,15 @@ not touch years, so they leave it alone.)
   `listAllPhotos` (which marks the `"auto"` row), so the admin marker and the
   `/` card cannot disagree. It uses its own alias (`ac`), so it can be
   embedded in queries that already alias `photos p`.
+
+## Gear DAO — `src/server/services/gear.ts`
+
+| Export | Signature |
+| --- | --- |
+| `listGear` | `(ctx) => GearItem[]` — derived camera/lens items with count, UTC year range, latest sample photo, `active` (`COALESCE(gear.active, 1)`) |
+| `setGearActive` | `(ctx, kind, name, active) => void` — 400/404-tagged Errors, upsert into `gear` |
+| `isGearKind` | `(v: unknown) => v is GearKind` |
+| `GEAR_COLUMN` | `{ camera: "camera_body", lens: "lens" }` — constant column map for gear SQL |
+
+Gear toggles do not change photo years, so `yearRangeCache` is untouched.
+Details: [gear-page.md](gear-page.md).

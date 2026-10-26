@@ -45,3 +45,16 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_photos_album_slug
 -- Timeline query: photos of an album, most recently taken first.
 CREATE INDEX IF NOT EXISTS idx_photos_album_taken
   ON photos (album_id, taken_at DESC);
+
+-- Owner's active/inactive flag per gear item. Items themselves are derived
+-- from photos.camera_body / photos.lens; no row means active.
+CREATE TABLE IF NOT EXISTS gear (
+  kind   TEXT NOT NULL CHECK (kind IN ('camera', 'lens')),
+  name   TEXT NOT NULL,              -- exact EXIF string as stored on photos
+  active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1)),
+  PRIMARY KEY (kind, name)
+);
+
+-- Gear grouping (/gear) and exact-match gear search (/search).
+CREATE INDEX IF NOT EXISTS idx_photos_camera ON photos (camera_body);
+CREATE INDEX IF NOT EXISTS idx_photos_lens   ON photos (lens);
