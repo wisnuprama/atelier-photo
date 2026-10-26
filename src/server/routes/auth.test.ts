@@ -69,6 +69,15 @@ async function signIn(app: FastifyInstance): Promise<string> {
   return `${cookie.name}=${cookie.value}`;
 }
 
+/** The seeded album's raw `cover_photo_id` column. */
+function coverColumn(): { cover_photo_id: string | null } | undefined {
+  return getDb()
+    .prepare<[], { cover_photo_id: string | null }>(
+      `SELECT cover_photo_id FROM albums WHERE id = 'alb'`,
+    )
+    .get();
+}
+
 describe("admin photo table routes", () => {
   let app: FastifyInstance;
   let cookie: string;
@@ -109,6 +118,15 @@ describe("admin photo table routes", () => {
       expect(patch.statusCode).toBe(401);
       expect(exp.statusCode).toBe(401);
       expect(imp.statusCode).toBe(401);
+    });
+
+    it("rejects POST / DELETE cover with 401", async () => {
+      insertPhoto("p1");
+      const set = await app.inject({ method: "POST", url: "/admin/photos/p1/cover" });
+      const reset = await app.inject({ method: "DELETE", url: "/admin/photos/p1/cover" });
+      expect(set.statusCode).toBe(401);
+      expect(reset.statusCode).toBe(401);
+      expect(coverColumn()).toEqual({ cover_photo_id: null });
     });
   });
 
@@ -279,6 +297,71 @@ describe("admin photo table routes", () => {
         payload: { csv: "wrong,header\n1,2" },
       });
       expect(res.statusCode).toBe(400);
+    });
+  });
+
+  describe("POST|DELETE /admin/photos/:id/cover", () => {
+    it("POST pins the photo as its album's cover", async () => {
+      insertPhoto("p1");
+      insertPhoto("p2");
+      const res = await app.inject({
+        method: "POST",
+        url: "/admin/photos/p1/cover",
+        headers: { cookie },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toEqual({ albumId: "alb", coverPhotoId: "p1", pinned: true });
+      expect(coverColumn()).toEqual({ cover_photo_id: "p1" });
+    });
+
+    it("POST returns 404 for an unknown photo", async () => {
+      const res = await app.inject({
+        method: "POST",
+        url: "/admin/photos/nope/cover",
+        headers: { cookie },
+      });
+      expect(res.statusCode).toBe(404);
+      expect(res.json()).toEqual({ error: "Photo not found" });
+    });
+
+    it("DELETE returns 404 for an unknown photo", async () => {
+      const res = await app.inject({
+        method: "DELETE",
+        url: "/admin/photos/nope/cover",
+        headers: { cookie },
+      });
+      expect(res.statusCode).toBe(404);
+    });
+
+    it("DELETE resets the album to its automatic cover", async () => {
+      insertPhoto("p1");
+      getDb().prepare(`UPDATE albums SET cover_photo_id = 'p1' WHERE id = 'alb'`).run();
+      const res = await app.inject({
+        method: "DELETE",
+        url: "/admin/photos/p1/cover",
+        headers: { cookie },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toEqual({ albumId: "alb", coverPhotoId: "p1", pinned: false });
+      expect(coverColumn()).toEqual({ cover_photo_id: null });
+    });
+
+    it("accepts a POST with no body and no content type", async () => {
+      insertPhoto("p1");
+      const res = await app.inject({
+        method: "POST",
+        url: "/admin/photos/p1/cover",
+        headers: { cookie },
+      });
+      // Mirrors the client fetch: no payload, so inject sends no content-type.
+      expect(res.statusCode).toBe(200);
+    });
+
+    it("the portal renders Reset to auto for the pinned row after a POST", async () => {
+      insertPhoto("p1");
+      await app.inject({ method: "POST", url: "/admin/photos/p1/cover", headers: { cookie } });
+      const res = await app.inject({ method: "GET", url: "/admin/photos", headers: { cookie } });
+      expect(res.body).toMatch(/data-cover-method="DELETE"[\s\S]*?>Reset to auto<\/button>/);
     });
   });
 });

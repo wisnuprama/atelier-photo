@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { PhotoTableRow } from "../../server/services/photos.js";
 import {
+  applyAlbumCover,
   applyEdit,
+  coverAction,
   dirtyRows,
   filterRows,
   markError,
@@ -22,6 +24,7 @@ function row(over: Partial<RowModel> = {}): RowModel {
     invalid: false,
     state: "clean",
     error: null,
+    coverState: null,
     ...over,
   };
 }
@@ -41,6 +44,7 @@ describe("toRowModel", () => {
       aperture: null,
       shutter: null,
       iso: null,
+      coverState: "auto",
     };
     expect(toRowModel(src)).toEqual({
       id: "a1",
@@ -51,7 +55,61 @@ describe("toRowModel", () => {
       invalid: false,
       state: "clean",
       error: null,
+      coverState: "auto",
     });
+  });
+});
+
+describe("coverAction", () => {
+  it("offers a reset (DELETE) on the pinned row", () => {
+    expect(coverAction(row({ coverState: "pinned" }))).toEqual({
+      label: "Reset to auto",
+      method: "DELETE",
+    });
+  });
+
+  it("offers set (POST) on auto and non-cover rows", () => {
+    for (const coverState of ["auto", null] as const) {
+      expect(coverAction(row({ coverState }))).toEqual({ label: "Set as cover", method: "POST" });
+    }
+  });
+});
+
+/** Two rows of album "a" (a1 auto) and one pinned row of album "b". */
+function coverRows(): RowModel[] {
+  return [
+    row({ id: "a1", albumSlug: "a", coverState: "auto" }),
+    row({ id: "a2", albumSlug: "a" }),
+    row({ id: "b1", albumSlug: "b", coverState: "pinned" }),
+  ];
+}
+
+function states(rs: RowModel[]): RowModel["coverState"][] {
+  return rs.map((r) => r.coverState);
+}
+
+describe("applyAlbumCover", () => {
+  it("pins the target and clears the rest of that album only", () => {
+    expect(states(applyAlbumCover(coverRows(), "a", { coverPhotoId: "a2", pinned: true }))).toEqual(
+      [null, "pinned", "pinned"],
+    );
+  });
+
+  it("marks the effective cover as auto after a reset", () => {
+    const rs = coverRows();
+    rs[0]!.coverState = null;
+    rs[1]!.coverState = "pinned";
+    expect(states(applyAlbumCover(rs, "a", { coverPhotoId: "a1", pinned: false }))).toEqual([
+      "auto",
+      null,
+      "pinned",
+    ]);
+  });
+
+  it("clears every row of the album when there is no cover", () => {
+    expect(
+      states(applyAlbumCover(coverRows(), "a", { coverPhotoId: null, pinned: false })),
+    ).toEqual([null, null, "pinned"]);
   });
 });
 

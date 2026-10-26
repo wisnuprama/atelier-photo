@@ -31,7 +31,8 @@ registered at `admin.ts:40-46` (`multipart/form-data`, `parseAs: "buffer"`,
   (`src/server/plugins/rate-limit.ts:35`).
 
 Guard pattern used in every session route (grep `getAdminSession(request)` in
-`auth.ts` — delete, albums/create, photos/upload, page, patch, export, import):
+`auth.ts` — delete, cover set/reset, albums/create, photos/upload, page, patch,
+export, import):
 
 ```ts
 if (!getAdminSession(request)) return reply.code(401).send({ error: "Unauthorized" });
@@ -59,6 +60,18 @@ The one-file-per-request shape is deliberate: the browser client uploads
 sequentially so each request stays far below the 60 MB body ceiling and gets
 its own XHR progress + error surface (see
 [album-detail-page.md](album-detail-page.md)).
+
+## Album cover routes (session)
+
+- `POST /admin/photos/:photoId/cover` (`auth.ts:123`) → `setAlbumCover`
+- `DELETE /admin/photos/:photoId/cover` (`auth.ts:136`) → `resetAlbumCover`
+
+Both return **200** `{ albumId, coverPhotoId, pinned }` (the effective cover
+after the change), 401 without a session, 404 `{ error: "Photo not found" }`
+for an unknown photo. They take **no body**: clients must not send
+`Content-Type: application/json` with an empty body — Fastify 5 rejects that
+with 400 (`FST_ERR_CTP_EMPTY_JSON_BODY`). Three path segments, so no collision
+with `/photos/upload`, `/photos/import` or `/photos/:photoId`.
 
 ## Admin detection in views
 

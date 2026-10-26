@@ -15,6 +15,8 @@ import {
   ingestPhoto,
   listAllPhotos,
   type PhotoFieldsInput,
+  resetAlbumCover,
+  setAlbumCover,
   updatePhoto,
 } from "../services/photos.js";
 import { adminLoginPage } from "../views/admin-login.js";
@@ -110,6 +112,33 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     try {
       await deletePhoto(ctxFromRequest(request), request.params.photoId);
       return reply.code(204).send();
+    } catch (err: unknown) {
+      if (errStatus(err) === 404) return reply.code(404).send({ error: "Photo not found" });
+      throw err;
+    }
+  });
+
+  // Pin a photo as the cover of its own album. No request body: Fastify
+  // rejects an empty body sent with `Content-Type: application/json`.
+  app.post<{ Params: { photoId: string } }>("/photos/:photoId/cover", async (request, reply) => {
+    if (!getAdminSession(request)) {
+      return reply.code(401).send({ error: "Unauthorized" });
+    }
+    try {
+      return reply.code(200).send(setAlbumCover(ctxFromRequest(request), request.params.photoId));
+    } catch (err: unknown) {
+      if (errStatus(err) === 404) return reply.code(404).send({ error: "Photo not found" });
+      throw err;
+    }
+  });
+
+  // Return the photo's album to its automatic cover (idempotent).
+  app.delete<{ Params: { photoId: string } }>("/photos/:photoId/cover", async (request, reply) => {
+    if (!getAdminSession(request)) {
+      return reply.code(401).send({ error: "Unauthorized" });
+    }
+    try {
+      return reply.code(200).send(resetAlbumCover(ctxFromRequest(request), request.params.photoId));
     } catch (err: unknown) {
       if (errStatus(err) === 404) return reply.code(404).send({ error: "Photo not found" });
       throw err;

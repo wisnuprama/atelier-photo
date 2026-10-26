@@ -3,9 +3,10 @@
 - Route: `src/server/routes/pages.ts:33-56` →
   `showcasePage(album, photos, isAdmin)`.
 - View: `src/server/views/showcase.ts` —
-  `showcasePage(album, photos, isAdmin = false)` (`:163`).
-- Admin strip (`:172-186`): renders when `isAdmin` — "Long-press photo to
-  manage", an **Upload photos** button (`data-upload-open`), link to
+  `showcasePage(album, photos, isAdmin = false)` (`:166`).
+- Admin strip (`:178-192`): renders when `isAdmin` — "Long-press photo to
+  manage", a `[data-admin-status]` `role="status"` live region (`:180`, filled
+  by `flashStatus()` in `admin.ts`), an **Upload photos** button (`data-upload-open`), link to
   `/admin/photos`, and a `POST /admin/logout` form. Natural insertion point
   for new admin actions on this page.
 - `photoRow(photo, index, isAdmin)` (`:36`) adds
@@ -23,15 +24,24 @@
   discarded — keep browser memory in mind before serving bigger variants in
   the stream.
 
-## Long-press admin menu — `src/client/ts/admin.ts` (`initAdmin()`, `:14`)
+## Long-press admin menu — `src/client/ts/admin.ts` (`initAdmin()`, `:20`)
 
 - Builds a floating menu element imperatively (`buildMenu()`, `:1`) with
   classes
   `hidden fixed z-[200] bg-paper border border-hairline shadow-lg rounded-lg py-1 min-w-[180px]`,
-  `role="menu"`, appended to `document.body`.
-- 600 ms `pointerdown` timer (`:81-85`), 10 px movement cancels, `contextmenu`
-  opens instantly on desktop (`:100-105`), Escape + outside-pointerdown close
-  (`:65-73`).
+  `role="menu"`, appended to `document.body`. Two items: **Set as album
+  cover** (`[data-menu-cover]`), a hairline separator, then **Delete photo**
+  (`[data-menu-delete]`, destructive action last).
+- `openMenu()` (`:33`) un-hides the menu first, then measures
+  `offsetWidth`/`offsetHeight` and clamps into the viewport with an 8 px
+  margin on every side — no hard-coded menu size. Keep it that way when
+  adding items.
+- 600 ms `pointerdown` timer, 10 px movement cancels, `contextmenu` opens
+  instantly on desktop, Escape + outside-pointerdown close.
+- Set as album cover (`:129`) POSTs `/admin/photos/:id/cover` with no body
+  and no content type, then `flashStatus("Album cover set")` (`:50`) — text
+  in the admin strip that clears after 3 s, no animation. Failures use
+  `alert()`, like Delete.
 - Delete uses `confirm()` then:
 
 ```ts
@@ -40,7 +50,7 @@ const res = await fetch(`/admin/photos/${encodeURIComponent(photoId)}`, {
 });
 ```
 
-(`admin.ts:116-119`), then a WAAPI fade-out + `fig.remove()` on 204;
+(`admin.ts:147`), then a WAAPI fade-out + `fig.remove()` on 204;
 `alert()` on failure. CSS support:
 `[data-admin-photo], [data-admin-photo] * { -webkit-touch-callout: none; }` in
 `src/client/css/app.css`.

@@ -177,6 +177,7 @@ export function showcasePage(album: AlbumWithCover, photos: Photo[], isAdmin = f
         <span class="font-mono text-[9px] label text-stone uppercase tracking-widest">Admin</span>
         <span class="font-mono text-[9px] label text-stone/40">·</span>
         <span class="font-mono text-[9px] label text-stone/60">Long-press photo to manage</span>
+        <span data-admin-status role="status" aria-live="polite" class="font-mono text-[9px] label text-ink uppercase tracking-widest"></span>
         <span class="font-mono text-[9px] label text-stone/40">·</span>
         <button type="button" data-upload-open class="font-mono text-[9px] label text-stone hover:text-ink uppercase tracking-widest transition-colors">Upload photos</button>
         <span class="font-mono text-[9px] label text-stone/40">·</span>

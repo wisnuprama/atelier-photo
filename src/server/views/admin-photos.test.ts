@@ -16,6 +16,7 @@ function row(overrides: Partial<PhotoTableRow> = {}): PhotoTableRow {
     aperture: "f/1.8",
     shutter: "1/250s",
     iso: "100",
+    coverState: null,
     ...overrides,
   };
 }
@@ -60,6 +61,49 @@ describe("adminPhotosPage", () => {
   it("emits a #photos-data island parseable back to the input rows", () => {
     const rows = [row({ id: "p1" }), row({ id: "p2" })];
     expect(islandData(adminPhotosPage(rows))).toEqual(rows);
+  });
+
+  it("renders a pinned row with the Cover badge and a Reset to auto button", () => {
+    const html = adminPhotosPage([row({ coverState: "pinned" })]);
+    expect(html).toMatch(/<span data-cover-badge class="font-mono[^"]*">Cover<\/span>/);
+    expect(html).toMatch(/data-cover-method="DELETE"[\s\S]*?>Reset to auto<\/button>/);
+  });
+
+  it("renders an auto row with the auto badge and a Set as cover button", () => {
+    const html = adminPhotosPage([row({ coverState: "auto" })]);
+    expect(html).toMatch(/<span data-cover-badge class="font-mono[^"]*">Cover · auto<\/span>/);
+    expect(html).toMatch(/data-cover-method="POST"[\s\S]*?>Set as cover<\/button>/);
+  });
+
+  it("hides the badge on a non-cover row", () => {
+    const html = adminPhotosPage([row({ coverState: null })]);
+    expect(html).toContain('<span data-cover-badge class="hidden ');
+    expect(html).toMatch(/data-cover-method="POST"[\s\S]*?>Set as cover<\/button>/);
+  });
+
+  it("escapes the album name in the cover button aria-label", () => {
+    const evil = 'X"><script>y';
+    const pinned = adminPhotosPage([row({ albumName: evil, coverState: "pinned" })]);
+    const unpinned = adminPhotosPage([row({ albumName: evil, coverState: null })]);
+    for (const html of [pinned, unpinned]) {
+      expect(html).not.toContain('"><script>y');
+      expect(html).toContain("X&quot;&gt;&lt;script&gt;y");
+    }
+  });
+
+  it("round-trips coverState through the #photos-data island", () => {
+    const rows = [
+      row({ id: "p1", coverState: "pinned" }),
+      row({ id: "p2", coverState: "auto" }),
+      row({ id: "p3", coverState: null }),
+    ];
+    expect(islandData(adminPhotosPage(rows))).toEqual(rows);
+  });
+
+  it("renders the sr-only cover status live region", () => {
+    expect(adminPhotosPage([])).toContain(
+      '<p id="photos-cover-status" class="sr-only" role="status" aria-live="polite"></p>',
+    );
   });
 
   it("renders the table shell for an empty dataset without throwing", () => {

@@ -37,10 +37,13 @@ import {
   createAlbum,
   deletePhoto,
   ensureAlbum,
+  getAlbum,
   ingestPhoto,
   listAlbums,
   listAllPhotos,
   normalizePhotoFields,
+  resetAlbumCover,
+  setAlbumCover,
   updatePhoto,
 } from "./photos.js";
 
@@ -259,7 +262,167 @@ describe("updatePhoto + listAllPhotos", () => {
       albumSlug,
       albumName: "Test Album",
       title: "Second",
+      // No pin and equal (NULL) taken_at → latest upload is the automatic cover.
+      coverState: "auto",
     });
+    expect(rows[1]?.coverState).toBeNull();
+  });
+});
+
+/** Insert a photo with explicit taken_at/created_at (cover tests). */
+function insertCoverPhoto(
+  id: string,
+  albumId: string,
+  takenAt: string | null,
+  createdAt = "2025-01-01T00:00:00.000Z",
+): void {
+  getDb()
+    .prepare(
+      `INSERT INTO photos (id, album_id, slug, filename, taken_at, width, height, created_at)
+       VALUES (?, ?, ?, ?, ?, 10, 10, ?)`,
+    )
+    .run(id, albumId, id, `${id}.jpg`, takenAt, createdAt);
+}
+
+function coverColumn(albumId: string): string | null {
+  const row = getDb()
+    .prepare<[string], { cover_photo_id: string | null }>(
+      `SELECT cover_photo_id FROM albums WHERE id = ?`,
+    )
+    .get(albumId);
+  return row?.cover_photo_id ?? null;
+}
+
+function coverStates(): Record<string, string | null> {
+  return Object.fromEntries(listAllPhotos(consoleCtx).map((r) => [r.id, r.coverState]));
+}
+
+describe("setAlbumCover / resetAlbumCover", () => {
+  let albumA: string;
+  let albumB: string;
+
+  beforeEach(() => {
+    closeDb();
+    migrate();
+    albumA = createAlbum(consoleCtx, { name: "Album A" }).id;
+    albumB = createAlbum(consoleCtx, { name: "Album B" }).id;
+  });
+
+  afterEach(() => {
+    closeDb();
+  });
+
+  it("setAlbumCover writes cover_photo_id and returns the pinned result", () => {
+    insertCoverPhoto("p1", albumA, "2024-01-01T00:00:00.000Z");
+    insertCoverPhoto("p2", albumA, "2025-01-01T00:00:00.000Z");
+    expect(setAlbumCover(consoleCtx, "p1")).toEqual({
+      albumId: albumA,
+      coverPhotoId: "p1",
+      pinned: true,
+    });
+    expect(coverColumn(albumA)).toBe("p1");
+  });
+
+  it("overwrites an earlier pin", () => {
+    insertCoverPhoto("p1", albumA, "2024-01-01T00:00:00.000Z");
+    insertCoverPhoto("p2", albumA, "2025-01-01T00:00:00.000Z");
+    setAlbumCover(consoleCtx, "p1");
+    setAlbumCover(consoleCtx, "p2");
+    expect(coverColumn(albumA)).toBe("p2");
+  });
+
+  it("the / read path (getAlbum) uses the pin over a later-taken photo", () => {
+    insertCoverPhoto("old", albumA, "2020-01-01T00:00:00.000Z");
+    insertCoverPhoto("new", albumA, "2025-01-01T00:00:00.000Z");
+    expect(getAlbum(consoleCtx, albumA)?.cover?.id).toBe("new");
+    setAlbumCover(consoleCtx, "old");
+    expect(getAlbum(consoleCtx, albumA)?.cover?.id).toBe("old");
+  });
+
+  it("throws 404 for an unknown photo and leaves the album unchanged", () => {
+    insertCoverPhoto("p1", albumA, null);
+    setAlbumCover(consoleCtx, "p1");
+    expect(() => setAlbumCover(consoleCtx, "nope")).toThrowError(
+      expect.objectContaining({ statusCode: 404 }),
+    );
+    expect(() => resetAlbumCover(consoleCtx, "nope")).toThrowError(
+      expect.objectContaining({ statusCode: 404 }),
+    );
+    expect(coverColumn(albumA)).toBe("p1");
+  });
+
+  it("only changes the album the photo belongs to (R4)", () => {
+    insertCoverPhoto("a1", albumA, null);
+    insertCoverPhoto("b1", albumB, null);
+    setAlbumCover(consoleCtx, "a1");
+    const result = setAlbumCover(consoleCtx, "b1");
+    expect(result.albumId).toBe(albumB);
+    expect(coverColumn(albumB)).toBe("b1");
+    expect(coverColumn(albumA)).toBe("a1");
+  });
+
+  it("resetAlbumCover clears the pin and reports the automatic cover", () => {
+    insertCoverPhoto("p1", albumA, "2024-01-01T00:00:00.000Z");
+    insertCoverPhoto("p2", albumA, "2025-01-01T00:00:00.000Z");
+    setAlbumCover(consoleCtx, "p1");
+    expect(resetAlbumCover(consoleCtx, "p1")).toEqual({
+      albumId: albumA,
+      coverPhotoId: "p2",
+      pinned: false,
+    });
+    expect(coverColumn(albumA)).toBeNull();
+  });
+
+  it("resetAlbumCover is idempotent on an automatic album", () => {
+    insertCoverPhoto("p1", albumA, "2024-01-01T00:00:00.000Z");
+    const first = resetAlbumCover(consoleCtx, "p1");
+    expect(resetAlbumCover(consoleCtx, "p1")).toEqual(first);
+    expect(first).toEqual({ albumId: albumA, coverPhotoId: "p1", pinned: false });
+  });
+
+  it("deleting a pinned cover still promotes the latest upload and pins it (R8)", async () => {
+    insertCoverPhoto("p1", albumA, "2025-01-01T00:00:00.000Z", "2025-01-01T00:00:00.000Z");
+    // p2 is the latest upload but the oldest by taken_at.
+    insertCoverPhoto("p2", albumA, "2020-01-01T00:00:00.000Z", "2025-06-01T00:00:00.000Z");
+    insertCoverPhoto("p3", albumA, "2024-01-01T00:00:00.000Z", "2025-03-01T00:00:00.000Z");
+    setAlbumCover(consoleCtx, "p1");
+    await deletePhoto(consoleCtx, "p1");
+    expect(coverColumn(albumA)).toBe("p2");
+  });
+
+  it("listAllPhotos marks the pinned row only", () => {
+    insertCoverPhoto("p1", albumA, "2024-01-01T00:00:00.000Z");
+    insertCoverPhoto("p2", albumA, "2025-01-01T00:00:00.000Z");
+    setAlbumCover(consoleCtx, "p1");
+    expect(coverStates()).toEqual({ p1: "pinned", p2: null });
+  });
+
+  it("listAllPhotos marks the latest-taken row as auto when nothing is pinned", () => {
+    insertCoverPhoto("p1", albumA, "2025-01-01T00:00:00.000Z", "2025-01-01T00:00:00.000Z");
+    insertCoverPhoto("p2", albumA, "2024-01-01T00:00:00.000Z", "2025-06-01T00:00:00.000Z");
+    expect(coverStates()).toEqual({ p1: "auto", p2: null });
+  });
+
+  it("listAllPhotos marks each album independently; empty albums add no rows", () => {
+    createAlbum(consoleCtx, { name: "Empty" });
+    insertCoverPhoto("a1", albumA, "2024-01-01T00:00:00.000Z");
+    insertCoverPhoto("a2", albumA, "2025-01-01T00:00:00.000Z");
+    insertCoverPhoto("b1", albumB, "2024-01-01T00:00:00.000Z");
+    insertCoverPhoto("b2", albumB, "2025-01-01T00:00:00.000Z");
+    setAlbumCover(consoleCtx, "b1");
+    expect(coverStates()).toEqual({ a1: null, a2: "auto", b1: "pinned", b2: null });
+  });
+
+  it("listAllPhotos and getAlbum agree on the auto cover when taken_at ties", () => {
+    const t = "2025-01-01T00:00:00.000Z";
+    insertCoverPhoto("y", albumA, t, "2025-02-01T00:00:00.000Z");
+    insertCoverPhoto("x", albumA, t, "2025-02-01T00:00:00.000Z");
+    insertCoverPhoto("z", albumA, t, "2025-01-01T00:00:00.000Z");
+    const cover = getAlbum(consoleCtx, albumA)?.cover?.id;
+    // Equal taken_at and created_at → lowest id wins.
+    expect(cover).toBe("x");
+    const auto = listAllPhotos(consoleCtx).filter((r) => r.coverState === "auto");
+    expect(auto.map((r) => r.id)).toEqual([cover]);
   });
 });
 
