@@ -1,4 +1,5 @@
 import type { GearItem, GearKind } from "../services/gear.js";
+import { searchHref } from "../services/search-filters.js";
 import { esc, mediaUrl } from "./util.js";
 
 /* Copy — owner's call; change freely. */
@@ -16,12 +17,11 @@ const LIST_CLASS =
   "mt-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-8 sm:gap-x-6 sm:gap-y-10";
 
 /**
- * Link from a gear card to the photos made with it (gear search). Keep the
- * name and signature stable: gear search rewrites the body to delegate to its
- * own `searchHref`.
+ * Link from a gear card to the photos made with it (gear search). Delegates to
+ * `searchHref`, the single `/search` URL builder.
  */
 export function gearSearchHref(kind: GearKind, name: string): string {
-  return `/search?${new URLSearchParams({ [kind]: name }).toString()}`;
+  return searchHref({ [kind]: name });
 }
 
 /** A gear item paired with its index in the DAO list (re-insert order). */

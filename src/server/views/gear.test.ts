@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { GearItem } from "../services/gear.js";
+import { searchHref } from "../services/search-filters.js";
 import {
   formatPhotoCount,
   formatYears,
@@ -166,6 +167,12 @@ describe("gearSearchHref", () => {
     expect(href).toBe("/search?lens=17mm+F4+DG+DN+%7C+Contemporary+023");
     expect(new URLSearchParams(href.split("?")[1]).get("lens")).toBe(name);
     expect(gearSearchHref("camera", "SONY ILCE-7CM2")).toBe("/search?camera=SONY+ILCE-7CM2");
+  });
+
+  it("is the same URL as searchHref (single builder)", () => {
+    const name = "17mm F4 DG DN | Contemporary 023";
+    expect(gearSearchHref("lens", name)).toBe(searchHref({ lens: name }));
+    expect(gearSearchHref("camera", name)).toBe(searchHref({ camera: name }));
   });
 });
 
