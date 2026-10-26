@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { coverAction } from "../../client/ts/admin-photos.js";
 import type { PhotoTableRow } from "../services/photos.js";
 import { adminPhotosPage } from "./admin-photos.js";
 
@@ -87,8 +88,27 @@ describe("adminPhotosPage", () => {
     const unpinned = adminPhotosPage([row({ albumName: evil, coverState: null })]);
     for (const html of [pinned, unpinned]) {
       expect(html).not.toContain('"><script>y');
-      expect(html).toContain("X&quot;&gt;&lt;script&gt;y");
     }
+    expect(pinned).toContain('aria-label="Reset to auto: X&quot;&gt;&lt;script&gt;y"');
+    expect(unpinned).toContain('aria-label="Set as cover: X&quot;&gt;&lt;script&gt;y"');
+  });
+
+  it("gives the cover button an accessible name that starts with its visible text", () => {
+    for (const coverState of ["pinned", "auto", null] as const) {
+      const r = row({ coverState });
+      const html = adminPhotosPage([r]);
+      // Same string the client sets on toggle (`coverAction`).
+      const { label, ariaLabel } = coverAction(r);
+      expect(html).toContain(`aria-label="${ariaLabel}"`);
+      expect(html).toMatch(new RegExp(`aria-label="${ariaLabel}"[^>]*>${label}</button>`));
+      expect(html).not.toMatch(/aria-label="[^"]*a1b2[^"]*as cover/);
+    }
+  });
+
+  it("renders an empty, hidden per-row cover error slot", () => {
+    expect(adminPhotosPage([row()])).toMatch(
+      /<span data-cover-error class="hidden [^"]*"><\/span>/,
+    );
   });
 
   it("round-trips coverState through the #photos-data island", () => {
