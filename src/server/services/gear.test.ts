@@ -8,7 +8,7 @@ vi.mock("../config.js", () => ({
 import { consoleCtx } from "../context.js";
 import { closeDb, getDb } from "../db/index.js";
 import { migrate } from "../db/migrate.js";
-import { GEAR_COLUMN, isGearKind, listGear, setGearActive } from "./gear.js";
+import { GEAR_COLUMN, GEAR_NAME_MAX, isGearKind, listGear, setGearActive } from "./gear.js";
 
 let seq = 0;
 
@@ -117,24 +117,49 @@ describe("listGear", () => {
     expect(count.n).toBe(1);
   });
 
-  it("derives first/last year in UTC from MIN/MAX taken_at", () => {
-    insertPhoto({ camera: "A7", takenAt: "2021-12-31T23:30:00.000Z" });
-    insertPhoto({ camera: "A7", takenAt: "2024-06-01T00:00:00.000Z" });
-    insertPhoto({ camera: "A7", takenAt: null });
-    insertPhoto({ camera: "Solo", takenAt: "2025-05-05T00:00:00.000Z" });
-    insertPhoto({ camera: "Undated", takenAt: null });
+  // Both timestamps sit 30 min from a year boundary, so a local-time year
+  // would be wrong east of UTC (first) or west of UTC (last). Run the case in
+  // one zone each side so it fails even on a UTC machine.
+  it.each(["Pacific/Kiritimati", "Pacific/Pago_Pago"])(
+    "derives first/last year in UTC from MIN/MAX taken_at (TZ=%s)",
+    (tz) => {
+      const prevTz = process.env.TZ;
+      process.env.TZ = tz;
+      try {
+        insertPhoto({ camera: "A7", takenAt: "2021-12-31T23:30:00.000Z" });
+        insertPhoto({ camera: "A7", takenAt: "2024-01-01T00:30:00.000Z" });
+        insertPhoto({ camera: "A7", takenAt: null });
+        insertPhoto({ camera: "Solo", takenAt: "2025-05-05T00:00:00.000Z" });
+        insertPhoto({ camera: "Undated", takenAt: null });
 
-    const items = listGear(consoleCtx);
-    const a7 = items.find((i) => i.name === "A7");
-    expect(a7?.firstYear).toBe(2021);
-    expect(a7?.lastYear).toBe(2024);
-    expect(a7?.photoCount).toBe(3);
-    const solo = items.find((i) => i.name === "Solo");
-    expect(solo?.firstYear).toBe(2025);
-    expect(solo?.lastYear).toBe(2025);
-    const undated = items.find((i) => i.name === "Undated");
-    expect(undated?.firstYear).toBeNull();
-    expect(undated?.lastYear).toBeNull();
+        const items = listGear(consoleCtx);
+        const a7 = items.find((i) => i.name === "A7");
+        expect(a7?.firstYear).toBe(2021);
+        expect(a7?.lastYear).toBe(2024);
+        expect(a7?.photoCount).toBe(3);
+        const solo = items.find((i) => i.name === "Solo");
+        expect(solo?.firstYear).toBe(2025);
+        expect(solo?.lastYear).toBe(2025);
+        const undated = items.find((i) => i.name === "Undated");
+        expect(undated?.firstYear).toBeNull();
+        expect(undated?.lastYear).toBeNull();
+      } finally {
+        if (prevTz === undefined) delete process.env.TZ;
+        else process.env.TZ = prevTz;
+      }
+    },
+  );
+
+  it("breaks sample ties on taken_at and created_at by id", () => {
+    insertPhoto({ id: "zz", lens: "35mm", takenAt: "2024-01-01T00:00:00.000Z" });
+    insertPhoto({ id: "aa", lens: "35mm", takenAt: "2024-01-01T00:00:00.000Z" });
+    expect(listGear(consoleCtx)[0]?.sample.id).toBe("aa");
+  });
+
+  it("leaves out names longer than GEAR_NAME_MAX", () => {
+    insertPhoto({ lens: "x".repeat(GEAR_NAME_MAX) });
+    insertPhoto({ lens: "y".repeat(GEAR_NAME_MAX + 1) });
+    expect(listGear(consoleCtx).map((i) => i.name)).toEqual(["x".repeat(GEAR_NAME_MAX)]);
   });
 
   it("orders by last use (undated last), then count, then name", () => {
