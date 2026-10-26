@@ -63,8 +63,8 @@ Public page listing every camera body and lens found in the photos, split into
 
 Cards link to `gearSearchHref(kind, name)` = `/search?camera=…` or
 `/search?lens=…`, built with `URLSearchParams` (spaces → `+`, `|` → `%7C`).
-Keep the name and signature: gear search rewrites the body to delegate to its
-`searchHref({ [kind]: name })`. Both features share
+It delegates to `searchHref({ [kind]: name })` (`services/search-filters.ts`,
+the single `/search` URL builder); `views/gear.test.ts` asserts the two agree. Both features share
 `idx_photos_camera` / `idx_photos_lens` and `NavKey` `"gear"`.
 
 ## Client — `src/client/ts/gear.ts`

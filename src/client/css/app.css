@@ -62,6 +62,12 @@ body {
   content-visibility: auto;
   contain-intrinsic-size: auto 600px;
 }
+/* Search result tiles (views/search.ts) put .photo-row on the square tile
+   itself. Its height follows from its width via aspect-ratio — like .album —
+   so no intrinsic-size guess is needed and the scrollbar never jumps. */
+.photo-row.photo-tile {
+  contain-intrinsic-size: none;
+}
 /* Album cards size themselves via their own aspect-ratio, so no intrinsic-size
    fallback is needed. */
 .album {

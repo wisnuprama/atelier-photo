@@ -8,6 +8,7 @@ const cache = new Map<string, string>();
 export type IconName =
   | "menu"
   | "arrow-left"
+  | "arrow-right"
   | "chevrons-up-down"
   | "chevron-up"
   | "chevron-down"

@@ -3,11 +3,19 @@ import { config } from "../config.js";
 import { ctxFromRequest } from "../context.js";
 import { getAdminSession } from "../plugins/session.js";
 import { listGear } from "../services/gear.js";
-import { getAlbumBySlug, getPhotoYearRange, listAlbums, listPhotos } from "../services/photos.js";
+import {
+  getAlbumBySlug,
+  getPhotoYearRange,
+  listAlbums,
+  listPhotos,
+  searchPhotos,
+} from "../services/photos.js";
+import { parseSearchFilters } from "../services/search-filters.js";
 import { albumsPage } from "../views/albums.js";
 import { contactPage } from "../views/contact.js";
 import { gearPage } from "../views/gear.js";
 import { layout } from "../views/layout.js";
+import { searchPage, searchTitle } from "../views/search.js";
 import { showcasePage } from "../views/showcase.js";
 import { esc } from "../views/util.js";
 
@@ -31,6 +39,20 @@ export async function pageRoutes(app: FastifyInstance): Promise<void> {
       title: "My Gear — Still",
       activeNav: "gear",
       body: gearPage(listGear(ctx), isAdmin),
+    });
+    return reply.type("text/html").send(html);
+  });
+
+  // Gear search: photos across all albums by exact camera/lens. Always 200 —
+  // no filter, unknown values and ignored (repeated/over-long) params all
+  // render the empty state. The title is raw; layout() escapes it.
+  app.get("/search", async (request, reply) => {
+    const ctx = ctxFromRequest(request);
+    const filters = parseSearchFilters(request.query);
+    const html = layout({
+      title: searchTitle(filters),
+      activeNav: "gear",
+      body: searchPage(searchPhotos(ctx, filters), filters),
     });
     return reply.type("text/html").send(html);
   });

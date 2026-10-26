@@ -32,7 +32,7 @@ classes written in views **and client TS** are picked up.
   `fixed z-[200] bg-paper border border-hairline shadow-lg rounded-lg`
   (`admin.ts:4-5`)
 - **Full-screen overlay:** `hidden fixed inset-0 z-50 bg-paper` +
-  `role="dialog" aria-modal="true"` (lightbox, `showcase.ts`); scrim
+  `role="dialog" aria-modal="true"` (lightbox, `photo-viewer.ts`); scrim
   `fixed inset-0 z-30 bg-ink/30`
 - **Centered modal:** root `hidden fixed inset-0 z-[100]` +
   `role="dialog" aria-modal="true" tabindex="-1"`, scrim child
@@ -40,8 +40,24 @@ classes written in views **and client TS** are picked up.
   `absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(92vw,480px)] bg-paper border border-hairline p-8`
   (`albums.ts` `albumCreateModal()`, `showcase.ts` `uploadModal()`; driven by
   `client/ts/modal.ts`)
+- **Filter chip** (removable, a plain link; `search.ts` `filterChips()`):
+  `group inline-flex items-center gap-2 max-w-full border border-hairline hover:border-ink px-3 py-1.5 font-mono transition-colors`
+  with children `text-[9px] label text-stone uppercase shrink-0` (kind label),
+  `text-[12px] text-ink truncate` (value), and an `x` icon
+  `w-3.5 h-3.5 shrink-0 text-stone group-hover:text-ink transition-colors`;
+  wrap in `<li class="max-w-full">` inside `flex flex-wrap items-center gap-2`
+- **Square photo tile** (opens the viewer; `search.ts` `resultTile()`):
+  `<button class="photo-row photo-tile relative block w-full aspect-square overflow-hidden bg-hairline" data-viewer-open data-index="…">`
+  containing `div.thumbhash.absolute.inset-0` + `img.photo-img.absolute.inset-0.w-full.h-full.object-cover`
+  with `data-src` / `data-srcset`. No ancestor may clip (focus outline)
 - **Dropzone:** `border border-dashed border-stone/50 px-6 py-10 text-center cursor-pointer transition-colors`;
   drag-over highlight adds `border-ink bg-stone/5` (`upload.ts`)
+
+`.photo-row` (component CSS) adds `content-visibility: auto` with a 600 px
+intrinsic-size fallback — right for the album stream's `<figure>`s, wrong for
+anything whose height is not content-driven. `.photo-row.photo-tile` sets
+`contain-intrinsic-size: none` for square tiles, whose height follows from
+`aspect-ratio` (like `.album`).
 
 Utility classes `.label` (0.18em tracking) / `.label-tight` (0.12em); global
 `:focus-visible` outline; `prefers-reduced-motion` block disables all

@@ -1,21 +1,24 @@
 # Album detail page (`/albums/:slug`)
 
-- Route: `src/server/routes/pages.ts:33-56` →
+- Route: `src/server/routes/pages.ts:69-92` →
   `showcasePage(album, photos, isAdmin)`.
 - View: `src/server/views/showcase.ts` —
-  `showcasePage(album, photos, isAdmin = false)` (`:166`).
-- Admin strip (`:178-192`): renders when `isAdmin` — "Long-press photo to
-  manage", a `[data-admin-status]` `role="status"` live region (`:180`, filled
+  `showcasePage(album, photos, isAdmin = false)` (`:76`).
+- Admin strip (`:85-100`): renders when `isAdmin` — "Long-press photo to
+  manage", a `[data-admin-status]` `role="status"` live region (`:90`, filled
   by `flashStatus()` in `admin.ts`), an **Upload photos** button (`data-upload-open`), link to
   `/admin/photos`, and a `POST /admin/logout` form. Natural insertion point
   for new admin actions on this page.
-- `photoRow(photo, index, isAdmin)` (`:36`) adds
+- `photoRow(photo, index, isAdmin)` (`:10`) adds
   `data-admin-photo data-photo-id="…" class="photo-row select-none"` when
-  admin (`:39-41`).
+  admin (`:13-15`).
 - Photo stream container: `#photoStream`; lightbox markup from `lightbox()`
-  (`:73`); viewer payload via
-  `<script type="application/json" id="viewer-data">` using `jsonScript()`
-  (see [client-bundling.md](client-bundling.md)).
+  and the viewer payload from `viewerDataScript(photos)`
+  (`<script type="application/json" id="viewer-data">` via `jsonScript()`),
+  both in `views/photo-viewer.ts` — shared with gear search
+  ([search-page.md](search-page.md)); see
+  [client-bundling.md](client-bundling.md). `views/showcase.test.ts`
+  snapshots the page so changes to the shared module show up here.
 - Stream `<img>`s carry `data-src` (`medium`) + `data-srcset`
   (`thumb 800w, medium 1600w`) — applied by `client/ts/lazyload.ts`; the
   lightbox alone uses the `full` (2400px) variant via the viewer payload.
