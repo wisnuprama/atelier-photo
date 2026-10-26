@@ -4,6 +4,33 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [0.8.0] - 2026-10-27
+
+### Added
+
+- Search photos by camera or lens ([`697b07b`])
+- Add My Gear page ([`823fd44`])
+- Let admin set and reset album cover ([`ccde2b2`])
+- Sort albums newest first with Discover pinned ([`0d47c46`])
+
+### Fixed
+
+- Apply size, class and a11y attributes to inlined lucide icons ([`4589de4`])
+- Album cover review follow-ups (a11y, errors, rapid toggles) ([`e509465`])
+- Escape server strings in CSV import summary ([`aa51a6c`])
+- Replace raw NUL byte in admin-photos filter key with \0 escape ([`1a9ea8f`])
+
+<!-- 0.8.0 commit links -->
+
+[`697b07b`]: https://github.com/wisnuprama/atelier-photo/commit/697b07b
+[`823fd44`]: https://github.com/wisnuprama/atelier-photo/commit/823fd44
+[`ccde2b2`]: https://github.com/wisnuprama/atelier-photo/commit/ccde2b2
+[`0d47c46`]: https://github.com/wisnuprama/atelier-photo/commit/0d47c46
+[`4589de4`]: https://github.com/wisnuprama/atelier-photo/commit/4589de4
+[`e509465`]: https://github.com/wisnuprama/atelier-photo/commit/e509465
+[`aa51a6c`]: https://github.com/wisnuprama/atelier-photo/commit/aa51a6c
+[`1a9ea8f`]: https://github.com/wisnuprama/atelier-photo/commit/1a9ea8f
+
 ## [0.7.5] - 2026-10-26
 
 ### Added
