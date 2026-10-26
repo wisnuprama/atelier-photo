@@ -18,6 +18,11 @@ Vitest (`vitest.config.ts`): `include: ["src/**/*.test.ts"]`,
 | `src/server/views/gear.test.ts` | `gearPage` structure, visitor/admin empty states, checkbox outside the link, live region, alt text, XSS, `gearSearchHref` encoding, meta/year helpers |
 | `src/server/views/layout.test.ts` | Gear link in both navs; `aria-current="page"` on exactly one link in desktop **and** mobile nav |
 | `src/client/ts/gear.test.ts` | Pure gear toggle helpers — `toggleRequest`, `targetListKey`, `moveMessage`, `insertIndex` |
+| `src/server/services/search-filters.test.ts` | Pure: `parseSearchFilters` (trim, arrays/objects ignored, 200-char cap, unknown keys), `searchHref` encoding/order/round-trip, `SEARCH_VALUE_MAX === GEAR_NAME_MAX` |
+| `src/server/services/photos.search.test.ts` | `searchPhotos` — camera/lens/AND, exact case-sensitive match, cross-album slug/name, ordering + tie-break, bound hostile values, gear indexes present (photos.ts mock set, raw-SQL inserts) |
+| `src/server/views/search.test.ts` | `searchPage` — count heading, chips + remove hrefs, viewer hooks (`.photo-row` on buttons, index order == JSON island), tiles, empty states, XSS; `searchTitle` raw |
+| `src/server/views/showcase.test.ts` | `showcasePage` file snapshots (`__snapshots__/`) guarding the `photo-viewer.ts` extraction; lightbox + `#viewer-data` + `data-viewer-open` hooks |
+| `src/server/routes/pages.search.test.ts` | `GET /search` — empty/no-match states, `+`/`%7C` decoding, AND, repeated key, over-long and malformed values, single title escape, Gear nav current |
 | `src/server/services/multipart.test.ts` | `parseMultipart` — field/file round-trip, ordering, `files` limit, empty form (hand-built multipart buffers) |
 | `src/server/views/admin-photos.test.ts` | SSR render + XSS escaping + JSON island + cover badge/button |
 | `src/client/ts/admin-photos.test.ts` | Pure model helpers (no DOM), incl. `coverAction` / `applyAlbumCover` |
@@ -40,6 +45,13 @@ transitively imports `services/ingest-limiter.ts`, whose module-level
 `createAlbum` while stubbing `ingestPhoto`, and hand-building multipart
 payloads for `app.inject`.
 
+## Pages-route harness (`pages.gear.test.ts`, `pages.search.test.ts`)
+
+Bare `Fastify()` + `@fastify/cookie` + `pageRoutes`. `pages.ts` imports
+`layout.ts`, the contact config and `plugins/session.ts`, so the config mock
+needs `adminHmacSecret`, `isProduction`, `contactEmail`, `contactGreeting`
+(and `umamiWebsiteId`, read by `layout()`; undefined is treated as off).
+
 ## Service-test mock set (`photos.test.ts:8-31`)
 
 Mocks `node:fs/promises`, `./derivatives.js`, `./exif.js`, `./thumbhash.js`,
@@ -48,7 +60,7 @@ and `sharp` — reusable for an upload-route test.
 ## Gaps
 
 No tests for `routes/admin.ts` (HMAC routes), `views/albums.ts`,
-`views/showcase.ts`, `client/ts/admin.ts`, or the DOM halves of
+`client/ts/admin.ts`, or the DOM halves of
 `client/ts/{modal,album-create,upload,gear}.ts` (vitest runs in node — only their
 pure helpers are covered).
 

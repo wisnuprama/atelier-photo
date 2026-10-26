@@ -12,9 +12,9 @@ src/server/
   db/{index.ts, migrate.ts, schema.sql, seed.ts}
   plugins/{hmac-auth.ts, session.ts, rate-limit.ts}
   routes/{pages.ts, api.ts, media.ts, admin.ts, auth.ts}
-  services/{photos.ts, gear.ts, derivatives.ts, exif.ts, thumbhash.ts, concurrency.ts,
+  services/{photos.ts, gear.ts, search-filters.ts, derivatives.ts, exif.ts, thumbhash.ts, concurrency.ts,
             ingest-limiter.ts, multipart.ts, csv.ts}
-  views/{layout.ts, albums.ts, gear.ts, showcase.ts, admin-photos.ts, admin-login.ts, contact.ts, icons.ts, util.ts}
+  views/{layout.ts, albums.ts, gear.ts, search.ts, showcase.ts, photo-viewer.ts, admin-photos.ts, admin-login.ts, contact.ts, icons.ts, util.ts}
 src/client/
   css/app.css          Tailwind v4 @theme tokens + component CSS
   ts/{main.ts, admin.ts, admin-photos.ts, album-create.ts, gear.ts, upload.ts,
