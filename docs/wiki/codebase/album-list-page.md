@@ -6,6 +6,8 @@
 - View: `src/server/views/albums.ts` — `albumCard()` (`:4`) and
   `albumsPage(albums, yearRange, isAdmin = false)` (`:53`). Grid id
   `#albumGrid`, `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6`.
+- Order: Discover first, then newest album first — from `listAlbums`, shared
+  with `GET /api/albums`.
 - Empty state: `"No albums yet."`.
 
 ## Admin UI (session only)

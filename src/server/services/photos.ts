@@ -201,13 +201,19 @@ export function getPhotoYearRange(_ctx: Ctx): Readonly<{ oldest: number; newest:
   return yearRangeCache;
 }
 
+/**
+ * Albums for `/` and `GET /api/albums`: the Discover album first, then newest
+ * first. `created_at` has 1 s resolution, so `rowid DESC` puts the later
+ * insert first on a tie (VACUUM may renumber rowids, but the code never runs
+ * it). `position` is kept for a future custom sort.
+ */
 export function listAlbums(_ctx: Ctx): AlbumWithCover[] {
   const rows = getDb()
-    .prepare<[], AlbumRow>(
+    .prepare<[string], AlbumRow>(
       `SELECT ${ALBUM_COLUMNS} FROM albums a ${COVER_JOIN}
-       ORDER BY a.position ASC, a.created_at ASC`,
+       ORDER BY (a.slug = ?) DESC, a.created_at DESC, a.rowid DESC`,
     )
-    .all();
+    .all(DEFAULT_ALBUM_SLUG);
   return rows.map(toAlbumWithCover);
 }
 
